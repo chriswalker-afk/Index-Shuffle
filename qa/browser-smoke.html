@@ -48,6 +48,10 @@
         const doc = frame.contentDocument;
         const win = frame.contentWindow;
         const $ = id => doc.getElementById(id);
+        if (new URLSearchParams(location.search).has("expect-reduced")) {
+          assert(win.matchMedia("(prefers-reduced-motion: reduce)").matches,
+            "Chrome is actually emulating reduced-motion OS settings");
+        }
         assert(Boolean($("titleScreen") && !$("titleScreen").hidden),
           "title screen is visible and app module has initialized");
         assert($("titleNew") && !($("titleNew").disabled),
