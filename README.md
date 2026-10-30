@@ -4,7 +4,11 @@
 
 ## Play
 
-Play the game at **https://chriswalker-afk.github.io/Index-Shuffle/** when the GitHub Pages deployment has completed. No account or backend is required.\n\nGitHub Pages should be configured under **Settings → Pages → Build and deployment** with **Deploy from a branch**, branch **`main`**, folder **`/(root)`**. The `.nojekyll` marker ensures GitHub Pages serves the provided `index.html` and its JavaScript/CSS without generating a README-based Jekyll website. If the old README still appears immediately after a deployment, use a hard refresh once the publishing step has finished.\n\nFor local development, serve the directory through a local HTTP server such as `python3 -m http.server 8000` and open `http://localhost:8000/` (JavaScript modules may not load from a `file://` URL).
+Play the game at **https://chriswalker-afk.github.io/Index-Shuffle/** when the GitHub Pages deployment has completed. No account or backend is required.
+
+GitHub Pages should be configured under **Settings → Pages → Build and deployment** with **Deploy from a branch**, branch **`main`**, folder **`/(root)`**. The `.nojekyll` marker ensures GitHub Pages serves the provided `index.html` and its JavaScript/CSS without generating a README-based Jekyll website. If the old README still appears immediately after a deployment, use a hard refresh once the publishing step has finished.
+
+For local development, serve the directory through a local HTTP server such as `python3 -m http.server 8000` and open `http://localhost:8000/` (JavaScript modules may not load from a `file://` URL).
 
 - Swipe the 4×4 board, use the arrow keys, WASD, or direction buttons.
 - Tiles with the same **base** merge by adding exponents: `3² × 3³ → 3⁵`. A tile only merges once per swipe.
