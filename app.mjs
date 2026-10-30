@@ -157,6 +157,7 @@ function render() {
   }
   const rogue = mode === "roguelite";
   $("currentModeName").textContent = MODE_LABELS[mode];
+  $("gameAchievements").hidden = !rogue;
   finalizeGameIfNeeded();
   $("achievementToast").hidden = !rogue || !recentAchievementIds.length;
   if (rogue && recentAchievementIds.length) {
@@ -901,6 +902,7 @@ function showAchievements() {
   openAchievementGallery(achievementProfile);
 }
 $("achievementOpen").addEventListener("click", showAchievements);
+$("gameAchievements").addEventListener("click", showAchievements);
 $("achievementToastView").addEventListener("click", showAchievements);
 $("resultsAllAchievements").addEventListener("click", showAchievements);
 $("achievementsClose").addEventListener("click",
