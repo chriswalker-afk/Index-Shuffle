@@ -5,6 +5,7 @@ import {
 } from "./shop.mjs?v=hazard-counter-v1";
 import { targetForRound } from "./roguelite.mjs?v=hazard-counter-v1";
 import { bossForRound, bossTargetFor } from "./bosses.mjs?v=hazard-counter-v1";
+import { bossPortraitFor } from "./art-catalog.mjs?v=hazard-counter-v1-art-pass1";
 
 const $ = id => document.getElementById(id);
 const itemName = entry => entry ? ITEM_BY_ID[entry.id]?.name || "Unknown item" : "Empty";
@@ -142,6 +143,17 @@ export function renderRogueliteShop(state, mode, dispatch) {
   $("shopRound").textContent = "After round " + round + " · Next: " +
     (boss ? "BOSS ROUND " : "round ") + nextRound + " of 12";
   $("shopBossPreview").hidden = !boss;
+  const portrait = boss ? bossPortraitFor(boss.id) : null;
+  $("shopBossPortrait").hidden = !portrait;
+  if (portrait) {
+    if ($("shopBossPortrait").getAttribute("src") !== portrait.src) {
+      $("shopBossPortrait").src = portrait.src;
+    }
+    $("shopBossPortrait").alt = portrait.alt;
+  } else {
+    $("shopBossPortrait").removeAttribute("src");
+    $("shopBossPortrait").alt = "";
+  }
   if (boss) {
     $("shopBossName").textContent = boss.name;
     $("shopBossRule").textContent = boss.detail;

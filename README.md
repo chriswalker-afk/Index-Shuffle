@@ -28,6 +28,8 @@ a new one instead.
 
 [Launch Index Shuffle](https://chriswalker-afk.github.io/Index-Shuffle/) once the updated game is deployed to GitHub Pages. No login, backend, or build system is required.
 
+**Visual art Pass 1 (prototype):** The [Numberworld concept gallery](https://chriswalker-afk.github.io/Index-Shuffle/art-preview.html) shows the first three original vector illustrations: the Index Merchant, The Blockade and The Five Thief. The shop banner and those two boss portraits are now wired into gameplay; the other five bosses deliberately keep text-first fallback displays. See [art direction](assets/art/ART_DIRECTION.md) for the palette, accessibility standards and upcoming passes. No rules or save keys are changed.
+
 - **Start with 10 moves left (maximum 10).** Every successful slide costs **1 move plus 1 extra move for each active blocker** at the start of the slide: no blockers = 1 move, one blocker = 2, two blockers = 3. Warning squares don't count until the blocker appears. **Merging tiles does not automatically restore moves.** Only **correctly answering and banking two powers that were genuinely created by merging** earns one move, capped at 10. The UI shows remaining moves, 0/2 or 1/2 correct-bank progress and the next slide's cost. Banking a randomly spawned power earns score but not move credit; a spawn must be merged first to qualify. An unchanged swipe costs nothing.
 - Swipe the **4×4 board**, use the arrow keys, WASD, or click the direction controls.
 - Tiles with the same **base** merge by adding exponents, for example **3² × 3³ → 3⁵**. Each tile can participate in at most one merge per swipe.

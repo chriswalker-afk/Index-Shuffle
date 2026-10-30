@@ -25,6 +25,7 @@ jobs:
           node hazards-live.tests.mjs
           node hazards-balance.tests.mjs
           node hazard-permanents.tests.mjs
+          node art-catalog.tests.mjs
       - name: Check JavaScript syntax
         run: |
           node --check engine.mjs
@@ -53,6 +54,8 @@ jobs:
           node --check hazards-live.tests.mjs
           node --check hazards-balance.tests.mjs
           node --check hazard-permanents.tests.mjs
+          node --check art-catalog.mjs
+          node --check art-catalog.tests.mjs
       - name: Verify Pages static files
         run: |
           test -f .nojekyll
@@ -71,3 +74,9 @@ jobs:
           test -f title-ui.mjs
           test -f hazards.mjs
           test -f hazard-ui.mjs
+          test -f art-catalog.mjs
+          test -f art-preview.html
+          test -f assets/art/index-merchant.svg
+          test -f assets/art/boss-blockade.svg
+          test -f assets/art/boss-five-thief.svg
+          test -f assets/art/ART_DIRECTION.md

@@ -1542,3 +1542,77 @@ details[open] > summary .chevron { transform: rotate(180deg); }
   background: linear-gradient(130deg, #264a45, #283e52);
   color: #d9ffee;
 }
+
+
+/* Numberworld art direction · Pass 1. The artwork is deliberately outside
+   the mathematical board and must never replace readable boss/offer text. */
+:root {
+  --art-ink: #152638;
+  --art-jade: #7de0cd;
+  --art-gold: #e8bb6f;
+  --art-violet: #795b97;
+  --art-ember: #d88f8d;
+}
+.shop-merchant-strip {
+  display: grid;
+  grid-template-columns: 98px minmax(0, 1fr);
+  align-items: center;
+  gap: 15px;
+  margin-top: 17px;
+  padding: 11px 17px 11px 12px;
+  overflow: hidden;
+  border: 1px solid #96765b;
+  border-radius: 16px;
+  background: radial-gradient(ellipse at 10% 50%, #d4a76d2e, transparent 52%),
+    linear-gradient(115deg, #303245, #24273b 58%, #263c45);
+}
+.shop-merchant-strip img {
+  display: block; width: 98px; height: 98px; border-radius: 13px;
+  border: 1px solid #c09a6c99; object-fit: cover;
+  box-shadow: 0 8px 21px #080e2280;
+}
+.shop-merchant-copy { min-width: 0; }
+.shop-merchant-kicker {
+  margin: 0 0 5px; color: #f3c994; font-size: 9px;
+  font-weight: 900; letter-spacing: .13em;
+}
+.shop-merchant-copy strong { font-size: clamp(16px, 2.4vw, 21px); letter-spacing: -.03em;
+  color: #f9e4bf; line-height: 1.25; }
+.shop-merchant-copy > p:last-child {
+  margin: 7px 0 0; max-width: 47ch; color: #d3d8df;
+  font-size: 12px; line-height: 1.55;
+}
+.shop-dialog .shop-explanation { margin-top: 13px; }
+.shop-boss-layout, .boss-rule-body {
+  display: flex; align-items: flex-start; gap: 13px; min-width: 0;
+}
+.shop-boss-copy, .boss-rule-copy { min-width: 0; flex: 1; }
+.shop-boss-portrait {
+  flex: none; width: 112px; height: 112px; border-radius: 13px;
+  border: 1px solid #d59c9b90; object-fit: cover;
+  box-shadow: 0 9px 23px #140a1a88;
+}
+.shop-boss-copy > p:not(.shop-boss-kicker) {
+  font-size: 12px; line-height: 1.6; color: #efd5d8; margin: 7px 0 0;
+}
+.shop-boss-copy .shop-boss-target {
+  border-top: 1px solid #805d6e; padding-top: 9px;
+  font-weight: 800; color: #ffe0c4;
+}
+.boss-rule-portrait {
+  flex: none; width: 68px; height: 68px; border-radius: 10px;
+  object-fit: cover; border: 1px solid #e6a6a68c;
+  box-shadow: 0 5px 14px #130b2180;
+}
+.boss-rule-copy .boss-rule-heading { align-items: center; }
+@media (max-width: 560px) {
+  .shop-merchant-strip { grid-template-columns: 74px minmax(0, 1fr); gap: 11px;
+    padding: 9px; }
+  .shop-merchant-strip img { width: 74px; height: 74px; border-radius: 9px; }
+  .shop-merchant-kicker { font-size: 8px; letter-spacing: .07em; }
+  .shop-merchant-copy strong { font-size: 16px; }
+  .shop-merchant-copy > p:last-child { font-size: 11px; margin-top: 3px; }
+  .shop-boss-portrait { width: 74px; height: 74px; border-radius: 9px; }
+  .shop-boss-layout, .boss-rule-body { gap: 9px; }
+  .boss-rule-portrait { width: 52px; height: 52px; }
+}
