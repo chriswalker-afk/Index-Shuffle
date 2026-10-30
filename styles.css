@@ -3284,3 +3284,41 @@ dialog.overlay > .dialog {
     animation:none !important;
   }
 }
+
+
+/* Release 5C — respect phone home indicators, native controls and users'
+   high-contrast display preferences. Feedback never depends on colour alone. */
+.shell {
+  padding-bottom: max(38px, calc(env(safe-area-inset-bottom, 0px) + 16px));
+}
+@media (forced-colors: active) {
+  .cell.bankable, .cell.item-target {
+    outline: 2px solid Highlight;
+    outline-offset: -3px;
+    border-color: Highlight;
+  }
+  .cell:focus-visible, .board:focus-visible,
+  .skip-game-board:focus-visible, .tour-reopen:focus-visible,
+  .results-share textarea:focus-visible {
+    outline: 3px solid Highlight !important;
+    outline-offset: 3px;
+  }
+  .reward-toast, .game-feedback, .save-warning,
+  .hazard-alert, .results-ending, .coach-panel,
+  .shop-runestone-status {
+    border: 2px solid CanvasText;
+  }
+  .tile-gold-mark, .prism-power-mark,
+  .enchantment-status-chip {
+    border: 1px solid CanvasText;
+  }
+}
+@media (prefers-contrast: more) {
+  .detail-hint, .coach-copy small, .activity-item span {
+    color: #e2e9fa;
+  }
+  .tour-reopen, .results-share textarea,
+  .shop-offer-card, .shop-rune-guide-card {
+    border-width: 2px;
+  }
+}
