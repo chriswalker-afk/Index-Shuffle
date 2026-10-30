@@ -37,12 +37,14 @@ import {
 } from "./milestones.mjs?v=hazard-counter-v1";
 import {
   openAchievementGallery, renderFinalScreen
-} from "./results-ui.mjs?v=frostlock-v1";
+} from "./results-ui.mjs?v=release-5b";
 import { MODE_LABELS, resumableSave } from "./navigation.mjs?v=release-5a";
 import { rescuableConsumables } from "./rescue.mjs?v=release-5a";
 import { createSafeStore } from "./save-safety.mjs?v=release-5a";
 import { validSavedBoard, sanitiseSavedGame } from "./save-validation.mjs?v=release-5a";
 import { renderNavigation } from "./title-ui.mjs?v=frostlock-v1";
+import { TOUR_STEPS, restoreActivity, appendActivity, bankMoment
+} from "./experience.mjs?v=release-5b";
 import { stageArtFor } from "./stage-art.mjs?v=hazard-counter-v1-art-pass4";
 import {
   restoreHazardLayer, hazardAt, activeHazardCount, MAX_ACTIVE_HAZARDS,
@@ -131,6 +133,98 @@ let pendingItem = null;
 // Always open on the title screen. Starting, continuing, and playing are
 // explicit navigation decisions; loading the title never writes a fake save.
 let screen = "title";
+
+// Coach preferences live outside the gameplay saves, so an optional tour
+// never rewrites an unfinished game or consumes a mathematical action.
+const TOUR_SEEN_SAVE = "index-shuffle-tour-seen-v1";
+let tourSeen = saveStore.readText(TOUR_SEEN_SAVE) === "done";
+let tourVisible = false;
+let tourStep = 0;
+let toastTimer = null;
+state.activity = restoreActivity(state.activity);
+
+function addActivity(type, message) {
+  state.activity = appendActivity(state.activity, type, message);
+}
+function hideMoment() {
+  if (toastTimer !== null) window.clearTimeout(toastTimer);
+  toastTimer = null;
+  $("rewardToast").hidden = true;
+}
+function showMoment(kind, message) {
+  hideMoment();
+  if (screen !== "game" || !message || isFinishedRun(mode, state)) return;
+  const toast = $("rewardToast");
+  toast.textContent = message;
+  toast.dataset.kind = kind;
+  toast.hidden = false;
+  toastTimer = window.setTimeout(() => {
+    toast.hidden = true;
+    toastTimer = null;
+  }, 2800);
+}
+function renderTour() {
+  const visible = screen === "game" && tourVisible &&
+    !isFinishedRun(mode, state) &&
+    (mode !== "roguelite" || state.run.phase === "playing");
+  $("coachPanel").hidden = !visible;
+  $("gameTour").setAttribute("aria-expanded", String(visible));
+  if (!visible) return;
+  const step = TOUR_STEPS[tourStep];
+  $("coachProgress").textContent = (tourStep + 1) +
+    " OF " + TOUR_STEPS.length + " · QUICK TOUR";
+  $("coachTitle").textContent = step.title;
+  $("coachInstruction").textContent = step.instruction;
+  $("coachCue").textContent = step.cue;
+  $("coachNext").textContent = tourStep === TOUR_STEPS.length - 1
+    ? "Start playing" : "Next tip";
+}
+function closeTour() {
+  tourVisible = false;
+  tourSeen = true;
+  saveStore.writeEntries([[TOUR_SEEN_SAVE, "done"]]);
+  renderTour();
+  renderSaveWarning();
+}
+function renderActivity() {
+  const list = $("activityList");
+  list.replaceChildren();
+  const entries = restoreActivity(state.activity).slice().reverse();
+  $("activityEmpty").hidden = entries.length > 0;
+  const labels = {
+    merge: "Merge", bank: "Bank", gold: "Gold", blocker: "Blocker",
+    hazard: "Hazard", runestone: "Runestone", item: "Item",
+    shop: "Shop", round: "Round", system: "Game"
+  };
+  for (const event of entries) {
+    const item = document.createElement("li");
+    item.className = "activity-item";
+    item.dataset.kind = event.type;
+    const label = document.createElement("strong");
+    label.textContent = labels[event.type];
+    const detail = document.createElement("span");
+    detail.textContent = event.message;
+    item.append(label, detail);
+    list.append(item);
+  }
+}
+$("gameTour").addEventListener("click", () => {
+  if (screen !== "game" || pending || pendingItem || isFinishedRun(mode, state)) return;
+  if (tourVisible) closeTour();
+  else {
+    tourStep = 0;
+    tourVisible = true;
+    renderTour();
+  }
+});
+$("coachNext").addEventListener("click", () => {
+  if (!tourVisible) return;
+  if (tourStep < TOUR_STEPS.length - 1) {
+    tourStep++;
+    renderTour();
+  } else closeTour();
+});
+$("coachSkip").addEventListener("click", closeTour);
 
 const FROST_LABELS = Object.freeze({
   left: "LEFT ←", up: "UP ↑", down: "DOWN ↓", right: "RIGHT →"
@@ -223,6 +317,10 @@ function finalizeGameIfNeeded() {
       recentAchievementIds = awarded.unlockedNow;
     }
   }
+  addActivity("system", mode === "roguelite" && state.run.phase === "victory"
+    ? "All 12 rounds complete. Final boss defeated!"
+    : state.movesLeft === 0 ? "Run ended: no moves remaining."
+      : "Run ended: no legal actions remain.");
   state.resultsFinalized = true;
 }
 
@@ -232,6 +330,7 @@ function tileContent(t, badge = "") {
 function render() {
   renderNavigation(screen, saved("classic"), saved("roguelite"),
     mode, achievementProfile, resumeSavedGame);
+  renderTour();
   // Optional maths and game guides always reflect the selected saved run.
   $("helpBankSeconds").textContent = currentBankSeconds();
   $("mathsBankSeconds").textContent = currentBankSeconds();
@@ -705,6 +804,7 @@ function render() {
     canActivateConsumable(state, slot));
   renderRogueliteShop(state, mode, applyShopAction);
   renderFinalScreen(mode, state, achievementProfile);
+  renderActivity();
   // The title screen must not create/overwrite a game save on first load.
   if (screen === "game") persist();
   renderSaveWarning();
@@ -791,6 +891,7 @@ function move(direction) {
     render();
     return;
   }
+  hideMoment();
   const before = state.board.slice();
   const beforeHazards = mode === "roguelite" ? state.hazards.slice() : null;
   let result = slide(before, direction, currentMovementRules());
@@ -942,9 +1043,25 @@ function move(direction) {
   const newFreeze = rollFrostlockAfterAction();
   if (newFreeze) news.unshift("❄ Frostlock now freezes " +
     FROST_LABELS[newFreeze] + ". No moves are charged for frozen inputs.");
-  state.notice = news.slice(0, 2).join(" ");
+  const mergeCount = result.mergeDestinations.length;
+  if (mergeCount) addActivity("merge", mergeCount +
+    (mergeCount === 1 ? " new power merged. " : " new powers merged. ") +
+    "Bank merged powers correctly to earn points and move credit.");
+  for (const message of news.slice(0, 3)) {
+    const eventKind = /foundry|prism|mint|sanctuary|echo|shatter/i.test(message)
+      ? "runestone" : /hazard|cloudy|void|cracked|null|greedy|watch out/i.test(message)
+        ? "hazard" : /blocker|curse/i.test(message) ? "blocker"
+          : /base unlocked/i.test(message) ? "round" : "system";
+    addActivity(eventKind, message);
+  }
+  state.notice = news.slice(0, 2).join(" ") || (mergeCount
+    ? "Merge complete! Select a glowing power and solve it to score." : "");
   state.over = currentGameEnded();
   render();
+  if (mergeCount) showMoment("merge", "✦ " + mergeCount +
+    (mergeCount === 1 ? " new power formed" : " new powers formed") +
+    " · Bank to earn points");
+  else if (news.length && !state.over) showMoment("event", news[0]);
   animateSlide(before, result.motions, new Set(result.mergeDestinations),
     spawned.spawned, result.damaged, result.destroyed,
     spawned.blockerAt, spawned.warningAt, beforeHazards,
@@ -1017,6 +1134,7 @@ function openBank(i) {
   if (!isBankable(t, new Set(state.banked), i, new Set(state.locked),
       mode === "roguelite" ? state.hazards : null,
       mode === "roguelite" ? state.enchantments : null)) return;
+  hideMoment();
   const enchanted = enchantedPreview(i, t);
   const bankLimit = Math.min(60, currentBankSeconds() +
     (enchanted?.extraSeconds || 0));
@@ -1104,6 +1222,7 @@ function lockPending(reason) {
     : reason === "cancel"
       ? "Banking cancelled. Slide once before retrying that tile."
       : "Not quite. That tile is locked until your next successful slide.";
+  addActivity("system", state.notice);
   state.over = currentGameEnded();
   render();
   focusAfterBank(i);
@@ -1238,9 +1357,32 @@ $("bankForm").addEventListener("submit", event => {
   } else {
     state.stats = recordRunStats(state.stats, bankEvent);
   }
+  addActivity("bank", "Correctly banked " + t.base + glyph(t.exp) +
+    " · +" + points.points + " points.");
+  if (mode === "roguelite" && points.bankGold > 0)
+    addActivity("gold", "+" + points.bankGold + " gold from this bank.");
+  if (redeemedRuneType)
+    addActivity("runestone", ENCHANTMENT_DEFINITIONS[redeemedRuneType].name +
+      " activated on a correct bank.");
+  if (destroyed.length)
+    addActivity("blocker", destroyed.length +
+      (destroyed.length === 1 ? " blocker destroyed." : " blockers destroyed."));
+  else if (damaged.length)
+    addActivity("blocker", "Correct bank damaged " + damaged.length +
+      (damaged.length === 1 ? " blocker." : " blockers."));
+  if (award.earned) addActivity("round", "+" + award.earned +
+    " move earned by two correctly banked merges.");
+  if (mode === "roguelite" && points.cleared)
+    addActivity("round", state.run.phase === "victory"
+      ? "All 12 rounds cleared. Final boss defeated!"
+      : "Round " + state.run.round + " cleared. Shop unlocked.");
   state.over = mode === "roguelite" && state.run.phase !== "playing" ? false :
     currentGameEnded();
   render();
+  showMoment("bank", bankMoment({
+    points: points.points, coins: points.bankGold || 0,
+    moves: award.earned || 0, blockers: destroyed.length
+  }));
   focusAfterBank(i);
   if (!prefersReducedMotion()) {
     $("board").children[i]?.classList.add("bank-flash");
@@ -1288,6 +1430,7 @@ function loadSavedGame(snapshot) {
   const previous = state;
   try {
     state = sanitiseSavedGame(snapshot);
+    state.activity = restoreActivity(state.activity);
     Object.assign(state, restoreMoveBudget(state));
     if (mode === "roguelite") {
       state.run = restoreEffectState(restoreShopState(
@@ -1323,6 +1466,11 @@ function beginNewMode(selected, skipConfirmation = false) {
   rememberMode(mode);
   const best = Number.isSafeInteger(previous?.best) ? previous.best : 0;
   state = mode === "roguelite" ? newRogueliteRun(best) : fresh(best);
+  state.activity = [];
+  $("resultsCopyStatus").textContent = "";
+  tourStep = 0;
+  tourVisible = !tourSeen;
+  hideMoment();
   screen = "game";
   render();
   $("headerTitle").focus();
@@ -1346,6 +1494,8 @@ function resumeSavedGame(selected) {
     return;
   }
   rememberMode(mode);
+  tourVisible = false;
+  hideMoment();
   screen = "game";
   render();
   // A Roguelike shop resumes in its modal, including its existing stock.
@@ -1358,6 +1508,8 @@ function returnToTitle() {
     persist();
   }
   closeNavigationDialogs();
+  hideMoment();
+  tourVisible = false;
   screen = "title";
   render();
   $("titleNew").focus();
@@ -1380,11 +1532,14 @@ function cancelConsumable() {
 $("itemCancel").addEventListener("click", cancelConsumable);
 
 function activateConsumable(slot, targets) {
+  let activated = false;
   try {
     const next = useConsumable(state, slot, targets);
+    activated = true;
     state = next;
     pendingItem = null;
     recentAchievementIds = [];
+    addActivity("item", state.notice);
     awardRunEvent({ type: "consumable" });
     const newFreeze = rollFrostlockAfterAction();
     if (newFreeze) state.notice += " ❄ Frozen now: " + FROST_LABELS[newFreeze] + ".";
@@ -1394,6 +1549,7 @@ function activateConsumable(slot, targets) {
     state.notice = error instanceof Error ? error.message : "Unable to use that item.";
   }
   render();
+  if (activated) showMoment("item", state.notice);
 }
 
 function beginConsumable(slot) {
@@ -1448,6 +1604,20 @@ $("viewResults").addEventListener("click", () => {
   state.resultsDismissed = false;
   render();
 });
+$("resultsCopy").addEventListener("click", async () => {
+  const text = $("resultsShareText").value;
+  if (!text || !isFinishedRun(mode, state)) return;
+  try {
+    if (!navigator.clipboard?.writeText) throw new Error("Clipboard unavailable");
+    await navigator.clipboard.writeText(text);
+    $("resultsCopyStatus").textContent = "Results copied. Share them wherever you like.";
+  } catch {
+    $("resultsShareText").focus();
+    $("resultsShareText").select();
+    $("resultsCopyStatus").textContent =
+      "Copy automatically is unavailable here. Your summary is selected; copy it manually.";
+  }
+});
 function showAchievements() {
   openAchievementGallery(achievementProfile);
 }
@@ -1471,6 +1641,7 @@ function applyShopAction(reducer, kind = null) {
     if (kind === "purchase") {
       awardRunEvent({ type: "purchase",
         fullBuild: state.run.inventory.permanents.every(Boolean) });
+      addActivity("shop", state.run.shop.notice || "New upgrade purchased.");
     }
   } catch (error) {
     state.run.shop.notice = error instanceof Error ? error.message : "Unable to complete that action.";
@@ -1518,6 +1689,8 @@ $("shopContinue").addEventListener("click", () => {
   if (mode !== "roguelite" || state.run.phase !== "shop") return;
   stopMotion();
   state = advanceRogueliteRound(state, Math.random, goldChancesForRun(state.run));
+  addActivity("round", "Round " + state.run.round +
+    " began. Bank correctly to reach the target.");
   recentAchievementIds = [];
   render();
   const boss = bossForRound(state.run);

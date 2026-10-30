@@ -63,8 +63,37 @@
         await width(390);
         $("titleNew").click();
         assert(!$("newGameScreen").hidden, "mode selection opens");
+        const tourPreviouslySeen =
+          win.localStorage.getItem("index-shuffle-tour-seen-v1") === "done";
         $("modeClassic").click();
         assert(!$("gameScreen").hidden, "Classic game starts");
+        if (!tourPreviouslySeen) {
+          assert(!$("coachPanel").hidden,
+            "first new game offers the optional guided introduction");
+        } else {
+          $("gameTour").click();
+        }
+        assert(!$("coachPanel").hidden && $("coachNext").textContent === "Next tip",
+          "optional first-play guide is readable and does not block gameplay");
+        $("coachNext").click();
+        assert($("coachProgress").textContent.startsWith("2 OF 3") &&
+          $("coachInstruction").textContent.includes("correct answer"),
+          "tour teaches exact-answer banking before explaining move recovery");
+        $("coachNext").click();
+        assert($("coachProgress").textContent.startsWith("3 OF 3"),
+          "tour explains earned moves and blocker damage");
+        $("coachSkip").click();
+        assert($("coachPanel").hidden &&
+          win.localStorage.getItem("index-shuffle-tour-seen-v1") === "done",
+          "skipping hides the guide and remembers the choice");
+        $("gameTour").click();
+        assert(!$("coachPanel").hidden && $("gameTour").getAttribute("aria-expanded") === "true",
+          "quick tour can be reopened on demand");
+        $("coachSkip").click();
+        assert($("coachPanel").hidden, "reopened quick tour is dismissible");
+        assert($("activityDetails") instanceof win.HTMLDetailsElement &&
+          $("activityList") instanceof win.HTMLOListElement,
+          "recent events are optional, accessible and outside the board");
         assert($("stageScene").hidden, "Classic is not decorated with a Roguelike stage");
         const board = $("board");
         assert(board.getAttribute("role") === "group", "board is an accessible group");
@@ -268,6 +297,48 @@
         assert(!$("modal").open, "Escape closes the banking question");
         assert(JSON.parse(win.localStorage.getItem(key)).locked.includes(0),
           "Escape cancels and persists the one-slide banking lock");
+        assert($("activityList").textContent.includes("Banking cancelled"),
+          "cancelled maths question appears in the optional recent-events history");
+        const withHistory = JSON.parse(win.localStorage.getItem(key));
+        assert(withHistory.activity?.some(e => e.type === "system"),
+          "recent activity survives a save as bounded, serialisable data");
+
+        // Cause a genuine final move-budget loss without bypassing the
+        // real engine, then inspect the honest final screen and share text.
+        $("headerTitle").click();
+        const classicKey = "index-shuffle-v1";
+        const classicState = JSON.parse(win.localStorage.getItem(classicKey));
+        assert(Boolean(classicState), "Classic save remains independent");
+        classicState.board = Array(16).fill(null);
+        classicState.board[5] = { base: 2, exp: 1 };
+        classicState.movesLeft = 1;
+        classicState.over = false;
+        classicState.banked = [];
+        classicState.locked = [];
+        classicState.mergeReady = [];
+        win.localStorage.setItem(classicKey, JSON.stringify(classicState));
+        $("titleContinue").click();
+        const classicButton = [...$("continueSlots").querySelectorAll("button")]
+          .find(b => b.getAttribute("aria-label")?.includes("Classic"));
+        assert(Boolean(classicButton), "Classic one-move save can resume");
+        classicButton.click();
+        await tick();
+        assert($("coachPanel").hidden, "a resumed game is never interrupted by onboarding");
+        doc.dispatchEvent(new win.KeyboardEvent("keydown", {
+          key: "ArrowRight", bubbles: true, cancelable: true
+        }));
+        await tick();
+        assert($("resultsDialog").open, "actual last move opens final results");
+        assert($("resultsEndingTitle").textContent === "Out of moves",
+          "final screen explains the real loss condition");
+        assert($("resultsHighlight").textContent.length > 5,
+          "final screen names a grounded highlight");
+        const share = $("resultsShareText").value;
+        assert(share.includes("INDEX SHUFFLE · Classic") &&
+          share.includes("Score:") && share.includes("Correct banks:"),
+          "share summary describes the actual completed Classic run");
+        assert($("resultsCopy") instanceof win.HTMLButtonElement,
+          "results can be copied without taking the player offsite");
         finish("pass", logs.length + " interactive layout/semantics checks");
       } catch (error) {
         finish("fail", String(error && error.stack || error));

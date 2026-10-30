@@ -3163,3 +3163,124 @@ dialog.overlay > .dialog {
 @media (max-width: 580px) {
   .save-warning { padding: 9px 11px; font-size: 11px; }
 }
+
+
+/* Release Pass 5B — optional, compact player guidance and clear rewards. */
+.playing-actions { display:flex; flex-wrap:wrap; align-items:center; justify-content:flex-end; gap:8px; }
+.tour-reopen {
+  min-height:39px; border:1px solid #5a7586; border-radius:10px;
+  background:#1e3748; color:#d8f4e9; padding:8px 12px;
+  font-size:12px; font-weight:850;
+}
+.tour-reopen:hover { background:#295062; border-color:#8edcce; }
+.tour-reopen[aria-expanded="true"] { border-color:#e9d197; color:#ffe9b2; }
+.coach-panel {
+  display:grid; grid-template-columns:minmax(0,1fr) auto;
+  align-items:center; gap:15px; margin:0 0 15px; padding:16px 18px;
+  border:1px solid #c4a979; border-radius:15px;
+  background:radial-gradient(circle at 0 0,#434060,transparent 70%),#233448;
+  box-shadow:0 8px 18px #080d1d5c;
+}
+.coach-copy { min-width:0; }
+.coach-kicker {
+  display:block; font-size:10px; letter-spacing:.12em;
+  color:#ffe4a3; font-weight:900;
+}
+.coach-copy h2 { color:#f8f4f5; font-size:19px; margin:4px 0 6px; }
+.coach-copy p { margin:0; font-size:12px; color:#e0eaf0; line-height:1.6; }
+.coach-copy small {
+  display:block; margin-top:8px; color:#a9efdc;
+  font-size:11px; font-weight:700; line-height:1.4;
+}
+.coach-actions { display:flex; flex-direction:column; gap:8px; }
+.coach-actions button { min-height:38px; min-width:115px; font-size:11px; }
+.reward-toast {
+  margin:-4px 0 11px; padding:10px 12px; line-height:1.5;
+  background:#243c4c; border:1px solid #a3e5c7; border-left:4px solid #b1f2d9;
+  border-radius:10px; color:#e7fff5; font-size:12px; font-weight:850;
+  animation:reward-entrance .24s ease-out both;
+}
+.reward-toast[data-kind="bank"] {
+  background:linear-gradient(100deg,#463949,#2a4448);
+  border-color:#edd091; border-left-color:#ffe0a2; color:#ffefc4;
+}
+.reward-toast[data-kind="event"] {
+  background:#3b354b; border-color:#c5a7e5; color:#f2e9ff;
+}
+@keyframes reward-entrance {
+  from { opacity:.35; transform:translateY(-4px); }
+  to { opacity:1; transform:translateY(0); }
+}
+.activity-list {
+  list-style:none; padding:0; margin:0;
+  display:flex; flex-direction:column; gap:7px;
+  max-height:290px; overflow-y:auto;
+}
+.activity-item {
+  display:grid; gap:3px; margin:0; padding:9px 10px;
+  border:1px solid #3d516b; border-left:3px solid #86c7c3;
+  border-radius:8px; background:#18283f;
+  line-height:1.4;
+}
+.activity-item strong {
+  font-size:9px; letter-spacing:.1em; text-transform:uppercase; color:#a8e9d6;
+}
+.activity-item span { font-size:11px; color:#d7e3f3; overflow-wrap:anywhere; }
+.activity-item[data-kind="bank"],.activity-item[data-kind="gold"] { border-left-color:#e5c17f; }
+.activity-item[data-kind="bank"] strong,.activity-item[data-kind="gold"] strong { color:#f1dba5; }
+.activity-item[data-kind="hazard"],.activity-item[data-kind="blocker"] { border-left-color:#ecaaa0; }
+.activity-item[data-kind="hazard"] strong,.activity-item[data-kind="blocker"] strong { color:#ffd4c0; }
+.activity-item[data-kind="runestone"] { border-left-color:#bdadf3; }
+.activity-item[data-kind="runestone"] strong { color:#ddceff; }
+.results-ending {
+  margin:13px 0 15px; padding:12px 14px;
+  background:#202e44; border:1px solid #4d6582;
+  border-radius:12px;
+}
+.results-ending strong { font-size:13px; color:#ffe1a1; }
+.results-ending p { margin:5px 0 0; font-size:12px; line-height:1.55; color:#c7dbea; }
+.results-highlight {
+  margin:4px 0 15px; font-size:13px; text-align:center;
+  font-weight:850; color:#ffe2a6;
+}
+.results-dialog.victory .results-ending {
+  border-color:#e7d08b; background:linear-gradient(125deg,#3d3d50,#23454c);
+}
+.results-dialog.victory .results-score-hero {
+  animation:final-score-glow 1.6s ease-in-out 2;
+}
+@keyframes final-score-glow {
+  0%,100% { box-shadow:0 0 0 0 #f3d99200; }
+  50% { box-shadow:0 0 0 6px #f3d99238; }
+}
+.results-share {
+  margin:14px 0 19px; padding:11px 13px;
+  border:1px solid #536c81; border-radius:10px;
+  background:#1a2a40;
+}
+.results-share summary {
+  cursor:pointer; color:#c9f3e6; font-weight:850; font-size:12px;
+}
+.results-share label { display:block; margin:12px 0 7px; font-size:11px; color:#c3d5e5; }
+.results-share textarea {
+  width:100%; min-height:155px; resize:vertical;
+  padding:10px; border:1px solid #7c92a8; border-radius:9px;
+  font:12px/1.5 ui-monospace,monospace;
+  color:#ebf3fc; background:#0f1b2d;
+}
+.results-share button { display:block; margin-top:9px; min-height:38px; font-size:12px; }
+#resultsCopyStatus { margin:8px 0 0; min-height:14px; font-size:11px; color:#a3e9d5; }
+@media (max-width:650px) {
+  .coach-panel { grid-template-columns:1fr; padding:13px; gap:12px; }
+  .coach-actions { flex-direction:row; flex-wrap:wrap; }
+  .coach-actions button { flex:1; min-width:100px; }
+  .playing-actions { gap:5px; }
+  .playing-head { flex-wrap:wrap; }
+  .tour-reopen { font-size:11px; padding:7px 10px; }
+  .reward-toast { font-size:11px; }
+}
+@media (prefers-reduced-motion:reduce) {
+  .reward-toast, .results-dialog.victory .results-score-hero {
+    animation:none !important;
+  }
+}

@@ -62,8 +62,8 @@ assert.match(resultsUI, /finalBoss = rogue && summary\.won \? bossForRound\(stat
 assert.match(resultsUI, /\$\("resultsBossVictory"\)\.hidden = !finalBoss/);
 assert.match(shopUI, /\$\("shopBossPreview"\)\.dataset\.boss = boss\?\.id/);
 assert.match(app, /\$\("bossRule"\)\.dataset\.boss = boss\?\.id/);
-assert.match(html, /styles\.css\?v=release-5a/);
-assert.match(html, /app\.mjs\?v=release-5a/);
+assert.match(html, /styles\.css\?v=release-5b/);
+assert.match(html, /app\.mjs\?v=release-5b/);
 assert.match(gallery, /BOSS_CATALOG/);
 assert.match(gallery, /bossPortraitFor\(boss\.id\)/);
 assert.match(gallery, /dialog\.showModal\(\)/);

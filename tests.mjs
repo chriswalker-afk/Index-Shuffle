@@ -343,7 +343,7 @@ assert.match(uiSource,
 assert.match(uiSource, /\$\("movesLeft"\)\.textContent = state\.movesLeft/,
   "the counter in the UI must be updated after each render");
 assert.match(page, /id="movesLeft"/);
-assert.match(page, /app\.mjs\?v=release-5a/);
+assert.match(page, /app\.mjs\?v=release-5b/);
 assert.match(uiSource, /engine\.mjs\?v=runestones-pass2/);
 assert.match(page, /Correct merged-power banks/);
 
@@ -362,7 +362,7 @@ assert.match(page, /data-help="how"/);
 assert.match(page, /data-help="maths"/);
 assert.match(page, /id="bonusMeter"[^>]*max="2"/);
 assert.match(page, /id="endActions"[^>]*hidden/);
-assert.match(page, /styles\.css\?v=release-5a/);
+assert.match(page, /styles\.css\?v=release-5b/);
 assert.match(style, /grid-template-areas: "board hud" "board secondary"/);
 assert.match(style, /grid-template-areas: "hud" "board" "secondary"/);
 assert.match(uiSource, /\$\("helpDialog"\)\.showModal\(\)/);
