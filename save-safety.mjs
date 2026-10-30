@@ -6,17 +6,18 @@ export function createSafeStore(openStorage) {
     throw new TypeError("A storage provider function is required");
   }
   const memory = new Map();
+  const dirty = new Set(); // Failed writes must prefer the newer in-tab copy.
   const corrupted = new Set();
   let unavailable = false;
 
   function readText(key) {
     if (corrupted.has(key)) return null;
-    if (memory.has(key)) return memory.get(key);
+    if (dirty.has(key)) return memory.get(key) ?? null;
     try {
       return openStorage().getItem(key);
     } catch {
       unavailable = true;
-      return null;
+      return memory.get(key) ?? null;
     }
   }
   function readJSON(key) {
@@ -41,8 +42,10 @@ export function createSafeStore(openStorage) {
       memory.set(key, value);
       try {
         openStorage().setItem(key, value);
+        dirty.delete(key);
         corrupted.delete(key);
       } catch {
+        dirty.add(key);
         unavailable = true;
         okay = false;
       }
