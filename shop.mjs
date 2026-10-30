@@ -1,14 +1,13 @@
-// Pass 3 shop / two-slot inventory system. No item gameplay effects run yet.
+// Roguelite shop and two-slot inventory system. Gameplay effects are applied in effects.mjs.
 // Pure reducers make purchases, resale, replacement and rerolls testable.
-import { validRogueliteRun } from "./roguelite.mjs?v=roguelite-pass3-v1";
+import { validRogueliteRun } from "./roguelite.mjs?v=roguelite-pass4-v1";
 
 export const INVENTORY_SLOTS = 2;
 export const SHOP_OFFERS_PER_TYPE = 2;
 export const INITIAL_REROLL_COST = 1;
 export const SHOP_TYPES = Object.freeze(["permanents", "consumables"]);
 
-// IDs and prices stay stable for saved runs. Pass 4 can attach each effect
-// to these identifiers without migrating existing player purchases.
+// Stable IDs and purchase prices ensure upgrades survive save migrations.
 export const ITEM_CATALOG = Object.freeze([
   { id: "opening-act", name: "Opening Act", type: "permanents", price: 6, description: "First scored power each round earns double points." },
   { id: "twin-twos", name: "Twin Twos", type: "permanents", price: 6, description: "First two correctly banked base-2 powers each round score double." },
@@ -18,7 +17,7 @@ export const ITEM_CATALOG = Object.freeze([
   { id: "square-specialist", name: "Square Specialist", type: "permanents", price: 4, description: "Banking squares earns 1 bonus point." },
   { id: "five-alive", name: "Five Alive", type: "permanents", price: 4, description: "Base-5 powers score double points." },
   { id: "variety-bonus", name: "Variety Bonus", type: "permanents", price: 6, description: "Bank a different base from last time for 2 extra points." },
-  { id: "golden-calculator", name: "Golden Calculator", type: "permanents", price: 7, description: "Each successfully banked golden power earns an extra coin." },
+  { id: "golden-calculator", name: "Golden Calculator", type: "permanents", price: 7, description: "Each correctly banked merged golden power earns an extra coin." },
   { id: "blockbuster", name: "Blockbuster", type: "permanents", price: 6, description: "Correctly banked merged powers deal an extra hit to adjacent blockers." },
   { id: "lucky-spawn", name: "Lucky Spawn", type: "permanents", price: 8, description: "New tiles have a higher chance of being golden." },
   { id: "bulk-discount", name: "Bulk Discount", type: "permanents", price: 7, description: "All future shop items cost one coin less (minimum one)." },
@@ -36,6 +35,16 @@ export const ITEM_CATALOG = Object.freeze([
 export const ITEM_BY_ID = Object.freeze(
   Object.fromEntries(ITEM_CATALOG.map(item => [item.id, item]))
 );
+
+// The permanent discount applies only when it was already equipped before
+// this purchase. Refunds use the actual amount paid, not the catalogue price.
+export function shopItemPrice(run, itemOrId) {
+  const item = typeof itemOrId === "string" ? ITEM_BY_ID[itemOrId] : itemOrId;
+  if (!item || !ITEM_BY_ID[item.id]) throw new RangeError("Unknown shop item");
+  const discounted = run?.inventory?.permanents?.some(entry =>
+    entry?.id === "bulk-discount");
+  return Math.max(1, item.price - (discounted ? 1 : 0));
+}
 
 export function emptyInventory() {
   return { permanents: [null, null], consumables: [null, null] };
@@ -185,22 +194,23 @@ export function purchaseShopOffer(state, type, offerIndex, replaceSlot = null) {
   const replaced = owned[slot];
   const refund = replaced && type === "permanents"
     ? Math.floor(replaced.pricePaid / 2) : 0;
-  if (run.coins + refund < item.price) throw new RangeError("Not enough coins");
+  const price = shopItemPrice(run, item);
+  if (run.coins + refund < price) throw new RangeError("Not enough coins");
   const inventory = {
     ...run.inventory,
     [type]: owned.map((entry, index) =>
-      index === slot ? { id: item.id, pricePaid: item.price } : entry)
+      index === slot ? { id: item.id, pricePaid: price } : entry)
   };
   const shop = {
     ...run.shop, [type]: run.shop[type].map((id, index) =>
       index === offerIndex ? null : id),
     notice: replaced
       ? "Replaced " + ITEM_BY_ID[replaced.id].name + " with " + item.name + "."
-      : "Bought " + item.name + " for " + item.price + " coins."
+      : "Bought " + item.name + " for " + price + " coins."
   };
   return {
     ...state,
-    run: { ...run, coins: run.coins + refund - item.price, inventory, shop }
+    run: { ...run, coins: run.coins + refund - price, inventory, shop }
   };
 }
 

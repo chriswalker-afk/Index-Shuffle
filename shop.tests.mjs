@@ -228,7 +228,7 @@ for (const id of [
   assert.match(html, new RegExp('id="' + id + '"'), "Missing shop DOM: " + id);
 }
 assert.match(app, /enterRogueliteShop\(state\)/);
-assert.match(app, /advanceRogueliteRound\(state\)/);
+assert.match(app, /advanceRogueliteRound\(state, Math\.random, goldChancesForRun\(state\.run\)\)/);
 assert.match(app, /renderRogueliteShop\(state, mode, applyShopAction\)/);
 assert.match(app, /shopDialog"\)\.addEventListener\("cancel", event => event\.preventDefault\(\)\)/);
 assert.match(app, /restoreShopState\(/);
@@ -240,5 +240,5 @@ assert.match(ui, /sellPermanent\(value, slot\)/);
 assert.match(ui, /discardConsumable\(value, slot\)/);
 assert.match(css, /\.shop-dialog\s*\{/);
 assert.match(css, /\.shop-offers\s*\{/);
-assert.match(html, /Item effects are coming in Pass 4/);
+assert.match(html, /Permanent bonuses apply automatically/);
 console.log("All Index Shuffle shop / inventory Pass 3 tests passed.");

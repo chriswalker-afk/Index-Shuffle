@@ -124,7 +124,7 @@ const html = readFileSync("index.html", "utf8");
 assert.match(app, /index-shuffle-v1/);
 assert.match(app, /index-shuffle-roguelite-v1/);
 assert.match(app, /recordRogueliteBank\(state\.run, state\.score, t,\s*\{/);
-assert.match(app, /advanceRogueliteRound\(state\)/);
+assert.match(app, /advanceRogueliteRound\(state, Math\.random, goldChancesForRun\(state\.run\)\)/);
 assert.match(app, /state\.run\.totalSlides\s*\+=\s*1/);
 assert.match(app, /state\.over\s*=\s*gameEnded/);
 assert.match(html, /id="modeClassic"/);
@@ -240,7 +240,7 @@ assert.equal(restoreRogueliteRun(migrated, 6).coins, 5);
 assert.equal(restoreRogueliteRun({
   round: 2, totalScore: 2, totalSlides: 5, phase: "playing"
 }, 4).coins, 0);
-assert.match(app, /markGoldSpawns\(spawned\.board, spawned\.spawned, state\.run\.goldDryStreak\)/);
+assert.match(app, /markGoldSpawns\(spawned\.board, spawned\.spawned,\s*state\.run\.goldDryStreak/);
 assert.match(app, /merged: outcome\.creditedMerge, movesLeft: state\.movesLeft/);
 assert.match(html, /id="rogueCoins"/);
 assert.match(html, /id="roundSpareCoins"/);

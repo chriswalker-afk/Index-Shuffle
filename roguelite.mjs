@@ -1,7 +1,7 @@
 // Roguelite progression and economy. Classic keeps its original scoring and rules.
 import {
   initial, INITIAL_MOVES_LEFT, MAX_MOVES_LEFT, BUDGET_RULES_VERSION
-} from "./engine.mjs?v=roguelite-pass3-v1";
+} from "./engine.mjs?v=roguelite-pass4-v1";
 
 export const ROUND_TARGETS = Object.freeze([
   8, 11, 14, 17, 20, 24, 28, 33, 39, 45, 52, 60
@@ -39,12 +39,19 @@ export function goldTier(power) {
 // tiles appeared during a slide. A gold opportunity is guaranteed on the
 // sixth successful slide if the preceding five produced no gold.
 export function markGoldSpawns(board, spawnedIndices, dryStreak = 0,
-  rng = Math.random, countAsSlide = true) {
+  rng = Math.random, countAsSlide = true, rates = null) {
   if (!Array.isArray(board) || board.length !== 16 ||
       !Array.isArray(spawnedIndices) ||
       !Number.isSafeInteger(dryStreak) || dryStreak < 0 ||
       typeof rng !== "function") {
     throw new RangeError("Invalid gold spawn inputs");
+  }
+  const defaultChance = GOLD_SPAWN_CHANCE;
+  const baseChance = rates?.baseChance ?? defaultChance;
+  const sevenChance = rates?.sevenChance ?? baseChance;
+  if (![baseChance, sevenChance].every(rate =>
+    Number.isFinite(rate) && rate >= 0 && rate <= 1)) {
+    throw new RangeError("Invalid gold spawn probabilities");
   }
   const next = board.slice();
   const unique = [...new Set(spawnedIndices)];
@@ -56,7 +63,8 @@ export function markGoldSpawns(board, spawnedIndices, dryStreak = 0,
       throw new RangeError("Gold may only be added to new ordinary number tiles");
     }
     const force = dryStreak >= GOLD_PITY_SLIDES && goldSpawned === 0;
-    if (force || rng() < GOLD_SPAWN_CHANCE) {
+    const chance = board[index].base === 7 ? sevenChance : baseChance;
+    if (force || rng() < chance) {
       next[index] = { ...board[index], gold: 1 };
       goldSpawned++;
     }
@@ -68,10 +76,10 @@ export function markGoldSpawns(board, spawnedIndices, dryStreak = 0,
   };
 }
 
-function startingBoard(rng, progress = 0) {
+function startingBoard(rng, progress = 0, rates = null) {
   const board = initial(rng, progress);
   const indices = board.map((value, index) => value ? index : -1).filter(i => i >= 0);
-  return markGoldSpawns(board, indices, 0, rng, false).board;
+  return markGoldSpawns(board, indices, 0, rng, false, rates).board;
 }
 
 // A golden tile must first participate in a REAL merge, then be banked
@@ -155,6 +163,8 @@ export function newRogueliteRun(best = 0, rng = Math.random) {
       round: 1, totalScore: 0, totalSlides: 0, phase: "playing",
       coins: 0, totalCoinsEarned: 0, roundBankCoins: 0,
       goldDryStreak: 0, lastRoundReward: null,
+      scoredBanks: 0, twosBanked: 0, lastBankBase: null,
+      protectionSlides: 0, blockerDelay: 0,
       inventory: { permanents: [null, null], consumables: [null, null] },
       shop: null
     }
@@ -165,15 +175,22 @@ export function newRogueliteRun(best = 0, rng = Math.random) {
 // final successful bank also awards the spare-move bonus, including any
 // +1 move earned by that bank before this function is called.
 export function recordRogueliteBank(run, previousScore, power,
-  { merged = false, movesLeft = 0 } = {}) {
+  { merged = false, movesLeft = 0, scoreOverride = null,
+    extraCoins = 0, counters = null } = {}) {
   if (!validRogueliteRun(run) || run.phase !== "playing" ||
       !Number.isSafeInteger(previousScore) || previousScore < 0 ||
-      typeof merged !== "boolean") {
+      typeof merged !== "boolean" || (scoreOverride !== null &&
+        (!Number.isSafeInteger(scoreOverride) || scoreOverride < 0)) ||
+      !Number.isSafeInteger(extraCoins) || extraCoins < 0 ||
+      (counters !== null && (typeof counters !== "object" ||
+        !["scoredBanks", "twosBanked", "blockerDelay"].every(field =>
+          Number.isSafeInteger(counters[field]) && counters[field] >= 0) ||
+        ![null, 2, 3, 5, 7, 11, 13].includes(counters.lastBankBase)))) {
     throw new RangeError("Cannot score outside an active Roguelite round");
   }
   const current = restoreRogueliteRun(run);
-  const points = scoreForRoguelitePower(power);
-  const bankGold = goldForBank(power, merged);
+  const points = scoreOverride ?? scoreForRoguelitePower(power);
+  const bankGold = goldForBank(power, merged) + extraCoins;
   const roundScore = previousScore + points;
   const cleared = roundScore >= targetForRound(run.round);
   const phase = !cleared ? "playing"
@@ -181,7 +198,7 @@ export function recordRogueliteBank(run, previousScore, power,
   const moveGold = cleared ? spareMoveGold(movesLeft) : 0;
   const roundBankCoins = current.roundBankCoins + bankGold;
   const next = {
-    ...current, totalScore: current.totalScore + points, phase,
+    ...current, ...(counters || {}), totalScore: current.totalScore + points, phase,
     roundBankCoins, coins: current.coins + bankGold + moveGold,
     totalCoinsEarned: current.totalCoinsEarned + bankGold + moveGold,
     lastRoundReward: cleared ? {
@@ -194,7 +211,7 @@ export function recordRogueliteBank(run, previousScore, power,
 
 // Currency, discoveries and lifetime slides persist. Round bank locks,
 // tile gold, dry streak, blockers, moves, and round score all reset.
-export function advanceRogueliteRound(state, rng = Math.random) {
+export function advanceRogueliteRound(state, rng = Math.random, rates = null) {
   if (state?.mode !== "roguelite" || !validRogueliteRun(state.run) ||
       state.run.phase !== "shop") {
     throw new RangeError("Advance only after visiting the Roguelite shop");
@@ -203,7 +220,7 @@ export function advanceRogueliteRound(state, rng = Math.random) {
   const run = restoreRogueliteRun(state.run, state.movesLeft);
   return {
     ...state,
-    board: startingBoard(rng, run.totalSlides),
+    board: startingBoard(rng, run.totalSlides, rates),
     discovered: [...state.discovered],
     banked: [], locked: [], mergeReady: [],
     score: 0, moves: 0, movesLeft: INITIAL_MOVES_LEFT, mergeCredit: 0,
@@ -213,7 +230,9 @@ export function advanceRogueliteRound(state, rng = Math.random) {
       " points by banking powers correctly.",
     run: {
       ...run, round: nextRound, phase: "playing",
-      roundBankCoins: 0, goldDryStreak: 0, lastRoundReward: null, shop: null
+      roundBankCoins: 0, goldDryStreak: 0, lastRoundReward: null, shop: null,
+      scoredBanks: 0, twosBanked: 0, lastBankBase: null,
+      protectionSlides: 0, blockerDelay: 0
     }
   };
 }
