@@ -10,6 +10,7 @@ export function createSafeStore(openStorage) {
   let unavailable = false;
 
   function readText(key) {
+    if (corrupted.has(key)) return null;
     if (memory.has(key)) return memory.get(key);
     try {
       return openStorage().getItem(key);
