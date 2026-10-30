@@ -240,5 +240,5 @@ assert.match(ui, /sellPermanent\(value, slot\)/);
 assert.match(ui, /discardConsumable\(value, slot\)/);
 assert.match(css, /\.shop-dialog\s*\{/);
 assert.match(css, /\.shop-offers\s*\{/);
-assert.match(html, /Item effects are coming in Pass 4/);
+assert.match(html, /Permanent bonuses apply automatically/);
 console.log("All Index Shuffle shop / inventory Pass 3 tests passed.");
