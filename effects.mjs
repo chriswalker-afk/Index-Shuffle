@@ -7,7 +7,7 @@ import {
 import { goldTier } from "./roguelite.mjs?v=runestones-pass2";
 import { ENCHANTMENT_ITEMS, canPlaceEnchantment, placeEnchantment,
   restoreEnchantmentLayer } from "./enchantments.mjs?v=runestones-pass2";
-import { ITEM_BY_ID } from "./shop.mjs?v=runestones-pass3";
+import { ITEM_BY_ID } from "./shop.mjs?v=runestones-pass4";
 import { bossId, bossMovementRules } from "./bosses.mjs?v=runestones-pass2";
 import {
   hazardAt, restoreHazardLayer, removeHazard
@@ -108,6 +108,26 @@ export function bankItemBonuses(run, power, merged = false) {
       lastBankBase: power.base,
       blockerDelay: Math.min(1000, current.blockerDelay + delay)
     }
+  };
+}
+
+// Enchanted scoring composes with at most two permanent multipliers.
+// Cap total multipliers at ×4 (including a Prism mark or square), and apply
+// any additive bonuses afterwards. A Prism that adds nothing is not spent.
+export const MAX_BANK_SCORE_MULTIPLIER = 4;
+export function scoreWithPrism(power, bonuses, hasPrism = false) {
+  if (!numericTile(power) || !bonuses ||
+      !Number.isSafeInteger(bonuses.multiplier) || bonuses.multiplier < 1 ||
+      !Number.isSafeInteger(bonuses.additive) || bonuses.additive < 0 ||
+      typeof hasPrism !== "boolean") {
+    throw new RangeError("Invalid Prism scoring inputs");
+  }
+  const multiplier = Math.min(MAX_BANK_SCORE_MULTIPLIER,
+    bonuses.multiplier * (hasPrism ? 2 : 1));
+  return {
+    score: power.exp * multiplier + bonuses.additive,
+    multiplier,
+    prismApplied: hasPrism && multiplier > bonuses.multiplier
   };
 }
 

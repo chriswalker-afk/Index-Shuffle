@@ -3,7 +3,7 @@
 import {
   ITEM_BY_ID, INVENTORY_SLOTS, RUNESTONE_ITEM_IDS, RUNESTONE_SHOP_CHANCE,
   shopItemPrice, purchaseShopOffer, sellPermanent, discardConsumable
-} from "./shop.mjs?v=runestones-pass3";
+} from "./shop.mjs?v=runestones-pass4";
 import { targetForRound } from "./roguelite.mjs?v=runestones-pass2";
 import { bossForRound, bossTargetFor } from "./bosses.mjs?v=runestones-pass2";
 import { bossPortraitFor } from "./art-catalog.mjs?v=frostlock-v1";

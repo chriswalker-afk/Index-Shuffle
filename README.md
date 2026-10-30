@@ -56,6 +56,35 @@ a new one instead.
 - Moves animate briefly (170 ms). System **reduced motion** preferences disable animations. Banking timers pause while the browser tab is hidden.
 - Game state, correctly banked merge credit, remaining moves and high score are saved locally in the browser. New games start with 10 moves. **Existing saved games created under the earlier automatic-merge-reward rule** keep their board, score, discoveries and historical slide count but receive a fresh ten-move balance and zero correct-bank credit; this upgrade occurs once.
 
+## Enchanted Squares — Pass 4: balance and integration audit
+
+Pass 4 prioritises fairness and test coverage over new mechanics:
+
+- **Prism score cap:** The combined scoring multiplier from permanent
+  upgrades and the Power Prism is limited to **×4**. Fixed additive
+  bonuses apply after the multiplier. If the Prism would add no points,
+  its on-square charge is preserved; zero-scoring bosses still take
+  priority. Both the question preview and actual scoring use the
+  same pure formula.
+- **Economy tuning:** Twin Mint falls from **8 to 3 coins**: its single
+  successfully banked double-gold merge can pay 4 coins, so purchasing it
+  can now create a positive coin return. Shatter Crest falls from
+  **5 to 3 coins** to remain competitive with the 2-coin Block Breaker
+  while still requiring genuine merged-power correct banks near a blocker.
+  The other four Runestones retain their prices and charges.
+- **Rarity:** The 22% shop-stock chance, one rare reveal per visit,
+  weighted Runestones and stage-specific unlocks remain unchanged.
+- **Automated checks:** Deterministic seeded draws test rarity throughout
+  stages 2–4; every boss is checked against capped Prism scoring;
+  hazard/Runestone collisions, gold bonuses, depleted charges, older saves
+  and a **synthetic** correctly-bankable 12-round progression are covered.
+  These tests do **not** estimate human win rates or item pick rates.
+
+The game keeps the same save keys and stable item IDs. Existing inventory
+items retain their original price-paid history; no retroactive refunds,
+free gold or new currencies are introduced. Real-player balancing,
+device testing and loss-state reliability remain on the release checklist.
+
 ## Enchanted Squares — Pass 3: rarity and presentation
 
 Pass 3 makes purchased positive squares understandable while keeping the
@@ -105,8 +134,8 @@ warnings, blockers or blocker-warning cells. Empty board squares are valid.
 | Power Prism | Round 4 | 6 | 2 | A merge stores a double-score mark on its power; otherwise a correct bank on this square scores double. Already-marked powers do not double again. Zero-score boss banks do not consume a direct Prism charge. |
 | Time Sanctuary | Round 4 | 5 | 2 | Opening a banking question here grants +10 seconds (maximum 60). The charge is consumed on opening regardless of success. |
 | Echo Seal | Round 7 | 7 | 1 | Correctly bank one previously banked base–exponent combination again here. The usual one-slide tile lock and exact answer still apply. |
-| Shatter Crest | Round 7 | 5 | 2 | Correct banking of a genuinely merged power beside a blocker adds +1 hit. May stack with Blockbuster to a maximum of 3 hits per adjacent blocker. |
-| Twin Mint | Round 10 | 8 | 1 | A merge finishing here becomes double gold, upgrading ordinary gold if necessary. Cannot be activated by banking or sliding alone. |
+| Shatter Crest | Round 7 | 3 | 2 | Correct banking of a genuinely merged power beside a blocker adds +1 hit. May stack with Blockbuster to a maximum of 3 hits per adjacent blocker. |
+| Twin Mint | Round 10 | 3 | 1 | A merge finishing here becomes double gold, upgrading ordinary gold if necessary. Cannot be activated by banking or sliding alone. |
 
 Enchantment icons, charge badges, rare offer labels and tile-carried Prism
 marks are visible on the board. Correct-answer banking remains the only

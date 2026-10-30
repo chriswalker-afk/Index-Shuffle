@@ -12,18 +12,18 @@ import { newRogueliteRun, targetForRound, stageForRound, isBossRound,
 } from "./roguelite.mjs?v=runestones-pass2";
 import {
   restoreShopState, enterRogueliteShop, rerollRogueliteShop
-} from "./shop.mjs?v=runestones-pass3";
+} from "./shop.mjs?v=runestones-pass4";
 import {
   renderRogueliteInventory, renderRogueliteShop
-} from "./shop-ui.mjs?v=runestones-pass3";
+} from "./shop-ui.mjs?v=runestones-pass4";
 import { bossPortraitFor } from "./art-catalog.mjs?v=frostlock-v1";
 import { bossSceneFor } from "./boss-scenes.mjs?v=frostlock-v1";
 import {
-  restoreEffectState, bankItemBonuses, goldChancesForRun,
+  restoreEffectState, bankItemBonuses, scoreWithPrism, goldChancesForRun,
   hazardItemProtection, costOfNextSlide, canActivateConsumable, CONSUMABLE_TARGETS,
   consumableTargets, useConsumable
-} from "./effects.mjs?v=runestones-pass3";
-import { ITEM_BY_ID } from "./shop.mjs?v=runestones-pass3";
+} from "./effects.mjs?v=runestones-pass4";
+import { ITEM_BY_ID } from "./shop.mjs?v=runestones-pass4";
 import {
   bossForRound, bossTargetFor, bossPointsFor, bossMovementRules, bossId,
   bossAllowsMoveRestoration, applyThreeCurse,
@@ -1024,8 +1024,10 @@ function openBank(i) {
   const bankGold = mode === "roguelite" ? goldForBank(effectivePower, state.mergeReady.includes(i)) : 0;
   const bonuses = mode === "roguelite"
     ? bankItemBonuses(state.run, effectivePower, state.mergeReady.includes(i)) : null;
-  const previewScore = bonuses
-    ? bossPointsFor(state.run, t, bonuses.score * (enchanted.prism ? 2 : 1)) : null;
+  const previewPrismScore = bonuses
+    ? scoreWithPrism(t, bonuses, enchanted.prism) : null;
+  const previewScore = previewPrismScore
+    ? bossPointsFor(state.run, t, previewPrismScore.score) : null;
   const goldHelp = mode !== "roguelite" || !goldTier(effectivePower) ? "" :
     " Banking this golden tile correctly earns " +
     (bankGold + (bonuses?.extraCoins ?? 0)) +
@@ -1036,11 +1038,15 @@ function openBank(i) {
   const runeEffect = enchanted?.spend === "gilded-foundry"
     ? "Correct answer creates gold."
     : enchanted?.spend === "power-prism"
-      ? "Correct answer doubles points."
+      ? (previewPrismScore?.prismApplied
+          ? "Correct answer boosts your score (maximum ×4 multiplier)."
+          : "The score multiplier is already ×4; this charge is preserved.")
       : enchanted?.repeatBank ? "One correct repeat bank is permitted."
         : enchanted?.extraBlockerHit ? "Correct bank adds one blocker hit."
           : enchanted?.extraSeconds ? "+10 seconds granted for this question."
-            : t.prism === 1 ? "Power carries ×2 scoring from a previous merge."
+            : t.prism === 1 ? (previewPrismScore?.prismApplied
+                ? "Power carries a Prism bonus from a previous merge."
+                : "The score multiplier is already at its ×4 limit.")
               : "";
   $("bankRuneBonus").hidden = !runeEffect;
   $("bankRuneBonus").textContent = runeEffect
@@ -1054,7 +1060,9 @@ function openBank(i) {
     (enchanted?.repeatBank ? " Echo Seal permits one repeat bank here." : "") +
     (enchanted?.extraBlockerHit ? " Shatter Crest adds one blocker hit." : "") +
     (enchanted?.extraSeconds ? " Time Sanctuary granted +10 seconds." : "") +
-    (enchanted?.prism ? " Power Prism doubles the scoring component." : "");
+    (enchanted?.prism ? (previewPrismScore?.prismApplied
+      ? " Power Prism contributes up to a ×4 total multiplier."
+      : " The score multiplier is already at its ×4 cap.") : "");
   if (!$("modal").open) $("modal").showModal();
   if (!document.hidden) resumeClock();
   $("answer").focus();
@@ -1089,6 +1097,7 @@ $("bankForm").addEventListener("submit", event => {
   const effectivePower = enchanted?.power || t;
   const bonuses = mode === "roguelite"
     ? bankItemBonuses(state.run, effectivePower, state.mergeReady.includes(i)) : null;
+  const prismScore = bonuses ? scoreWithPrism(t, bonuses, enchanted.prism) : null;
   const outcome = attemptBank(state.board, i, $("answer").value, {
     discovered: new Set(state.discovered),
     banked: new Set(state.banked),
@@ -1124,7 +1133,7 @@ $("bankForm").addEventListener("submit", event => {
   const points = mode === "roguelite"
     ? recordRogueliteBank(state.run, state.score, t, {
         merged: outcome.creditedMerge, movesLeft: state.movesLeft,
-        scoreOverride: bonuses.score * (enchanted.prism ? 2 : 1),
+        scoreOverride: prismScore.score,
         extraCoins: bonuses.extraCoins + (goldForBank(effectivePower, outcome.creditedMerge) -
           goldForBank(t, outcome.creditedMerge)),
         counters: bonuses.counters
@@ -1135,7 +1144,7 @@ $("bankForm").addEventListener("submit", event => {
   if (mode === "roguelite") {
     state.run = points.run;
     const redeemed = redeemEnchantedBank(state.enchantments, i, enchanted,
-      { prismApplied: enchanted.prism, pointsAwarded: points.points,
+      { prismApplied: prismScore.prismApplied, pointsAwarded: points.points,
         repeatBanked: outcome.repeatedBank,
         blockerApplied: outcome.creditedMerge &&
           (outcome.damaged.length + outcome.destroyed.length > 0) });
@@ -1156,7 +1165,7 @@ $("bankForm").addEventListener("submit", event => {
     state.notice += " ✦ " + ENCHANTMENT_DEFINITIONS[redeemedRuneType].name +
       " activated" + (remaining ? " (" + remaining + " charge" +
         (remaining === 1 ? "" : "s") + " left)." : " (fully used).");
-  } else if (t.prism === 1 && points.points > 0) {
+  } else if (t.prism === 1 && prismScore?.prismApplied && points.points > 0) {
     state.notice += " ✦ Power Prism's double-score mark paid off!";
   }
   if (mode === "roguelite" && points.bankGold) {
