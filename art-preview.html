@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#152337">
+  <title>Art direction · Index Shuffle</title>
+  <style>
+    :root { color-scheme: dark; font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+      background: #0b1325; color: #f2f6ff; }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh;
+      background: radial-gradient(circle at 85% 0%, #42345666, transparent 43%),
+      radial-gradient(circle at 9% 85%, #194a4b66, transparent 45%), #0b1325; }
+    main { width: min(1080px, calc(100% - 32px)); margin: 0 auto; padding: 24px 0 65px; }
+    a { color: #acf3df; }
+    a:focus-visible { outline: 3px solid #ffce80; outline-offset: 5px; border-radius: 5px; }
+    .back { display: inline-block; margin-bottom: 38px; font-size: 14px; font-weight: 750; }
+    .eyebrow { color: #a4fae5; text-transform: uppercase; font-size: 11px; letter-spacing: .22em; font-weight: 900; }
+    h1 { font-size: clamp(38px, 7vw, 72px); max-width: 15ch; margin: 12px 0 16px; letter-spacing: -.06em; line-height: 1.04; }
+    .lede { color: #b8cada; max-width: 67ch; line-height: 1.7; margin-bottom: 35px; }
+    .gallery { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 18px; }
+    .portrait { overflow: hidden; border: 1px solid #41526d; border-radius: 22px; background: #18263c;
+      box-shadow: 0 17px 33px #04091666; }
+    .portrait img { display: block; width: 100%; aspect-ratio: 1; object-fit: cover; }
+    .portrait section { padding: 19px 20px 22px; }
+    .portrait .type { font-size: 10px; letter-spacing: .14em; font-weight: 900; color: #f2ca85; }
+    .portrait.boss .type { color: #e9a7b4; }
+    h2 { margin: 7px 0 8px; letter-spacing: -.03em; font-size: 23px; }
+    .portrait p { margin: 0; color: #bfcede; line-height: 1.65; font-size: 13px; }
+    .tokens { margin-top: 44px; padding: 25px; border: 1px solid #41526d;
+      border-radius: 20px; background: #17263b; }
+    .tokens h2 { margin: 0 0 20px; }
+    .swatches { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
+    .swatch { font-size: 12px; color: #bfcede; display: flex; flex-direction: column; gap: 8px; }
+    .swatch i { display: block; height: 46px; border-radius: 10px; border: 1px solid #ffffff35; }
+    .note { margin-top: 24px; color: #aebed0; font-size: 13px; line-height: 1.7; max-width: 70ch; }
+    @media(max-width: 760px) { .gallery { grid-template-columns: 1fr; }
+      .portrait { display: grid; grid-template-columns: minmax(0, 44%) 1fr; align-items: center; }
+      .portrait section { padding: 16px; } .swatches { grid-template-columns: repeat(2, 1fr); } }
+    @media(max-width: 470px) { .portrait { display: block; } }
+  </style>
+</head>
+<body>
+  <main>
+    <a class="back" href="./">← Back to Index Shuffle</a>
+    <header>
+      <p class="eyebrow">Original artwork · Prototype gallery · Pass 1</p>
+      <h1>The Curious Numberworld</h1>
+      <p class="lede">A visual identity for Index Shuffle: mathematical curios, warm merchants and
+        memorable opponents. These are the first three original SVG concepts. The mathematical
+        board, clear rules and readable counters remain the priority.</p>
+    </header>
+    <div class="gallery">
+      <article class="portrait">
+        <img src="assets/art/index-merchant.svg" alt="Clockwork owl merchant with purple hat, glowing coins and an abacus." width="480" height="480">
+        <section><span class="type">THE SHOP</span><h2>Index Merchant</h2>
+          <p>A warm, friendly character with a curious collection of mathematical treasures.</p></section>
+      </article>
+      <article class="portrait boss">
+        <img src="assets/art/boss-blockade.svg" alt="A monumental stone guardian made of numbered blocks." width="480" height="480">
+        <section><span class="type">BOSS · THE BLOCKADE</span><h2>Stone sentinel</h2>
+          <p>Heavy geometric armour communicates the extra obstacle it brings to the board.</p></section>
+      </article>
+      <article class="portrait boss">
+        <img src="assets/art/boss-five-thief.svg" alt="Masked fox-like thief with golden fives." width="480" height="480">
+        <section><span class="type">BOSS · THE FIVE THIEF</span><h2>Gold-handed trickster</h2>
+          <p>A playful antagonist whose stolen fives hint at the base-5 score penalty.</p></section>
+      </article>
+    </div>
+    <section class="tokens" aria-labelledby="palette">
+      <h2 id="palette">The palette</h2>
+      <div class="swatches">
+        <div class="swatch"><i style="background:#152638"></i>Midnight ink · #152638</div>
+        <div class="swatch"><i style="background:#7de0cd"></i>Jade · #7de0cd</div>
+        <div class="swatch"><i style="background:#e8bb6f"></i>Aged gold · #e8bb6f</div>
+        <div class="swatch"><i style="background:#795b97"></i>Dusky violet · #795b97</div>
+        <div class="swatch"><i style="background:#d88f8d"></i>Ember rose · #d88f8d</div>
+        <div class="swatch"><i style="background:#f9e9cf"></i>Parchment · #f9e9cf</div>
+        <div class="swatch"><i style="background:#6e7788"></i>Stone blue · #6e7788</div>
+        <div class="swatch"><i style="background:#152337"></i>Deep navy · #152337</div>
+      </div>
+      <p class="note">The five other existing bosses deliberately retain their normal text-only
+        treatment in this prototype. Later passes can expand the portrait library without altering
+        boss rules, item mechanics or saves.</p>
+    </section>
+  </main>
+</body>
+</html>

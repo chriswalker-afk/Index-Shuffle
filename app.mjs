@@ -14,7 +14,8 @@ import {
 } from "./shop.mjs?v=hazard-counter-v1";
 import {
   renderRogueliteInventory, renderRogueliteShop
-} from "./shop-ui.mjs?v=hazard-counter-v1";
+} from "./shop-ui.mjs?v=hazard-counter-v1-art-pass1";
+import { bossPortraitFor } from "./art-catalog.mjs?v=hazard-counter-v1-art-pass1";
 import {
   restoreEffectState, bankItemBonuses, goldChancesForRun,
   hazardItemProtection, costOfNextSlide, canActivateConsumable, CONSUMABLE_TARGETS,
@@ -243,6 +244,17 @@ function render() {
     $("bossRule").hidden = !boss;
     $("bossName").textContent = boss ? boss.name : "";
     $("bossText").textContent = boss ? boss.summary : "";
+    const portrait = boss ? bossPortraitFor(boss.id) : null;
+    $("bossPortrait").hidden = !portrait;
+    if (portrait) {
+      if ($("bossPortrait").getAttribute("src") !== portrait.src) {
+        $("bossPortrait").src = portrait.src;
+      }
+      $("bossPortrait").alt = portrait.alt;
+    } else {
+      $("bossPortrait").removeAttribute("src");
+      $("bossPortrait").alt = "";
+    }
     const target = bossTargetFor(state.run, targetForRound(state.run.round));
     $("rogueScore").textContent = state.score + " / " + target;
     $("roundScoreProgress").value = Math.min(state.score, target);

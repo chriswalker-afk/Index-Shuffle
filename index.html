@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#0c1428">
   <meta name="description" content="Slide and merge powers, solve banking challenges and stay in the game.">
   <title>Index Shuffle — Make every move count</title>
-  <link rel="stylesheet" href="styles.css?v=hazard-counter-v1">
+  <link rel="stylesheet" href="styles.css?v=hazard-counter-v1-art-pass1">
 </head>
 <body>
   <main class="shell">
@@ -187,9 +187,14 @@
           <progress id="roundScoreProgress" value="0" max="4" aria-label="Score towards round target"></progress>
           <p class="rogue-total">Run score: <strong id="rogueTotal">0</strong></p>
           <section id="bossRule" class="boss-rule" hidden aria-label="Active boss condition">
-            <div class="boss-rule-heading"><span aria-hidden="true">☠</span>
-              <strong id="bossName">The Boss</strong><span class="boss-label">BOSS RULE</span></div>
-            <p id="bossText">Special round condition</p>
+            <div class="boss-rule-body">
+              <img id="bossPortrait" class="boss-rule-portrait" alt="" width="68" height="68" decoding="async" hidden>
+              <div class="boss-rule-copy">
+                <div class="boss-rule-heading"><span aria-hidden="true">☠</span>
+                  <strong id="bossName">The Boss</strong><span class="boss-label">BOSS RULE</span></div>
+                <p id="bossText">Special round condition</p>
+              </div>
+            </div>
           </section>
           <p id="rogueEffectStatus" class="rogue-effect-status" hidden></p>
         </div>
@@ -498,6 +503,16 @@
           <span aria-hidden="true">●</span><strong id="shopCoins">0</strong><small>coins</small>
         </div>
       </header>
+      <div id="shopMerchant" class="shop-merchant-strip">
+        <img src="assets/art/index-merchant.svg"
+          alt="A cheerful clockwork owl merchant in a purple hat with an abacus and golden number tokens."
+          width="98" height="98" decoding="async">
+        <div class="shop-merchant-copy">
+          <p class="shop-merchant-kicker">A CURIOUS LITTLE CORNER OF THE NUMBERWORLD</p>
+          <strong>Curios for clever minds</strong>
+          <p>Make your coins count. Every relic could change your next round.</p>
+        </div>
+      </div>
       <p id="shopExplanation" class="shop-explanation">
         Buy upgrades, sell or replace permanent items, discard single-use items,
         or save coins for a later round. You may leave without buying.
@@ -505,10 +520,15 @@
       </p>
       <section id="shopBossPreview" class="shop-boss-preview" hidden
         aria-label="Next round boss preview">
-        <p class="shop-boss-kicker"><span aria-hidden="true">☠</span> NEXT ROUND: BOSS ENCOUNTER</p>
-        <h3 id="shopBossName">Upcoming boss</h3>
-        <p id="shopBossRule"></p>
-        <p id="shopBossTarget" class="shop-boss-target"></p>
+        <div class="shop-boss-layout">
+          <img id="shopBossPortrait" class="shop-boss-portrait" alt="" width="112" height="112" decoding="async" hidden>
+          <div class="shop-boss-copy">
+            <p class="shop-boss-kicker"><span aria-hidden="true">☠</span> NEXT ROUND: BOSS ENCOUNTER</p>
+            <h3 id="shopBossName">Upcoming boss</h3>
+            <p id="shopBossRule"></p>
+            <p id="shopBossTarget" class="shop-boss-target"></p>
+          </div>
+        </div>
       </section>
       <p id="shopNotice" class="shop-notice" role="status" aria-live="polite"></p>
       <div class="shop-section-heading">
@@ -555,6 +575,6 @@
       <button type="button" id="cancel" class="textbtn">Keep this tile</button>
     </div>
   </div>
-  <script type="module" src="app.mjs?v=hazard-counter-v1"></script>
+  <script type="module" src="app.mjs?v=hazard-counter-v1-art-pass1"></script>
 </body>
 </html>
