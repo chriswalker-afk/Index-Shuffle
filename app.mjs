@@ -15,7 +15,7 @@ import {
 } from "./shop.mjs?v=runestones-pass2";
 import {
   renderRogueliteInventory, renderRogueliteShop
-} from "./shop-ui.mjs?v=frostlock-v1";
+} from "./shop-ui.mjs?v=runestones-pass2";
 import { bossPortraitFor } from "./art-catalog.mjs?v=frostlock-v1";
 import { bossSceneFor } from "./boss-scenes.mjs?v=frostlock-v1";
 import {
@@ -28,7 +28,7 @@ import {
   bossForRound, bossTargetFor, bossPointsFor, bossMovementRules, bossId,
   bossAllowsMoveRestoration, applyThreeCurse,
   frozenControl, nextFrozenDirection, restoreFrozenDirection
-} from "./bosses.mjs?v=frostlock-v1";
+} from "./bosses.mjs?v=runestones-pass2";
 import {
   ACHIEVEMENTS, ACHIEVEMENT_BY_ID, emptyRunStats, restoreRunStats,
   restoreAchievementProfile, recordRunStats, recordSuccessfulSlide,
@@ -45,7 +45,7 @@ import {
   restoreHazardLayer, hazardAt, activeHazardCount, MAX_ACTIVE_HAZARDS,
   restoreHazardPressure, progressHazardRound, resolveSlideHazards,
   HAZARD_DEFINITIONS, canRescueHazardLock
-} from "./hazards.mjs?v=hazard-counter-v1";
+} from "./hazards.mjs?v=runestones-pass2";
 import { ENCHANTMENT_DEFINITIONS, emptyEnchantmentLayer,
   restoreEnchantmentLayer, activeEnchantmentCount, previewEnchantedBank,
   redeemEnchantedBank, resolveSlideEnchantments } from "./enchantments.mjs?v=runestones-pass2";
