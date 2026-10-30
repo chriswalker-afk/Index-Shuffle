@@ -16,6 +16,7 @@ assert.equal(itemIconHref("__proto__"), ITEM_SPRITE_URL + "#item-generic");
 assert.equal(itemIconHref(null), ITEM_SPRITE_URL + "#item-generic");
 assert.equal(itemArtKind({ type: "permanents" }), "permanent");
 assert.equal(itemArtKind({ type: "consumables" }), "consumable");
+assert.equal(itemArtKind({ type: "consumables", rare: true }), "runestone");
 assert.equal(itemArtKind({ type: "permanents", hazardCounter: true }), "ward");
 
 const sprite = readFileSync("assets/art/item-sprites.svg", "utf8");
@@ -54,5 +55,22 @@ for (const selector of [".shop-offer-pair", ".shop-item-art--ward",
   ".shop-inventory-slot", ".equip-chip--illustrated"]) {
   assert.ok(css.includes(selector), "Missing class " + selector);
 }
+assert.match(html, /id="shopRunestoneGuide"/);
+assert.match(html, /id="shopRunestoneGallery"/);
+assert.match(html, /id="shopRunestoneStatus"/);
+assert.match(html, /id="enchantmentStatusItems"/);
+assert.match(html, /id="bankRuneBonus"/);
+assert.match(shopUI, /renderRunestoneGuide\(nextRound\)/);
+assert.match(shopUI, /RUNESTONE_ITEM_IDS/);
+assert.match(shopUI, /rune\.definition\.charges/);
+assert.match(shopUI, /shop-rune-trigger/);
+assert.match(css, /\.shop-runestone-gallery/);
+assert.match(css, /\.shop-item-art--runestone/);
+assert.match(css, /\.shop-offer-card\.shop-offer-card--runestone/);
+assert.match(css, /\.enchantment-slot--preview/);
+assert.match(css, /prefers-reduced-motion: reduce/);
+const gallery = readFileSync("item-gallery.html", "utf8");
+assert.match(gallery, /id="runeGallery"/);
+assert.match(gallery, /runestone: document\.getElementById\("runeGallery"\)/);
 assert.ok(existsSync("item-gallery.html"));
 console.log("Index Shuffle shop art Pass 2 checks passed.");
