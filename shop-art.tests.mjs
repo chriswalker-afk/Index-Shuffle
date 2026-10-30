@@ -46,9 +46,9 @@ assert.match(html, /<details class="shop-guide">/);
 assert.match(html, /id="shopCoins"/);
 assert.match(html, /id="shopReroll"/);
 assert.match(html, /id="shopContinue"/);
-assert.match(html, /styles\.css\?v=frostlock-v1/);
-assert.match(html, /app\.mjs\?v=runestones-pass1/);
-assert.match(app, /shop-ui\.mjs\?v=frostlock-v1/);
+assert.match(html, /styles\.css\?v=runestones-pass2/);
+assert.match(html, /app\.mjs\?v=runestones-pass2/);
+assert.match(app, /shop-ui\.mjs\?v=runestones-pass2/);
 for (const selector of [".shop-offer-pair", ".shop-item-art--ward",
   ".shop-item-art--consumable", ".shop-price-original",
   ".shop-inventory-slot", ".equip-chip--illustrated"]) {
