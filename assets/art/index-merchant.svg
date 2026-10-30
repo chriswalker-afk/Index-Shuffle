@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 480" role="img" aria-labelledby="title desc">
+  <title id="title">The Index Merchant</title>
+  <desc id="desc">A cheerful clockwork owl shopkeeper in a purple hat, surrounded by mathematical treasures, coins and an abacus.</desc>
+  <defs>
+    <linearGradient id="bg" x2="1" y2="1"><stop stop-color="#324755"/><stop offset="1" stop-color="#152337"/></linearGradient>
+    <radialGradient id="glow"><stop stop-color="#efba69" stop-opacity=".42"/><stop offset="1" stop-color="#efba69" stop-opacity="0"/></radialGradient>
+    <linearGradient id="wood" x2="0" y2="1"><stop stop-color="#b57b54"/><stop offset="1" stop-color="#653b3f"/></linearGradient>
+    <linearGradient id="hat" x2="1" y2="1"><stop stop-color="#7d547e"/><stop offset="1" stop-color="#3d315d"/></linearGradient>
+    <linearGradient id="gold" x2="1" y2="1"><stop stop-color="#ffeda8"/><stop offset=".58" stop-color="#eab864"/><stop offset="1" stop-color="#a76e44"/></linearGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="170%"><feDropShadow dx="0" dy="12" stdDeviation="10" flood-color="#071020" flood-opacity=".55"/></filter>
+  </defs>
+  <rect width="480" height="480" rx="36" fill="url(#bg)"/>
+  <circle cx="251" cy="224" r="215" fill="url(#glow)"/>
+  <path d="M30 60h420M30 143h420" stroke="#aa845b" stroke-width="5" opacity=".25"/>
+  <path d="M34 136V56Q240-11 446 56v80" fill="#462e48" stroke="#d4a06e" stroke-width="9"/>
+  <path d="M34 86h412" stroke="#f2c67e" stroke-width="8"/>
+  <path d="M61 86v55m67-55v55m70-55v55m70-55v55m70-55v55m70-55v55" stroke="#e1ad7c" stroke-width="8" opacity=".75"/>
+  <path d="M42 160h105m191 0h102" stroke="#ffdaa1" stroke-width="4" opacity=".5"/>
+  <rect x="34" y="194" width="80" height="104" rx="12" fill="#19283d" stroke="#9c785c" stroke-width="5"/>
+  <rect x="365" y="194" width="80" height="104" rx="12" fill="#19283d" stroke="#9c785c" stroke-width="5"/>
+  <g opacity=".85">
+    <path d="M48 262h51m279 0h51" stroke="#ba8b5c" stroke-width="6"/>
+    <path d="M57 247l9-25 9 25z" fill="#a9d6d1"/><circle cx="91" cy="239" r="12" fill="#f1ba71"/>
+    <rect x="376" y="227" width="22" height="26" rx="6" fill="#8db9bf"/><path d="M380 225h14" stroke="#ffe3b1" stroke-width="4"/>
+    <circle cx="419" cy="239" r="13" fill="#d48780"/>
+    <path d="M60 286l11-18 11 18M388 286l7-16 9 16" stroke="#c0e8e0" stroke-width="5" fill="none"/>
+  </g>
+  <g filter="url(#shadow)">
+    <path d="M135 376q-7-100 46-121h118q53 19 46 121Z" fill="#2e6670" stroke="#0d2638" stroke-width="8"/>
+    <path d="M191 277l48 69 50-69" fill="#d0a36f" stroke="#122538" stroke-width="5"/>
+    <path d="M239 317v56m-23-19h46" stroke="#e8be79" stroke-width="6" stroke-linecap="round"/>
+    <path d="M172 277q-51-5-56 39t-6 35" stroke="#163744" stroke-width="21" fill="none" stroke-linecap="round"/>
+    <path d="M309 277q57 2 61 53" stroke="#163744" stroke-width="21" fill="none" stroke-linecap="round"/>
+    <path d="M174 155q-27 16-29 68t14 79l36-21 43 11 45-11 37 22q18-36 14-86-5-54-42-75Z" fill="#d5b9a2" stroke="#152638" stroke-width="8"/>
+    <path d="M173 196q16-33 65-22 28-14 66 18l-15 15-44-2-49 5Z" fill="#f4dbc0"/>
+    <path d="M176 223q-11-24 1-37 24-19 55 7l7 41-29 21Z" fill="#f9e9cf" stroke="#19354a" stroke-width="5"/>
+    <path d="M304 223q11-24-1-37-24-19-55 7l-7 41 29 21Z" fill="#f9e9cf" stroke="#19354a" stroke-width="5"/>
+    <circle cx="207" cy="219" r="16" fill="#1c4251"/><circle cx="274" cy="219" r="16" fill="#1c4251"/>
+    <circle cx="211" cy="213" r="5" fill="#fff6d7"/><circle cx="278" cy="213" r="5" fill="#fff6d7"/>
+    <circle cx="207" cy="219" r="27" fill="none" stroke="#ce985b" stroke-width="7"/>
+    <circle cx="274" cy="219" r="27" fill="none" stroke="#ce985b" stroke-width="7"/>
+    <path d="M234 214h13" stroke="#ce985b" stroke-width="7"/>
+    <path d="M228 242l12-8 13 8-13 14Z" fill="#e4a85c" stroke="#713d39" stroke-width="4"/>
+    <path d="M222 263q18 13 36 0" stroke="#724a43" stroke-width="4" stroke-linecap="round" fill="none"/>
+    <path d="M161 166l25-78 65-23 70 98q-70-18-160 3Z" fill="url(#hat)" stroke="#18273d" stroke-width="9"/>
+    <path d="M155 168q91-31 175-2" stroke="#d5a060" stroke-width="15" stroke-linecap="round"/>
+    <path d="M232 89l10 18 20-1-13 15 6 18-22-9-17 12 3-21-17-12 21-3Z" fill="url(#gold)" stroke="#6a4c4a" stroke-width="4"/>
+    <path d="M181 105q25-23 48-28" stroke="#a7859d" stroke-width="6" stroke-linecap="round" opacity=".7"/>
+  </g>
+  <g>
+    <circle cx="110" cy="334" r="29" fill="url(#gold)" stroke="#503a3b" stroke-width="6"/>
+    <circle cx="110" cy="334" r="19" fill="none" stroke="#fff2c2" stroke-width="3"/>
+    <text x="110" y="347" text-anchor="middle" font-family="Georgia,serif" font-weight="900" font-size="36" fill="#684534">5</text>
+    <path d="M358 337q23-18 40 9l-7 24-36 3-16-18Z" fill="#e5c095" stroke="#193145" stroke-width="6"/>
+    <path d="M352 353l29-7" stroke="#f5e2c2" stroke-width="5"/>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="35" y="372" width="410" height="83" rx="14" fill="url(#wood)" stroke="#382837" stroke-width="8"/>
+    <path d="M44 389h392" stroke="#e9b47a" stroke-width="5" opacity=".85"/>
+    <rect x="171" y="387" width="139" height="54" rx="9" fill="#223944" stroke="#c79764" stroke-width="6"/>
+    <path d="M187 399h107m-107 15h107m-107 14h107" stroke="#cc9d68" stroke-width="3"/>
+    <g fill="#f4c77c" stroke="#80503e" stroke-width="2"><circle cx="203" cy="399" r="6"/><circle cx="229" cy="399" r="6"/><circle cx="276" cy="399" r="6"/><circle cx="241" cy="414" r="6"/><circle cx="264" cy="414" r="6"/><circle cx="213" cy="429" r="6"/></g>
+    <path d="M58 409h81m202 0h81" stroke="#e3a46b" stroke-width="4" opacity=".7"/>
+  </g>
+  <g fill="#ffe5a0"><path d="M64 149l4 9 10 3-10 4-4 10-4-10-10-4 10-3Z"/><path d="M402 165l4 8 8 4-8 3-4 9-4-9-9-3 9-4Z"/></g>
+</svg>

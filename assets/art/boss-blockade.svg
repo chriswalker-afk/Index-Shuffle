@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 480" role="img" aria-labelledby="title desc">
+  <title id="title">The Blockade</title>
+  <desc id="desc">An immense brick-and-stone guardian blocking the path, with glowing eyes, heavy shoulders, stone claws and a carved power on its chest.</desc>
+  <defs>
+    <linearGradient id="bg" x2="1" y2="1"><stop stop-color="#502f49"/><stop offset="1" stop-color="#161e32"/></linearGradient>
+    <radialGradient id="glow"><stop stop-color="#f39b85" stop-opacity=".3"/><stop offset="1" stop-color="#f39b85" stop-opacity="0"/></radialGradient>
+    <linearGradient id="stone" x2=".2" y2="1"><stop stop-color="#a5a3a3"/><stop offset=".53" stop-color="#6e7788"/><stop offset="1" stop-color="#3a4860"/></linearGradient>
+    <linearGradient id="iron" x2="0" y2="1"><stop stop-color="#8292a2"/><stop offset="1" stop-color="#283b52"/></linearGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="12" stdDeviation="12" flood-color="#080b1d" flood-opacity=".65"/></filter>
+  </defs>
+  <rect width="480" height="480" rx="36" fill="url(#bg)"/><circle cx="240" cy="205" r="212" fill="url(#glow)"/>
+  <path d="M0 400l63-45 37 15 58-52 65 40 66-45 83 47 49-30 59 43v107H0Z" fill="#24253a" opacity=".78"/>
+  <path d="M19 103l68-21-26 62 58 7M416 68l-39 62 58 16-42 63" stroke="#ba6d76" stroke-width="8" fill="none" opacity=".45"/>
+  <g filter="url(#shadow)" stroke="#152333" stroke-width="8" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M103 228l-59 28-12 79 37 19 52-48 35-51Z" fill="url(#iron)"/>
+    <path d="M373 228l64 28 9 79-37 19-56-48-33-51Z" fill="url(#iron)"/>
+    <path d="M69 321l-37 29 11 50 43 9 32-48-18-38Z" fill="url(#stone)"/>
+    <path d="M406 321l37 29-10 50-43 9-32-48 18-38Z" fill="url(#stone)"/>
+    <path d="M147 264l-29 100 25 90h83l14-35 15 35h83l26-90-30-100Z" fill="url(#iron)"/>
+    <path d="M147 359h186m-197 47h88m36 0h88" stroke="#27364b" stroke-width="9"/>
+    <path d="M88 202l63-58 51 33-16 83-91 29-37-47Z" fill="url(#stone)"/>
+    <path d="M386 202l-63-58-51 33 16 83 91 29 37-47Z" fill="url(#stone)"/>
+    <path d="M93 226l74-18m-62 54 71-25m220-11-74-18m62 54-71-25" stroke="#3b4d61" stroke-width="7"/>
+    <path d="M150 183l34-75 111-7 38 82-20 103-144 6Z" fill="url(#stone)"/>
+    <path d="M187 110l-9-44 50 20 28-37 23 35 44-15-20 45Z" fill="#677487"/>
+    <path d="M183 145l47 7-6 37-41-3Zm113 0-47 7 6 37 41-3Z" fill="#182a3f"/>
+    <path d="M192 157l27 6-4 15-21-4Zm92 0-27 6 4 15 21-4Z" fill="#b6fff0" stroke="#6ddac8" stroke-width="2"/>
+    <path d="M218 205h44l20 25-26 28h-36l-23-28Z" fill="#364b60"/>
+    <path d="M211 233l57 4m-55 14 54-4" stroke="#9d8488" stroke-width="6"/>
+    <path d="M169 284l72 16 74-16-16 86h-118Z" fill="#4f596a"/>
+    <path d="M192 305h96l-12 46h-72Z" fill="#293b4c" stroke="#cf9b85" stroke-width="5"/>
+  </g>
+  <text x="240" y="339" text-anchor="middle" font-family="Georgia,serif" font-weight="900" font-size="39" fill="#ffd6a4">2⁴</text>
+  <path d="M155 300l-18 24 17 24-13 22m198-100-14 24 13 14-17 29" stroke="#d4a68a" stroke-width="5" opacity=".9" fill="none"/>
+  <path d="M44 439h392" stroke="#c38e8d" stroke-width="5" opacity=".5"/>
+  <g fill="#f4c7a6"><circle cx="64" cy="176" r="5"/><circle cx="423" cy="191" r="5"/><circle cx="352" cy="80" r="4"/><path d="M90 111l5 12 11 5-11 5-5 12-5-12-12-5 12-5Z"/></g>
+</svg>

@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 480" role="img" aria-labelledby="title desc">
+  <title id="title">The Five Thief</title>
+  <desc id="desc">A grinning masked fox-like trickster in a purple hood, sneaking away with a sack full of glowing golden fives.</desc>
+  <defs>
+    <linearGradient id="bg" x2="1" y2="1"><stop stop-color="#4d3b5e"/><stop offset="1" stop-color="#1b203d"/></linearGradient>
+    <radialGradient id="glow"><stop stop-color="#b88ac8" stop-opacity=".39"/><stop offset="1" stop-color="#b88ac8" stop-opacity="0"/></radialGradient>
+    <linearGradient id="cloak" x2="0" y2="1"><stop stop-color="#795b97"/><stop offset="1" stop-color="#3c315d"/></linearGradient>
+    <linearGradient id="fur" x2="0" y2="1"><stop stop-color="#f1b377"/><stop offset="1" stop-color="#be6c61"/></linearGradient>
+    <linearGradient id="gold" x2="1" y2="1"><stop stop-color="#fff2b3"/><stop offset=".58" stop-color="#ebbd6a"/><stop offset="1" stop-color="#a9713f"/></linearGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="170%" height="170%"><feDropShadow dx="0" dy="13" stdDeviation="12" flood-color="#100e21" flood-opacity=".6"/></filter>
+  </defs>
+  <rect width="480" height="480" rx="36" fill="url(#bg)"/><circle cx="255" cy="207" r="214" fill="url(#glow)"/>
+  <path d="M20 388l80-51 62 18 86-73 75 39 81-47 56 28v178H20Z" fill="#22243b" opacity=".75"/>
+  <path d="M74 107l41 27-12 42m296-63-34 37 25 25" stroke="#af9cc5" stroke-width="5" fill="none" opacity=".5"/>
+  <g filter="url(#shadow)" stroke="#191f37" stroke-width="8" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M95 331q-80 25-44 88 38 43 128-10" fill="#d89174"/>
+    <path d="M62 373l39 14m-38 20 50 5" stroke="#753c4f" stroke-width="11"/>
+    <path d="M141 272q-24 46-14 132l-25 46h257l-26-50q9-84-16-127l-91-27Z" fill="url(#cloak)"/>
+    <path d="M141 366l69-37 51 64 56-43-6 100H144Z" fill="#48335b" stroke-width="5"/>
+    <path d="M190 290l37 67 31-67" fill="#d5a27b"/>
+    <path d="M119 173l42-97 66 35 70-41 59 116-27 108q-65 49-153 17l-40-74Z" fill="url(#cloak)"/>
+    <path d="M160 167l21-56 43 30 64-34 38 61-12 100-33 28h-89l-33-29Z" fill="url(#fur)"/>
+    <path d="M163 186l-25-79 70 48m103 29 27-77-70 48" fill="#dd946e"/>
+    <path d="M164 176l-13-47 42 32m112 16 13-48-42 32" fill="#ffe1b4" stroke-width="5"/>
+    <path d="M160 199q47-36 81-11 43-30 78 12l-13 42-66 15-67-17Z" fill="#402f57"/>
+    <path d="M177 207q20-15 47 0l-12 15-27-2Zm124 0q-20-15-47 0l12 15 27-2Z" fill="#f9e5bd" stroke-width="4"/>
+    <circle cx="204" cy="212" r="5" fill="#201a33"/><circle cx="276" cy="212" r="5" fill="#201a33"/>
+    <path d="M217 250q22-24 47 0l-23 15Z" fill="#f8d2a3"/>
+    <path d="M227 252h26l-13 11Z" fill="#392b43"/>
+    <path d="M212 273q33 24 64-3" stroke="#592d43" stroke-width="6" fill="none"/>
+    <path d="M164 294q-55 16-68 64" stroke="#45335a" stroke-width="28" fill="none"/>
+    <path d="M309 292q49 16 64 47" stroke="#45335a" stroke-width="28" fill="none"/>
+    <path d="M314 354q55-39 93-12 25 41-6 78-63 27-116-23Z" fill="#aa806b"/>
+    <path d="M347 334q11 15 28 15 15-7 31-5" stroke="#73554d" stroke-width="6"/>
+    <path d="M320 360l27 38" stroke="#deb39a" stroke-width="7"/>
+  </g>
+  <g filter="url(#shadow)">
+    <circle cx="392" cy="286" r="37" fill="url(#gold)" stroke="#5a3a43" stroke-width="7"/>
+    <circle cx="392" cy="286" r="27" fill="none" stroke="#fff0b3" stroke-width="3"/>
+    <text x="392" y="305" text-anchor="middle" font-family="Georgia,serif" font-size="54" font-weight="900" fill="#764337">5</text>
+    <circle cx="90" cy="308" r="26" fill="url(#gold)" stroke="#5a3a43" stroke-width="5"/>
+    <text x="90" y="320" text-anchor="middle" font-family="Georgia,serif" font-size="36" font-weight="900" fill="#764337">5</text>
+    <circle cx="369" cy="401" r="14" fill="#f1c97a" stroke="#946143" stroke-width="4"/>
+  </g>
+  <g fill="#ffdc9a"><path d="M66 155l5 11 12 5-12 5-5 11-5-11-12-5 12-5Z"/><path d="M390 117l4 8 8 4-8 4-4 8-4-8-8-4 8-4Z"/><circle cx="136" cy="99" r="5"/></g>
+  <path d="M46 444h389" stroke="#ba95aa" stroke-width="4" opacity=".5"/>
+</svg>
