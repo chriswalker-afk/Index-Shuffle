@@ -172,7 +172,8 @@ assert.throws(() => startBossBoard(Array(15).fill(null), encounter(3, "blockade"
 // Going from shop after round 2 to boss round 3 creates the extra blocker
 // and carries gold/items/recorded boss assignment across transitions.
 const before = newRogueliteRun(0, rng);
-before.run = { ...before.run, round: 2, phase: "shop", coins: 8 };
+before.run = { ...before.run, round: 2, phase: "shop", coins: 8,
+  lastRoundReward: { bankCoins: 0, moveCoins: 0, unusedMoves: 0, totalCoins: 0 } };
 const advanced = advanceRogueliteRound(before, rng);
 assert.equal(advanced.run.round, 3);
 assert.equal(advanced.run.bosses[3], "blockade");
