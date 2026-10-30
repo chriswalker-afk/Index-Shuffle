@@ -2,7 +2,7 @@ import {
   key, slide, turnSpawns, initial, canMove, isBankable, isBlocker, isWarning,
   blockerStrength, blockerHitsForMove, BLOCKER_START, BLOCKER_INTERVAL, MAX_BLOCKERS,
   mergeReadyAfterSlide, attemptBank, adjacentIndices, activeBases, BASE_UNLOCKS,
-  INITIAL_MOVES_LEFT, MERGES_PER_BONUS_MOVE, spendMove, gameEnded
+  INITIAL_MOVES_LEFT, MERGES_PER_BONUS_MOVE, spendMove, slideCost, gameEnded
 } from "./engine.mjs";
 
 const $ = id => document.getElementById(id);
@@ -68,6 +68,9 @@ function render() {
   $("movesLeft").textContent = state.movesLeft;
   $("mergeProgress").textContent = state.mergeCredit + " / " +
     MERGES_PER_BONUS_MOVE + " merges to +1 move";
+  const currentSlideCost = slideCost(state.board);
+  $("slideCost").textContent = "Next slide costs " + currentSlideCost +
+    (currentSlideCost === 1 ? " move" : " moves");
   $("movesCard").classList.toggle("low-moves", state.movesLeft > 0 &&
     state.movesLeft <= 3);
   $("movesCard").classList.toggle("empty-moves", state.movesLeft === 0);
@@ -235,8 +238,11 @@ function move(direction) {
     if (t.exp >= 2 && !state.discovered.includes(key(t))) state.discovered.push(key(t));
   }
   const nextMove = state.moves + 1;
+  // Snapshot active blockers BEFORE the slide. A warning that matures
+  // on this slide only increases the cost of the following slide.
+  const activeBlockers = slideCost(before) - 1;
   const budget = spendMove(state.movesLeft, state.mergeCredit,
-    result.merges.length);
+    result.merges.length, activeBlockers);
   state.movesLeft = budget.movesLeft;
   state.mergeCredit = budget.mergeCredit;
   // Keep merge provenance attached to its tile as it slides, and mark
