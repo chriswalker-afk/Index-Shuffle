@@ -2978,3 +2978,169 @@ dialog.overlay > .dialog {
 @media (prefers-reduced-motion: reduce) {
   .controls button.frostlock-frozen { animation: none !important; }
 }
+
+
+/* Enchanted Squares Pass 3: usable magic with calm, accessible feedback.
+   Placement previews and glows never intercept tile buttons or swipes. */
+.enchantment-status {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px;
+  margin: 0 0 10px; padding: 8px 10px;
+}
+.enchantment-status-label {
+  color: #f4e0b0; font-weight: 950; letter-spacing: .11em;
+  font-size: 9px; white-space: nowrap;
+}
+.enchantment-status-items {
+  display: flex; flex-wrap: wrap; gap: 5px; min-width: 0;
+}
+.enchantment-status-chip {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: #15233a; border: 1px solid #ddbc75; color: #ffe6ab;
+  border-radius: 7px; padding: 5px 7px;
+  line-height: 1.3; font-size: 10px; font-weight: 850;
+}
+.enchantment-status-chip[data-enchantment="power-prism"],
+.enchantment-status-chip[data-enchantment="echo-seal"] {
+  border-color: #ae96ea; color: #eee2ff;
+}
+.enchantment-status-chip[data-enchantment="time-sanctuary"] {
+  border-color: #78d9cc; color: #c7fff1;
+}
+.enchantment-status-chip[data-enchantment="shatter-crest"] {
+  border-color: #f1a58f; color: #ffdfd2;
+}
+.enchantment-slot[data-enchantment] {
+  animation: enchantedSquareBreathe 3.1s ease-in-out infinite;
+}
+@keyframes enchantedSquareBreathe {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.22); }
+}
+.enchantment-slot--preview {
+  border: 2px dashed #b7fff1; border-radius: 10px;
+  background: #7fe9d514; box-shadow: inset 0 0 0 2px #d5fff23b;
+}
+.enchantment-preview-icon,
+.enchantment-preview-label {
+  position: absolute; display: grid; place-items: center;
+  padding: 2px 4px; border-radius: 5px;
+  color: #f4fff9; background: #244e58ea;
+  font-weight: 950; font-size: 9px;
+}
+.enchantment-preview-icon { top: 3px; right: 3px; }
+.enchantment-preview-label { bottom: 3px; right: 3px; letter-spacing: .06em; }
+.rune-activation-flash {
+  animation: runeSquareFlash .72s ease-out both;
+}
+@keyframes runeSquareFlash {
+  0% { outline: 4px solid #fff4a3; outline-offset: -2px; filter: brightness(1.55); }
+  50% { outline: 3px solid #e9c5ff; outline-offset: 2px; filter: brightness(1.3); }
+  100% { outline: 0 solid transparent; outline-offset: 5px; filter: brightness(1); }
+}
+.shop-offer-card.shop-offer-card--runestone {
+  background: linear-gradient(145deg, #3e3457, #243347);
+  border: 1px solid #b999ec; border-top: 3px solid #ffdb91;
+  box-shadow: inset 0 1px 0 #ffffff25, 0 8px 20px #02091a3a;
+}
+.shop-item-art--runestone {
+  border: 1px solid #e7c587; background:
+    radial-gradient(circle at 50% 32%, #f0da9f55, transparent 63%),
+    linear-gradient(150deg, #54456c, #2c354b);
+  box-shadow: inset 0 1px 6px #ffe0a342, 0 2px 10px #04081860;
+}
+.equip-chip.runestone-equipped {
+  border-color: #e7bd84; background: linear-gradient(120deg, #493957, #293e4b);
+}
+.shop-offer-card.runestone-offer .shop-rune-effect {
+  display: flex; flex-wrap: wrap; gap: 7px; align-items: center;
+  margin: 0; padding: 8px 0 0; border-top: 1px solid #b79fde6b;
+}
+.shop-rune-trigger {
+  border: 1px solid #e9c68b; background: #352d4c; color: #ffe6b9;
+  font-size: 9px; font-weight: 950; letter-spacing: .055em;
+  border-radius: 5px; padding: 4px 6px;
+}
+.shop-rune-charge {
+  color: #d8d1f1; font-size: 10px; font-weight: 800;
+}
+.shop-runestone-status {
+  margin: 10px 0; padding: 9px 12px; line-height: 1.55;
+  border: 1px solid #645b82; border-radius: 10px;
+  background: #292a47; color: #ddd7f3;
+  font-size: 11px; font-weight: 750;
+}
+.shop-runestone-status[data-state="found"] {
+  border-color: #e6bc77; background: #493949;
+  color: #fff0bc; box-shadow: inset 0 1px 0 #ffdb9b4c;
+}
+.shop-runestone-status[data-state="seen"] {
+  border-color: #60758a; background: #26364a; color: #c9d4e4;
+}
+.shop-runestone-guide {
+  border: 1px solid #8c78a6; border-radius: 11px;
+  padding: 12px 14px; background: #242940; color: #cfdbeb;
+  margin-bottom: 15px;
+}
+.shop-runestone-guide summary {
+  cursor: pointer; font-weight: 900; color: #f5dda7;
+  line-height: 1.5; font-size: 12px;
+}
+.shop-runestone-guide summary:focus-visible {
+  outline: 3px solid #b5f0df; outline-offset: 4px;
+}
+.shop-runestone-guide > p {
+  font-size: 11px; line-height: 1.65; max-width: 78ch;
+  margin: 10px 0 14px;
+}
+.shop-runestone-gallery {
+  display: grid; grid-template-columns: repeat(2, minmax(0,1fr));
+  gap: 9px;
+}
+.shop-rune-guide-card {
+  display: flex; flex-direction: column; gap: 7px; min-width: 0;
+  border: 1px solid #8f7b9e; border-radius: 10px;
+  padding: 10px; background: #222d46;
+}
+.shop-rune-guide-card.is-locked {
+  border-style: dashed; border-color: #6f7288;
+  background: #202a3a;
+}
+.shop-rune-guide-card.is-locked .shop-item-icon { filter: saturate(.35); opacity: .65; }
+.shop-rune-guide-top {
+  display: grid; grid-template-columns: 40px minmax(0, 1fr);
+  gap: 9px; align-items: center;
+}
+.shop-rune-guide-copy { display: flex; flex-direction: column; gap: 3px; min-width:0; }
+.shop-rune-guide-copy strong { color: #ffecd4; font-size: 12px; }
+.shop-rune-guide-unlock { color: #b8c9dc; font-size: 10px; }
+.shop-rune-guide-trigger {
+  margin:0; color: #f4dbad; font-weight: 850;
+  font-size: 10px; letter-spacing: .03em;
+}
+.shop-rune-guide-description {
+  margin:0; color: #c8d5e5; font-size: 11px; line-height: 1.55;
+}
+.bank-rune-bonus {
+  padding: 9px 12px; margin: 7px 0 12px;
+  border-radius: 9px; background: #332d4b; color: #fbe8c5;
+  border: 1px solid #b99ad8; font-size: 12px; font-weight: 850;
+  line-height: 1.5;
+}
+.bank-rune-bonus[hidden] { display: none; }
+@media (max-width: 690px) {
+  .shop-runestone-gallery { grid-template-columns: 1fr; }
+}
+@media (max-width: 580px) {
+  .enchantment-status { gap: 5px; padding: 7px 8px; }
+  .enchantment-status-label { font-size: 8px; }
+  .enchantment-status-chip { font-size: 9px; padding: 4px 6px; }
+  .enchantment-preview-icon, .enchantment-preview-label {
+    font-size: 8px; padding: 1px 3px;
+  }
+  .shop-runestone-guide { padding: 10px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .enchantment-slot[data-enchantment], .rune-activation-flash {
+    animation: none;
+  }
+}
