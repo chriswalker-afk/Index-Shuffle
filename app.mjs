@@ -210,14 +210,14 @@ function tileContent(t, badge = "") {
 function render() {
   renderNavigation(screen, saved("classic"), saved("roguelite"),
     mode, achievementProfile, resumeSavedGame);
+  // Optional maths and game guides always reflect the selected saved run.
+  $("helpBankSeconds").textContent = currentBankSeconds();
+  $("mathsBankSeconds").textContent = currentBankSeconds();
   if (screen !== "game") {
     $("helpRogueBlock").hidden = false;
     return;
   }
   const rogue = mode === "roguelite";
-  // Make the answer limit visible in both optional reference panels.
-  $("helpBankSeconds").textContent = currentBankSeconds();
-  $("mathsBankSeconds").textContent = currentBankSeconds();
   // A stage scene is purely visual: stageForRound remains the canonical
   // source. No scene identifier is written into a save or gameplay state.
   const currentStage = rogue ? stageForRound(state.run.round) : null;
