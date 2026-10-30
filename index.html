@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#0c1428">
   <meta name="description" content="Slide and merge powers, solve banking challenges and stay in the game.">
   <title>Index Shuffle — Make every move count</title>
-  <link rel="stylesheet" href="styles.css?v=title-flow-v1">
+  <link rel="stylesheet" href="styles.css?v=hazard-layer-v1">
 </head>
 <body>
   <main class="shell">
@@ -245,6 +245,7 @@
               <div><span>Powers banked</span><strong id="count">0</strong></div>
               <div><span>Slides made</span><strong id="moves">0</strong></div>
               <div><span>Active blockers</span><strong id="blockerCount">0 / 2</strong></div>
+              <div id="hazardSummary" hidden><span>Square hazards</span><strong id="hazardCount">0 / 2</strong></div>
             </div>
             <div class="detail-divider"></div>
             <p class="detail-label">Bases in play</p>
@@ -332,12 +333,46 @@
           Permanent bonuses apply automatically. Every third round brings a
           different boss rule, revealed in the preceding shop. Correctly bank
           powers to counter boss obstacles and survive the round.</p>
+        <section class="hazard-field-guide" aria-labelledby="hazardGuideTitle">
+          <div class="hazard-guide-header">
+            <div>
+              <h4 id="hazardGuideTitle">Square hazards</h4>
+              <p>Five hazards planned for later difficulty stages. These are
+                visual previews only: hazards do not spawn or affect movement
+                in this pass.</p>
+            </div>
+            <span class="hazard-guide-status">PREVIEW</span>
+          </div>
+          <div class="hazard-preview-grid">
+            <div class="hazard-preview-card">
+              <span class="hazard-example hazard-cloudy" aria-hidden="true"><b>☁</b><i>?</i><small>3</small></span>
+              <div><strong>Cloudy</strong><p>Hides any numbered tile or gold beneath it. Fades after 3 slides.</p></div>
+            </div>
+            <div class="hazard-preview-card">
+              <span class="hazard-example hazard-void" aria-hidden="true"><b>↓</b><small>−1</small></span>
+              <div><strong>Void</strong><p>Reduces an index by one when landed on, then disappears.</p></div>
+            </div>
+            <div class="hazard-preview-card">
+              <span class="hazard-example hazard-null" aria-hidden="true"><b>⊘</b><small>×</small></span>
+              <div><strong>Null</strong><p>Prevents a merge from ending on that square.</p></div>
+            </div>
+            <div class="hazard-preview-card">
+              <span class="hazard-example hazard-cracked" aria-hidden="true"><b>✧</b><small>↯</small></span>
+              <div><strong>Cracked</strong><p>Turns into Null after a merge on its square.</p></div>
+            </div>
+            <div class="hazard-preview-card">
+              <span class="hazard-example hazard-greedy" aria-hidden="true"><b>◉</b><small>◉</small></span>
+              <div><strong>Greedy</strong><p>Removes the gold from a tile passing through it.</p></div>
+            </div>
+          </div>
+        </section>
       </div>
       <div class="symbol-guide" aria-label="Board symbol legend">
         <span><b>✦</b> Bankable</span><span><b>⚡</b> Damages blocker if banked</span>
         <span><b>⌛</b> Banking cooldown</span><span><b>!</b> Incoming blocker</span>
         <span><b>▦</b> Fixed blocker</span>
         <span><b>◉</b> Golden tile: bank directly or merge for more coins</span>
+        <span><b>✧</b> Square hazards (planned for later passes)</span>
       </div>
     </section>
 
@@ -487,6 +522,6 @@
       <button type="button" id="cancel" class="textbtn">Keep this tile</button>
     </div>
   </div>
-  <script type="module" src="app.mjs?v=title-flow-v1"></script>
+  <script type="module" src="app.mjs?v=hazard-layer-v1"></script>
 </body>
 </html>

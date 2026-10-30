@@ -36,6 +36,12 @@ import {
 } from "./results-ui.mjs?v=title-flow-v1";
 import { MODE_LABELS, resumableSave } from "./navigation.mjs?v=title-flow-v1";
 import { renderNavigation } from "./title-ui.mjs?v=title-flow-v1";
+import {
+  restoreHazardLayer, hazardAt, activeHazardCount, MAX_ACTIVE_HAZARDS
+} from "./hazards.mjs?v=hazard-layer-v1";
+import {
+  renderHazardLayer, hazardTileDescription
+} from "./hazard-ui.mjs?v=hazard-layer-v1";
 
 const $ = id => document.getElementById(id);
 const glyph = n => String(n).replace(/\d/g, d => "⁰¹²³⁴⁵⁶⁷⁸⁹"[+d]);
@@ -87,6 +93,7 @@ if (!state || !Array.isArray(state.board) || state.board.length !== 16) {
     if (mode === "roguelite") {
       state.run = restoreEffectState(restoreShopState(
         restoreRogueliteRun(state.run, state.movesLeft)));
+      state.hazards = restoreHazardLayer(state.hazards, state.board);
     } else {
       state.stats = restoreRunStats(state.stats);
     }
@@ -158,6 +165,11 @@ function render() {
   const rogue = mode === "roguelite";
   $("currentModeName").textContent = MODE_LABELS[mode];
   $("gameAchievements").hidden = !rogue;
+  $("hazardSummary").hidden = !rogue;
+  if (rogue) {
+    $("hazardCount").textContent = activeHazardCount(state.hazards) +
+      " / " + MAX_ACTIVE_HAZARDS;
+  }
   finalizeGameIfNeeded();
   $("achievementToast").hidden = !rogue || !recentAchievementIds.length;
   if (rogue && recentAchievementIds.length) {
@@ -255,6 +267,7 @@ function render() {
   board.innerHTML = "";
 
   state.board.forEach((t, i) => {
+    const squareHazard = rogue ? hazardAt(state.hazards, i) : null;
     const button = document.createElement("button");
     button.className = "cell" + (isBlocker(t) ? " block-tile block-tier" + blockerStrength(t)
       : isWarning(t) ? " warning-tile warning-tier" + blockerStrength(t)
@@ -333,8 +346,28 @@ function render() {
         if (selection.targets.includes(i)) button.classList.add("item-target-selected");
       }
     }
+    if (squareHazard) {
+      button.classList.add("hazard-underlay");
+      const description = hazardTileDescription(squareHazard,
+        Boolean(t && !isBlocker(t) && !isWarning(t)));
+      if (squareHazard.type === "cloudy") {
+        // Never expose a concealed power through a title, accessible label,
+        // banking click, or bank indicator. Full movement rules follow in Pass 2.
+        button.title = description;
+        button.setAttribute("aria-label", description);
+        button.disabled = true;
+        button.classList.remove("bankable", "block-strike");
+        button.replaceChildren();
+      } else {
+        button.title = (button.title ? button.title + ". " : "") + description;
+        button.setAttribute("aria-label", button.title);
+      }
+    }
     board.appendChild(button);
   });
+  // Stationary hazard overlay comes after the 16 tiles. It never intercepts
+  // banking or slide gestures, and slide animation still uses cells 0..15.
+  if (rogue) renderHazardLayer(board, state.hazards);
   $("blockerCount").textContent =
     state.board.filter(isBlocker).length + " / " + MAX_BLOCKERS;
   const incoming = state.board.find(isWarning);
@@ -761,6 +794,7 @@ function loadSavedGame(snapshot) {
   if (mode === "roguelite") {
     state.run = restoreEffectState(restoreShopState(
       restoreRogueliteRun(state.run, state.movesLeft)));
+    state.hazards = restoreHazardLayer(state.hazards, state.board);
     state.over = state.run.phase === "playing" ? currentGameEnded() : false;
   } else {
     state.stats = restoreRunStats(state.stats);
