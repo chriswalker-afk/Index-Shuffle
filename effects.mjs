@@ -7,6 +7,9 @@ import {
 import { goldTier } from "./roguelite.mjs?v=mode-results-v1";
 import { ITEM_BY_ID } from "./shop.mjs?v=mode-results-v1";
 import { bossId, bossMovementRules } from "./bosses.mjs?v=mode-results-v1";
+import {
+  hazardAt, restoreHazardLayer, removeHazard
+} from "./hazards.mjs?v=hazard-pass3-v1";
 
 const whole = n => Number.isSafeInteger(n) && n >= 0;
 const numericTile = t => Boolean(t && !isObstacle(t) &&
@@ -102,7 +105,7 @@ export const CONSUMABLE_TARGETS = Object.freeze({
   "block-breaker": 1, "power-surge": 1, "second-wind": 0,
   "alchemist": 1, "protection": 0, "gold-touch": 1,
   "position-swap": 2, "delay-tactics": 0, "clear-space": 1,
-  "second-chance": 1
+  "second-chance": 1, "hazard-eraser": 1
 });
 
 function itemInSlot(state, slot) {
@@ -124,6 +127,11 @@ export function consumableTargets(state, slot, selected = []) {
   return board.map((t, i) => {
     if (selected.includes(i)) return -1;
     if (id === "block-breaker") return isBlocker(t) ? i : -1;
+    if (id === "hazard-eraser") {
+      return state.hazards && hazardAt(state.hazards, i) ? i : -1;
+    }
+    // A covered tile must not leak its identity through item highlighting.
+    if (state.hazards?.[i]?.type === "cloudy") return -1;
     if (id === "second-chance") return locked.has(i) && numericTile(t) &&
       t.exp >= 2 && !banked.has(key(t)) ? i : -1;
     if (!numericTile(t)) return -1;
@@ -137,7 +145,8 @@ export function consumableTargets(state, slot, selected = []) {
       const probe = board.slice();
       probe[i] = null;
       return canMove(probe, banked, locked,
-        bossMovementRules(state.run)) ? i : -1;
+        { ...(bossMovementRules(state.run) || {}),
+          hazards: state.hazards }) ? i : -1;
     }
     return -1;
   }).filter(i => i !== -1);
@@ -173,6 +182,7 @@ export function useConsumable(state, slot, selections = []) {
     }
   }
   const board = state.board.slice();
+  let hazards = restoreHazardLayer(state.hazards, board);
   const current = restoreEffectState(state.run);
   let locked = [...state.locked], ready = [...state.mergeReady];
   let movesLeft = state.movesLeft;
@@ -188,6 +198,13 @@ export function useConsumable(state, slot, selections = []) {
       board[index] = null;
       notice = "Block Breaker removed a blocker.";
       break;
+    case "hazard-eraser": {
+      const type = hazardAt(hazards, index)?.type;
+      hazards = removeHazard(hazards, index);
+      notice = "Hazard Eraser cleared the " + type +
+        " square without changing its number tile.";
+      break;
+    }
     case "power-surge":
       board[index] = { ...board[index], exp: board[index].exp + 1 };
       // A transformation is not a merge and cannot erase a banking cooldown.
@@ -244,7 +261,7 @@ export function useConsumable(state, slot, selections = []) {
   // These are tools, never mathematical banks: no score, move credit, gold,
   // blocker damage or discovered powers are earned by activating an item.
   return {
-    ...state, board, locked, mergeReady: ready, movesLeft,
+    ...state, board, hazards, locked, mergeReady: ready, movesLeft,
     run, notice
   };
 }
