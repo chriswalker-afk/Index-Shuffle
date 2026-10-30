@@ -161,5 +161,5 @@ assert.match(app, /hazard-counter-v1/);
 assert.match(html, /golden 3¹/i);
 assert.match(html, /<b>◉<\/b>/);
 assert.match(html, /styles\.css\?v=runestones-pass3/);
-assert.match(html, /app\.mjs\?v=runestones-pass3/);
+assert.match(html, /app\.mjs\?v=runestones-pass4/);
 console.log("All Index Shuffle gold-banking and metallic-tile regression tests passed.");
