@@ -41,6 +41,11 @@
           <button data-dir="down" aria-label="Slide down">↓</button>
           <button data-dir="right" aria-label="Slide right">→</button>
         </div>
+        <div class="base-progress" aria-label="Unlocked bases and upcoming milestone">
+          <span class="base-progress-label">BASES IN PLAY</span>
+          <div id="activeBases" class="base-chips"></div>
+          <span id="nextBase" class="next-base"></span>
+        </div>
         <p class="tip">Use arrow keys, WASD or swipe. ✦ indicates a bankable power;
           ⌛ means you must slide once before retrying.</p>
       </div>
@@ -53,8 +58,8 @@
              value in 60 seconds to earn points.</p>
           <div class="formula">a<sup>m</sup> × a<sup>n</sup> = a<sup>m+n</sup></div>
           <p class="muted">Banking replaces the tile with a smaller unlocked power
-             of the same base. It does not clear the square. Wrong answers and
-             timeouts lock that tile until you make a valid slide.</p>
+             of the same base, without clearing the square. The replacement,
+             wrong answers and timeouts all have a one-slide banking cooldown.</p>
         </section>
         <section class="panel">
           <div class="between">
@@ -66,10 +71,11 @@
         </section>
         <section class="panel">
           <h2>How to survive</h2>
-          <p>After each valid slide, a new tile appears. Higher powers may spawn
-             once discovered. Because banking leaves a smaller power behind,
-             the board gradually becomes harder to manage. You lose when there
-             are no legal slides or eligible banking actions.</p>
+          <p>After each valid slide, a new tile appears. New bases unlock at
+             15, 35 and 60 successful slides (7, 11 and 13), initially spawning
+             rarely. Higher powers may spawn once discovered. Because banking
+             keeps a smaller power on the board, space becomes harder to manage.
+             You lose when no legal slides or banking actions remain.</p>
         </section>
       </aside>
     </section>
