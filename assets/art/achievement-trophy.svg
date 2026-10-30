@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180" role="img" aria-labelledby="title desc">
+ <title id="title">Numberworld achievement trophy</title><desc id="desc">A gold octagonal trophy with a mathematical star on a violet ribbon.</desc>
+ <defs>
+ <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff2c6"/><stop offset=".55" stop-color="#e2b86a"/><stop offset="1" stop-color="#9c653f"/></linearGradient>
+ <linearGradient id="violet" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#bba1d6"/><stop offset="1" stop-color="#59466e"/></linearGradient>
+ </defs>
+ <circle cx="90" cy="85" r="78" fill="#b89dd0" opacity=".12"/>
+ <path d="M51 99 30 172l48-22 20 15 20-15 43 22-23-73" fill="url(#violet)" stroke="#352e4d" stroke-width="8" stroke-linejoin="round"/>
+ <path d="M90 18 135 33 164 75 146 126 90 154 34 126 16 75 45 33Z" fill="url(#gold)" stroke="#574053" stroke-width="10" stroke-linejoin="round"/>
+ <path d="M90 32 127 46 148 79 132 116 90 139 48 116 32 79 53 46Z" fill="#394253" stroke="#f6d18c" stroke-width="5"/>
+ <path d="M90 45 103 68l25 5-19 19 4 26-23-12-23 12 4-26-19-19 25-5Z" fill="#ffdda0" stroke="#74575e" stroke-width="4" stroke-linejoin="round"/>
+ <text x="90" y="95" text-anchor="middle" font-family="Georgia,serif" font-weight="900" font-size="39" fill="#4c475a">x²</text>
+ <g fill="#ffe5aa"><circle cx="29" cy="23" r="4"/><circle cx="159" cy="22" r="4"/><path d="M153 43l5 10 11 5-11 4-5 11-5-11-11-4 11-5Z"/></g>
+ </svg>

@@ -1,0 +1,87 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" aria-labelledby="title desc">
+<title id="title">Index Shuffle achievement medals</title>
+<desc id="desc">Sixteen distinct original medal symbols for the earned roguelike achievements.</desc>
+<defs>
+<symbol id="award-first-deposit" viewBox="0 0 100 100">
+  <circle cx="50" cy="50" r="47" fill="#fff1c6" opacity=".17"/>
+  <circle cx="50" cy="50" r="41" fill="none" stroke="#f2cb81" stroke-width="2" stroke-dasharray="3 8" opacity=".65"/>
+  <g stroke="#20334b" stroke-width="4.5" stroke-linejoin="round" stroke-linecap="round"><rect x="23" y="31" width="54" height="52" rx="10" fill="#accfeb" /><text x="50" y="68" text-anchor="middle" font-family="Georgia,serif" font-size="29" font-weight="900" fill="#20334b" stroke="none">2²</text><path d="M77 15l2.43 6.57L86 24l-6.57 2.43L77 33l-2.43 -6.57L68 24l6.57 -2.43Z" fill="#fff4cc" stroke="none"/></g>
+</symbol>
+<symbol id="award-gold-digger" viewBox="0 0 100 100">
+  <circle cx="50" cy="50" r="47" fill="#fff1c6" opacity=".17"/>
+  <circle cx="50" cy="50" r="41" fill="none" stroke="#f2cb81" stroke-width="2" stroke-dasharray="3 8" opacity=".65"/>
+  <g stroke="#20334b" stroke-width="4.5" stroke-linejoin="round" stroke-linecap="round"><circle cx="44" cy="54" r="26" fill="#f4d38a" /><circle cx="44" cy="54" r="17" fill="none" stroke="#fff5cb" stroke-width="5"/><path d="M67 21 84 34 67 52 53 38Z" fill="#f3b0b2"/><path d="M67 40 37 73" stroke="#fff4cc" stroke-width="9"/></g>
+</symbol>
+<symbol id="award-double-mint" viewBox="0 0 100 100">
+  <circle cx="50" cy="50" r="47" fill="#fff1c6" opacity=".17"/>
+  <circle cx="50" cy="50" r="41" fill="none" stroke="#f2cb81" stroke-width="2" stroke-dasharray="3 8" opacity=".65"/>
+  <g stroke="#20334b" stroke-width="4.5" stroke-linejoin="round" stroke-linecap="round"><circle cx="42" cy="51" r="25" fill="#f4d38a" /><circle cx="62" cy="59" r="25" fill="#fff4cc" /><circle cx="62" cy="59" r="15" fill="none" stroke="#ba8c57" stroke-width="4"/><text x="62" y="69" text-anchor="middle" font-family="Georgia,serif" font-size="21" font-weight="900" fill="#20334b" stroke="none">◉</text></g>
+</symbol>
+<symbol id="award-high-power" viewBox="0 0 100 100">
+  <circle cx="50" cy="50" r="47" fill="#fff1c6" opacity=".17"/>
+  <circle cx="50" cy="50" r="41" fill="none" stroke="#f2cb81" stroke-width="2" stroke-dasharray="3 8" opacity=".65"/>
+  <g stroke="#20334b" stroke-width="4.5" stroke-linejoin="round" stroke-linecap="round"><rect x="20" y="44" width="60" height="39" rx="8" fill="#accfeb" /><rect x="27" y="29" width="46" height="22" rx="7" fill="#a8edda" /><rect x="34" y="16" width="32" height="20" rx="5" fill="#fff4cc" /><text x="50" y="67" text-anchor="middle" font-family="Georgia,serif" font-size="24" font-weight="900" fill="#20334b" stroke="none">x⁵</text></g>
+</symbol>
+<symbol id="award-ten-pointer" viewBox="0 0 100 100">
+  <circle cx="50" cy="50" r="47" fill="#fff1c6" opacity=".17"/>
+  <circle cx="50" cy="50" r="41" fill="none" stroke="#f2cb81" stroke-width="2" stroke-dasharray="3 8" opacity=".65"/>
+  <g stroke="#20334b" stroke-width="4.5" stroke-linejoin="round" stroke-linecap="round"><path d="M50 11 60 32 85 30 70 48 87 66 63 66 50 88 36 67 13 66 30 48 15 30 40 32Z" fill="#f4d38a"/><text x="50" y="64" text-anchor="middle" font-family="Georgia,serif" font-size="30" font-weight="900" fill="#20334b" stroke="none">10</text></g>
+</symbol>
+<symbol id="award-first-clear" viewBox="0 0 100 100">
+  <circle cx="50" cy="50" r="47" fill="#fff1c6" opacity=".17"/>
+  <circle cx="50" cy="50" r="41" fill="none" stroke="#f2cb81" stroke-width="2" stroke-dasharray="3 8" opacity=".65"/>
+  <g stroke="#20334b" stroke-width="4.5" stroke-linejoin="round" stroke-linecap="round"><path d="M27 15v76" stroke="#fff4cc" stroke-width="9"/><path d="M31 20h54l-15 21 15 20H31Z" fill="#a8edda"/><text x="57" y="50" text-anchor="middle" font-family="Georgia,serif" font-size="27" font-weight="900" fill="#20334b" stroke="none">✓</text></g>
+</symbol>
+<symbol id="award-boss-buster" viewBox="0 0 100 100">
+  <circle cx="50" cy="50" r="47" fill="#fff1c6" opacity=".17"/>
+  <circle cx="50" cy="50" r="41" fill="none" stroke="#f2cb81" stroke-width="2" stroke-dasharray="3 8" opacity=".65"/>
+  <g stroke="#20334b" stroke-width="4.5" stroke-linejoin="round" stroke-linecap="round"><path d="M50 12 79 26v28q-3 26-29 38Q20 79 21 54V26Z" fill="#f3b0b2"/><path d="M29 31 69 73m4-39L32 73" stroke="#fff4cc" stroke-width="9"/></g>
+</symbol>
+<symbol id="award-boss-hunter" viewBox="0 0 100 100">
+  <circle cx="50" cy="50" r="47" fill="#fff1c6" opacity=".17"/>
+  <circle cx="50" cy="50" r="41" fill="none" stroke="#f2cb81" stroke-width="2" stroke-dasharray="3 8" opacity=".65"/>
+  <g stroke="#20334b" stroke-width="4.5" stroke-linejoin="round" stroke-linecap="round"><path d="M16 71 22 31l19 20 9-26 10 26 20-20 5 40Z" fill="#f4d38a"/><rect x="19" y="71" width="65" height="13" rx="5" fill="#cebbf2" /><circle cx="26" cy="42" r="4" fill="#fff4cc" /><circle cx="50" cy="42" r="4" fill="#fff4cc" /><circle cx="74" cy="42" r="4" fill="#fff4cc" /></g>
+</symbol>
+<symbol id="award-index-master" viewBox="0 0 100 100">
+  <circle cx="50" cy="50" r="47" fill="#fff1c6" opacity=".17"/>
+  <circle cx="50" cy="50" r="41" fill="none" stroke="#f2cb81" stroke-width="2" stroke-dasharray="3 8" opacity=".65"/>
+  <g stroke="#20334b" stroke-width="4.5" stroke-linejoin="round" stroke-linecap="round"><circle cx="50" cy="49" r="35" fill="#f4d38a" /><circle cx="50" cy="49" r="25" fill="#384f60" /><path d="M50 27l4.32 11.68L66 43l-11.68 4.32L50 59l-4.32 -11.68L34 43l11.68 -4.32Z" fill="#fff4cc" stroke="none"/><text x="50" y="74" text-anchor="middle" font-family="Georgia,serif" font-size="21" font-weight="900" fill="#fff4cc" stroke="none">12</text></g>
+</symbol>
+<symbol id="award-shop-regular" viewBox="0 0 100 100">
+  <circle cx="50" cy="50" r="47" fill="#fff1c6" opacity=".17"/>
+  <circle cx="50" cy="50" r="41" fill="none" stroke="#f2cb81" stroke-width="2" stroke-dasharray="3 8" opacity=".65"/>
+  <g stroke="#20334b" stroke-width="4.5" stroke-linejoin="round" stroke-linecap="round"><path d="M28 33h44l7 50H20Z" fill="#cebbf2"/><path d="M37 39V27q0-18 13-18t14 18v12" stroke="#fff4cc" stroke-width="7" fill="none"/><circle cx="64" cy="65" r="12" fill="#f4d38a" /></g>
+</symbol>
+<symbol id="award-full-house" viewBox="0 0 100 100">
+  <circle cx="50" cy="50" r="47" fill="#fff1c6" opacity=".17"/>
+  <circle cx="50" cy="50" r="41" fill="none" stroke="#f2cb81" stroke-width="2" stroke-dasharray="3 8" opacity=".65"/>
+  <g stroke="#20334b" stroke-width="4.5" stroke-linejoin="round" stroke-linecap="round"><rect x="15" y="32" width="32" height="41" rx="7" fill="#accfeb" /><rect x="52" y="32" width="32" height="41" rx="7" fill="#a8edda" /><text x="31" y="60" text-anchor="middle" font-family="Georgia,serif" font-size="23" font-weight="900" fill="#20334b" stroke="none">2</text><text x="69" y="60" text-anchor="middle" font-family="Georgia,serif" font-size="23" font-weight="900" fill="#20334b" stroke="none">3</text><path d="M50 10l2.43 6.57L59 19l-6.57 2.43L50 28l-2.43 -6.57L41 19l6.57 -2.43Z" fill="#fff4cc" stroke="none"/></g>
+</symbol>
+<symbol id="award-gold-rush" viewBox="0 0 100 100">
+  <circle cx="50" cy="50" r="47" fill="#fff1c6" opacity=".17"/>
+  <circle cx="50" cy="50" r="41" fill="none" stroke="#f2cb81" stroke-width="2" stroke-dasharray="3 8" opacity=".65"/>
+  <g stroke="#20334b" stroke-width="4.5" stroke-linejoin="round" stroke-linecap="round"><path d="M20 43h60l-5 33H24Z" fill="#f4d38a"/><path d="M17 44 35 19h29l20 25Z" fill="#fff4cc"/><circle cx="38" cy="43" r="8" fill="#f3b0b2" /><circle cx="57" cy="36" r="10" fill="#f4d38a" /><circle cx="73" cy="50" r="8" fill="#f3b0b2" /></g>
+</symbol>
+<symbol id="award-close-call" viewBox="0 0 100 100">
+  <circle cx="50" cy="50" r="47" fill="#fff1c6" opacity=".17"/>
+  <circle cx="50" cy="50" r="41" fill="none" stroke="#f2cb81" stroke-width="2" stroke-dasharray="3 8" opacity=".65"/>
+  <g stroke="#20334b" stroke-width="4.5" stroke-linejoin="round" stroke-linecap="round"><path d="M26 20h49M26 80h49M31 24l18 26-18 26h39L51 50l19-26Z" fill="#cebbf2"/><text x="50" y="65" text-anchor="middle" font-family="Georgia,serif" font-size="28" font-weight="900" fill="#20334b" stroke="none">1</text></g>
+</symbol>
+<symbol id="award-move-saver" viewBox="0 0 100 100">
+  <circle cx="50" cy="50" r="47" fill="#fff1c6" opacity=".17"/>
+  <circle cx="50" cy="50" r="41" fill="none" stroke="#f2cb81" stroke-width="2" stroke-dasharray="3 8" opacity=".65"/>
+  <g stroke="#20334b" stroke-width="4.5" stroke-linejoin="round" stroke-linecap="round"><circle cx="50" cy="49" r="32" fill="#366568" /><path d="M28 51l13 15 31-31" stroke="#a8edda" stroke-width="13" fill="none"/><path d="M75 11l1.8900000000000001 5.109999999999999L82 18l-5.109999999999999 1.8900000000000001L75 25l-1.8900000000000001 -5.109999999999999L68 18l5.109999999999999 -1.8900000000000001Z" fill="#fff4cc" stroke="none"/></g>
+</symbol>
+<symbol id="award-block-wrecker" viewBox="0 0 100 100">
+  <circle cx="50" cy="50" r="47" fill="#fff1c6" opacity=".17"/>
+  <circle cx="50" cy="50" r="41" fill="none" stroke="#f2cb81" stroke-width="2" stroke-dasharray="3 8" opacity=".65"/>
+  <g stroke="#20334b" stroke-width="4.5" stroke-linejoin="round" stroke-linecap="round"><rect x="18" y="25" width="64" height="56" rx="6" fill="#accfeb" /><path d="M40 25l11 19-9 14 13 9-9 14m5-37 21-11m-30 25-20 5" stroke="#f3b0b2" stroke-width="7" fill="none"/><path d="M72 64l2.16 5.84L80 72l-5.84 2.16L72 80l-2.16 -5.84L64 72l5.84 -2.16Z" fill="#fff4cc" stroke="none"/></g>
+</symbol>
+<symbol id="award-toolbox" viewBox="0 0 100 100">
+  <circle cx="50" cy="50" r="47" fill="#fff1c6" opacity=".17"/>
+  <circle cx="50" cy="50" r="41" fill="none" stroke="#f2cb81" stroke-width="2" stroke-dasharray="3 8" opacity=".65"/>
+  <g stroke="#20334b" stroke-width="4.5" stroke-linejoin="round" stroke-linecap="round"><path d="M26 16 83 73 72 84 16 28Z" fill="#f4d38a"/><path d="M79 13 62 27 72 37 86 23Z" fill="#cebbf2"/><path d="M67 31 25 75" stroke="#fff4cc" stroke-width="12"/><circle cx="26" cy="78" r="7" fill="#a8edda" /></g>
+</symbol>
+<symbol id="award-generic" viewBox="0 0 100 100"><circle cx="50" cy="50" r="34" fill="#f4d38a"/><path d="M50 30l5.4 14.6L70 50l-14.6 5.4L50 70l-5.4 -14.6L30 50l14.6 -5.4Z" fill="#fff4cc" stroke="none"/></symbol>
+</defs>
+</svg>

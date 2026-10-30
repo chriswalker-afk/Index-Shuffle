@@ -46,8 +46,8 @@ assert.match(html, /<details class="shop-guide">/);
 assert.match(html, /id="shopCoins"/);
 assert.match(html, /id="shopReroll"/);
 assert.match(html, /id="shopContinue"/);
-assert.match(html, /styles\.css\?v=hazard-counter-v1-art-pass3/);
-assert.match(html, /app\.mjs\?v=hazard-counter-v1-art-pass3/);
+assert.match(html, /styles\.css\?v=hazard-counter-v1-art-pass4/);
+assert.match(html, /app\.mjs\?v=hazard-counter-v1-art-pass4/);
 assert.match(app, /shop-ui\.mjs\?v=hazard-counter-v1-art-pass3/);
 for (const selector of [".shop-offer-pair", ".shop-item-art--ward",
   ".shop-item-art--consumable", ".shop-price-original",

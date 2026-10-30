@@ -28,6 +28,7 @@ jobs:
           node art-catalog.tests.mjs
           node shop-art.tests.mjs
           node boss-art.tests.mjs
+          node world-art.tests.mjs
       - name: Check JavaScript syntax
         run: |
           node --check engine.mjs
@@ -62,6 +63,9 @@ jobs:
           node --check shop-art.tests.mjs
           node --check boss-scenes.mjs
           node --check boss-art.tests.mjs
+          node --check stage-art.mjs
+          node --check achievement-art.mjs
+          node --check world-art.tests.mjs
       - name: Verify Pages static files
         run: |
           test -f .nojekyll
@@ -97,8 +101,26 @@ jobs:
           test -f assets/art/boss-power-snob.svg
           test -f assets/art/boss-timekeeper.svg
           test -f assets/art/boss-three-curse.svg
+          test -f stage-art.mjs
+          test -f achievement-art.mjs
+          test -f world-gallery.html
+          test -f assets/art/title-numberworld.svg
+          test -f assets/art/stage-observatory.svg
+          test -f assets/art/stage-mist-gardens.svg
+          test -f assets/art/stage-fracture-forge.svg
+          test -f assets/art/stage-eclipse-vault.svg
+          test -f assets/art/hazard-cloudy.svg
+          test -f assets/art/hazard-void.svg
+          test -f assets/art/hazard-null.svg
+          test -f assets/art/hazard-cracked.svg
+          test -f assets/art/hazard-greedy.svg
+          test -f assets/art/achievement-trophy.svg
+          test -f assets/art/achievement-medals.svg
       - name: Validate item sprite XML
         run: python3 -c "import xml.etree.ElementTree as ET; ET.parse('assets/art/item-sprites.svg')"
       - name: Validate all boss portrait SVGs
         run: |
           python3 -c "import glob, xml.etree.ElementTree as ET; [ET.parse(path) for path in glob.glob('assets/art/boss-*.svg')]"
+      - name: Validate Pass 4 SVG scene, hazard and award assets
+        run: |
+          python3 -c "import glob, xml.etree.ElementTree as ET; paths = glob.glob('assets/art/stage-*.svg') + glob.glob('assets/art/hazard-*.svg') + ['assets/art/title-numberworld.svg', 'assets/art/achievement-trophy.svg', 'assets/art/achievement-medals.svg']; [ET.parse(path) for path in paths]; assert len(paths) == 12"

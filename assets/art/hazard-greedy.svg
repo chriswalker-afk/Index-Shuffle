@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" aria-labelledby="title desc">
+ <title id="title">Greedy</title><desc id="desc">A hooked golden claw reaching towards a coin.</desc>
+ <defs>
+ <linearGradient id="enamel" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ffe7a5"/><stop offset=".58" stop-color="#cda046"/><stop offset="1" stop-color="#665043"/></linearGradient>
+ </defs>
+ <circle cx="50" cy="50" r="45" fill="url(#enamel)" opacity=".15"/>
+ <circle cx="50" cy="50" r="39" stroke="#ffe7a5" stroke-width="3" fill="none" stroke-dasharray="3 7" opacity=".47"/>
+ <circle cx="52" cy="58" r="24" fill="#e4ad54" stroke="#8b5d37" stroke-width="6"/>
+ <circle cx="52" cy="58" r="14" fill="none" stroke="#fff2bd" stroke-width="4"/>
+ <path d="M49 46v24m-7-20q10-7 17 0-8 8-17 9 10 8 18-1" stroke="#6b4b36" stroke-width="4" fill="none" stroke-linecap="round"/>
+ <path d="M16 18q20 5 24 24m30-28Q56 30 64 42M87 26Q66 34 71 52" stroke="#f5d894" stroke-width="10" fill="none" stroke-linecap="round"/>
+ <path d="M12 29l7-10 9 10M75 18l12 8-13 12" fill="#f9e4ab" stroke="#a07749" stroke-width="3"/>
+ </svg>

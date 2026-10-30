@@ -35,9 +35,10 @@ import {
 } from "./milestones.mjs?v=hazard-counter-v1";
 import {
   openAchievementGallery, renderFinalScreen
-} from "./results-ui.mjs?v=hazard-counter-v1-art-pass3";
+} from "./results-ui.mjs?v=hazard-counter-v1-art-pass4";
 import { MODE_LABELS, resumableSave } from "./navigation.mjs?v=hazard-counter-v1";
-import { renderNavigation } from "./title-ui.mjs?v=hazard-counter-v1-art-pass3";
+import { renderNavigation } from "./title-ui.mjs?v=hazard-counter-v1-art-pass4";
+import { stageArtFor } from "./stage-art.mjs?v=hazard-counter-v1-art-pass4";
 import {
   restoreHazardLayer, hazardAt, activeHazardCount, MAX_ACTIVE_HAZARDS,
   restoreHazardPressure, progressHazardRound, resolveSlideHazards,
@@ -45,7 +46,7 @@ import {
 } from "./hazards.mjs?v=hazard-counter-v1";
 import {
   renderHazardLayer, hazardTileDescription
-} from "./hazard-ui.mjs?v=hazard-counter-v1";
+} from "./hazard-ui.mjs?v=hazard-counter-v1-art-pass4";
 
 const $ = id => document.getElementById(id);
 const glyph = n => String(n).replace(/\d/g, d => "⁰¹²³⁴⁵⁶⁷⁸⁹"[+d]);
@@ -182,6 +183,20 @@ function render() {
     return;
   }
   const rogue = mode === "roguelite";
+  // A stage scene is purely visual: stageForRound remains the canonical
+  // source. No scene identifier is written into a save or gameplay state.
+  const currentStage = rogue ? stageForRound(state.run.round) : null;
+  const stageScene = currentStage ? stageArtFor(currentStage) : null;
+  $("gameScreen").dataset.stage = stageScene ? String(currentStage) : "classic";
+  $("stageScene").hidden = !stageScene;
+  if (stageScene) {
+    const image = $("stageSceneImage");
+    if (image.getAttribute("src") !== stageScene.art) image.src = stageScene.art;
+    $("stageSceneLabel").textContent = stageScene.label;
+    $("stageSceneTitle").textContent = stageScene.title;
+    $("stageSceneSubtitle").textContent = stageScene.subtitle;
+    $("stageSceneRound").textContent = "ROUND " + state.run.round + " / 12";
+  }
   $("currentModeName").textContent = MODE_LABELS[mode];
   $("gameAchievements").hidden = !rogue;
   $("hazardSummary").hidden = !rogue;
@@ -199,6 +214,10 @@ function render() {
         ", column " + (warning.index % 4 + 1) : "";
     $("boardHazardStatus").hidden =
       state.run.round <= 3 && !warning && count === 0;
+    // An icon is decoration only; the hazard name, timing and square
+    // coordinates are always written in normal accessible text.
+    $("boardHazardStatus").dataset.hazard =
+      warning?.type ?? (count === 1 ? state.hazards.find(Boolean)?.type ?? "" : "");
     $("boardHazardTitle").textContent = warning
       ? HAZARD_DEFINITIONS[warning.type].name + " incoming"
       : count ? count + (count === 1 ? " active hazard" : " active hazards")

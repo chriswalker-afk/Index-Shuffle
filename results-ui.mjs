@@ -7,6 +7,7 @@ import {
 import { bossForRound } from "./bosses.mjs?v=hazard-counter-v1";
 import { bossPortraitFor } from "./art-catalog.mjs?v=hazard-counter-v1-art-pass3";
 import { bossSceneFor } from "./boss-scenes.mjs?v=hazard-counter-v1-art-pass3";
+import { achievementMedalHref, achievementVisualTheme } from "./achievement-art.mjs?v=hazard-counter-v1-art-pass4";
 
 const $ = id => document.getElementById(id);
 const node = (tag, className, text) => {
@@ -40,9 +41,21 @@ export function openAchievementGallery(profile) {
   for (const achievement of sorted) {
     const earned = Boolean(profile.unlocked[achievement.id]);
     const card = node("article", "achievement-card" + (earned ? "" : " locked"));
+    const theme = achievementVisualTheme(achievement.id);
+    card.dataset.theme = theme;
     const top = node("div", "achievement-card-top");
-    const emblem = node("span", "achievement-medal", earned ? achievement.icon : "?");
+    const emblem = node("span", "achievement-medal", earned ? "" : "?");
     emblem.setAttribute("aria-hidden", "true");
+    if (earned) {
+      const icon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+      icon.setAttribute("viewBox", "0 0 100 100");
+      icon.setAttribute("focusable", "false");
+      icon.classList.add("achievement-medal-icon");
+      const use = document.createElementNS("http://www.w3.org/2000/svg", "use");
+      use.setAttribute("href", achievementMedalHref(achievement.id));
+      icon.append(use);
+      emblem.append(icon);
+    }
     top.append(emblem, node("span", "achievement-card-status",
       earned ? "Unlocked" : "Not yet earned"));
     card.append(

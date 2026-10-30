@@ -212,9 +212,14 @@ try {
   assert.equal(overlay.dataset.hazard, undefined);
   assert.equal(overlay.children[0].dataset.hazard, "cloudy");
   assert.equal(overlay.children[15].dataset.hazard, "greedy");
-  assert.equal(overlay.children[0].children[1].textContent, "?");
-  assert.equal(overlay.children[0].children[2].textContent, "2");
-  assert.equal(overlay.children[15].children[1].textContent, "−◉");
+  // Pass 4 adds a decorative, aria-hidden hazard emblem after the existing
+  // semantic glyph; the cloud concealment and impact badges remain intact.
+  assert.equal(overlay.children[0].children[1].className, "hazard-art-emblem");
+  assert.equal(overlay.children[0].children[1].attrs["aria-hidden"], "true");
+  assert.equal(overlay.children[0].children[2].textContent, "?");
+  assert.equal(overlay.children[0].children[3].textContent, "2");
+  assert.equal(overlay.children[15].children[1].className, "hazard-art-emblem");
+  assert.equal(overlay.children[15].children[2].textContent, "−◉");
   assert.ok(fakeBoard.children.slice(0, 16).every(c => c.tag === "button"));
   renderHazardLayer(fakeBoard, emptyHazardLayer());
   assert.equal(fakeBoard.children.length, 16,
@@ -261,6 +266,6 @@ assert.match(app, /state\.board\.forEach\(\(t, i\) =>/);
 assert.match(app, /let result = slide\(before, direction, currentMovementRules\(\)\)/);
 assert.match(app, /progressHazardRound\(state\.board, state\.hazards, state\.run, nextMove/,
   "Hazard spawning now activates after a successful slide");
-assert.match(html, /styles\.css\?v=hazard-counter-v1-art-pass3/);
-assert.match(html, /app\.mjs\?v=hazard-counter-v1-art-pass3/);
+assert.match(html, /styles\.css\?v=hazard-counter-v1-art-pass4/);
+assert.match(html, /app\.mjs\?v=hazard-counter-v1-art-pass4/);
 console.log("All Index Shuffle hazard foundation Pass 1 tests passed.");

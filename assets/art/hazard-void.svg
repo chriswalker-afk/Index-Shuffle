@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" aria-labelledby="title desc">
+ <title id="title">Void</title><desc id="desc">A violet vortex pulling an exponent down by one.</desc>
+ <defs>
+ <linearGradient id="enamel" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#d0b3ff"/><stop offset=".58" stop-color="#8f71ca"/><stop offset="1" stop-color="#433669"/></linearGradient>
+ </defs>
+ <circle cx="50" cy="50" r="45" fill="url(#enamel)" opacity=".15"/>
+ <circle cx="50" cy="50" r="39" stroke="#d0b3ff" stroke-width="3" fill="none" stroke-dasharray="3 7" opacity=".47"/>
+ <g fill="none" stroke-linecap="round">
+ <path d="M29 33q23-28 47 0t-6 45Q42 91 26 63 14 35 51 23" stroke="#a694e6" stroke-width="10"/>
+ <path d="M60 39q-23-13-30 12-3 26 23 25" stroke="#d9c9ff" stroke-width="8"/>
+ </g>
+ <path d="M50 35v32m-12-12 12 12 12-12" stroke="#f3e5ff" stroke-width="6" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
+ <circle cx="75" cy="27" r="5" fill="#f5dcff"/>
+ </svg>
