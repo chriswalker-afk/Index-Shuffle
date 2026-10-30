@@ -71,9 +71,12 @@ const advanced = advanceRogueliteRound(prior,()=>0);
 assert.equal(advanced.run.round,6);
 assert.equal(advanced.run.phase,"playing");
 assert.ok(FROST_DIRECTIONS.includes(advanced.run.frozenDirection));
-assert.notEqual(slide(advanced.board,advanced.run.frozenDirection).changed,
-  true === FROST_DIRECTIONS.filter(dir=>slide(advanced.board,dir).changed).length===1,
-  "The only legal movement direction must not freeze");
+const legalAfterAdvance = FROST_DIRECTIONS.filter(dir =>
+  slide(advanced.board,dir).changed);
+if (legalAfterAdvance.length === 1) {
+  assert.notEqual(advanced.run.frozenDirection, legalAfterAdvance[0],
+    "The only legal movement direction must not freeze");
+}
 const saved = restoreRogueliteRun(advanced.run,advanced.movesLeft);
 assert.equal(saved.frozenDirection, advanced.run.frozenDirection,
   "Restoring saves must never reroll the frozen direction");
