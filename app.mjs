@@ -4,15 +4,15 @@ import {
   mergeReadyAfterSlide, attemptBank, adjacentIndices, activeBases, BASE_UNLOCKS,
   INITIAL_MOVES_LEFT, MERGES_PER_BONUS_MOVE, BUDGET_RULES_VERSION,
   restoreMoveBudget, spendMove, slideCost, creditCorrectBank, gameEnded
-} from "./engine.mjs?v=hazard-counter-v1";
+} from "./engine.mjs?v=runestones-pass2";
 import { newRogueliteRun, targetForRound, stageForRound, isBossRound,
   recordRogueliteBank, advanceRogueliteRound, validRogueliteRun,
   restoreRogueliteRun, markGoldSpawns, goldTier, goldForBank,
   bankSecondsForRound, INITIAL_BANK_SECONDS
-} from "./roguelite.mjs?v=bank-timer-v1";
+} from "./roguelite.mjs?v=runestones-pass2";
 import {
   restoreShopState, enterRogueliteShop, rerollRogueliteShop
-} from "./shop.mjs?v=frostlock-v1";
+} from "./shop.mjs?v=runestones-pass2";
 import {
   renderRogueliteInventory, renderRogueliteShop
 } from "./shop-ui.mjs?v=frostlock-v1";
@@ -22,8 +22,8 @@ import {
   restoreEffectState, bankItemBonuses, goldChancesForRun,
   hazardItemProtection, costOfNextSlide, canActivateConsumable, CONSUMABLE_TARGETS,
   consumableTargets, useConsumable
-} from "./effects.mjs?v=frostlock-v1";
-import { ITEM_BY_ID } from "./shop.mjs?v=frostlock-v1";
+} from "./effects.mjs?v=runestones-pass2";
+import { ITEM_BY_ID } from "./shop.mjs?v=runestones-pass2";
 import {
   bossForRound, bossTargetFor, bossPointsFor, bossMovementRules, bossId,
   bossAllowsMoveRestoration, applyThreeCurse,
@@ -48,8 +48,8 @@ import {
 } from "./hazards.mjs?v=hazard-counter-v1";
 import { ENCHANTMENT_DEFINITIONS, emptyEnchantmentLayer,
   restoreEnchantmentLayer, activeEnchantmentCount, previewEnchantedBank,
-  redeemEnchantedBank, resolveSlideEnchantments } from "./enchantments.mjs?v=runestones-pass1";
-import { renderEnchantmentLayer } from "./enchantment-ui.mjs?v=runestones-pass1";
+  redeemEnchantedBank, resolveSlideEnchantments } from "./enchantments.mjs?v=runestones-pass2";
+import { renderEnchantmentLayer } from "./enchantment-ui.mjs?v=runestones-pass2";
 import {
   renderHazardLayer, hazardTileDescription
 } from "./hazard-ui.mjs?v=hazard-counter-v1-art-pass4";
@@ -120,6 +120,7 @@ if (!state || !Array.isArray(state.board) || state.board.length !== 16) {
 let pending = null;
 let bankTimer = null;
 let remainingMs = INITIAL_BANK_SECONDS * 1000;
+let bankLimitMs = INITIAL_BANK_SECONDS * 1000;
 let deadline = 0;
 let animating = false;
 let animationToken = 0;
@@ -158,7 +159,8 @@ function currentBankSeconds() {
 function currentMovementRules() {
   return mode === "roguelite"
     ? { ...(bossMovementRules(state.run) || {}), hazards: state.hazards,
-      greedyLandingOnly: hazardItemProtection(state.run).greedyLandingOnly }
+      greedyLandingOnly: hazardItemProtection(state.run).greedyLandingOnly,
+      enchantments: state.enchantments }
     : null;
 }
 function currentGameEnded() {
@@ -231,7 +233,9 @@ function render() {
   if (rogue) $("enchantmentStatus").textContent = "Enchanted squares: " +
     enchants.map((entry, i) => entry ? ENCHANTMENT_DEFINITIONS[entry.type].name +
       " (row " + (Math.floor(i / 4) + 1) + ", col " + (i % 4 + 1) +
-      "; " + entry.chargesLeft + " charges)" : null).filter(Boolean).join(" · ");
+      "; " + entry.chargesLeft +
+      (entry.chargesLeft === 1 ? " charge)" : " charges)") : null)
+      .filter(Boolean).join(" · ");
   const stageScene = currentStage ? stageArtFor(currentStage) : null;
   $("gameScreen").dataset.stage = stageScene ? String(currentStage) : "classic";
   $("stageScene").hidden = !stageScene;
@@ -479,12 +483,14 @@ function render() {
     } else if (t) {
       const gold = rogue ? goldTier(t) : 0;
       const available = isBankable(t, banked, i, locked,
-        rogue ? state.hazards : null);
+        rogue ? state.hazards : null, rogue ? enchants : null);
       const alreadyBanked = banked.has(key(t));
       const blocked = (t.exp >= 2 || gold > 0) && locked.has(i) &&
         (gold > 0 || !banked.has(key(t)));
       const strike = available && mergeReady.has(i) &&
         adjacentIndices(i).some(j => isBlocker(state.board[j]));
+      const prismBadge = rogue && t.prism === 1
+        ? '<small class="prism-power-mark" aria-hidden="true">×2</small>' : "";
       const coinBadge = gold
         ? '<small class="tile-gold-mark" aria-hidden="true">◉' +
           (gold === 2 ? '×2' : '') + '</small>'
@@ -492,17 +498,20 @@ function render() {
       const curseBadge = rogue && Number.isInteger(t.curseLeft) && t.curseLeft > 0
         ? '<small class="tile-curse-mark" aria-hidden="true">3 · ' + t.curseLeft + '</small>'
         : "";
-      button.innerHTML = tileContent(t, coinBadge + curseBadge + (available
+      button.innerHTML = tileContent(t, coinBadge + curseBadge + prismBadge + (available
         ? '<i aria-hidden="true">' + (strike ? '⚡' : '✦') + '</i>'
         : blocked ? '<i aria-hidden="true">⌛</i>' : ""));
       const description = t.base + " to the power " + t.exp;
       const goldCoins = gold ? goldForBank(t, mergeReady.has(i)) : 0;
-      if (t.prism === 1) button.classList.add("prism-charged");
+      if (t.prism === 1) {
+        button.classList.add("prism-charged");
+      }
       const goldHint = !gold || alreadyBanked ? "" :
         ". Golden tile: a correct bank earns " + goldCoins +
         (goldCoins === 1 ? " coin. Merge first to earn more." : " coins.");
-      button.title = (alreadyBanked
-        ? description + " was already banked this round. Gold does not allow it again."
+      button.title = (alreadyBanked && available
+        ? "Echo Seal: repeat-bank " + description + " correctly once"
+        : alreadyBanked ? description + " was already banked this round. Gold does not allow it again."
         : blocked ? "Wait one slide before retrying " + description
         : strike ? "Bank " + description + " correctly to damage adjacent blocker"
         : available ? "Bank " + description : description) + goldHint +
@@ -511,7 +520,7 @@ function render() {
       if (gold) {
         button.classList.add("gold-tile");
         if (gold === 2) button.classList.add("gold-double");
-        if (alreadyBanked) button.classList.add("already-banked");
+        if (alreadyBanked && !available) button.classList.add("already-banked");
       }
       button.setAttribute("aria-label", button.title);
       if (blocked) button.classList.add("locked");
@@ -794,6 +803,7 @@ function move(direction) {
     // A Three Curse may have turned a previously hazardous number into
     // a blocker; no board hazard is allowed to remain under that obstacle.
     state.hazards = restoreHazardLayer(state.hazards, state.board);
+    state.enchantments = restoreEnchantmentLayer(state.enchantments, state.board, state.hazards);
   } else {
     state.board = spawned.board;
   }
@@ -887,7 +897,7 @@ function updateClock() {
   const seconds = Math.ceil(remainingMs / 1000);
   $("timeLeft").textContent = Math.floor(seconds / 60) + ":"
     + String(seconds % 60).padStart(2, "0");
-  $("timeProgress").style.width = (remainingMs / (currentBankSeconds() * 1000) * 100) + "%";
+  $("timeProgress").style.width = (remainingMs / bankLimitMs * 100) + "%";
   $("clock").classList.toggle("running-low", remainingMs <= 15000);
 }
 function pauseClock() {
