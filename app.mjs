@@ -4,7 +4,7 @@ import {
   mergeReadyAfterSlide, attemptBank, adjacentIndices, activeBases, BASE_UNLOCKS,
   INITIAL_MOVES_LEFT, MERGES_PER_BONUS_MOVE, BUDGET_RULES_VERSION,
   restoreMoveBudget, spendMove, slideCost, creditCorrectBank, gameEnded
-} from "./engine.mjs?v=banked-moves-v2";
+} from "./engine.mjs?v=focused-ui-v3";
 
 const $ = id => document.getElementById(id);
 const glyph = n => String(n).replace(/\d/g, d => "⁰¹²³⁴⁵⁶⁷⁸⁹"[+d]);
@@ -64,9 +64,13 @@ function render() {
   $("moves").textContent = state.moves;
   $("movesLeft").textContent = state.movesLeft;
   $("mergeProgress").textContent = state.mergeCredit + " / " +
-    MERGES_PER_BONUS_MOVE + " correctly banked merges";
+    MERGES_PER_BONUS_MOVE;
+  $("bonusMeter").value = state.mergeCredit;
+  $("bonusMeter").setAttribute("aria-valuetext",
+    state.mergeCredit + " of " + MERGES_PER_BONUS_MOVE +
+    " correctly banked merged powers");
   const currentSlideCost = slideCost(state.board);
-  $("slideCost").textContent = "Next slide costs " + currentSlideCost +
+  $("slideCost").textContent = "−" + currentSlideCost +
     (currentSlideCost === 1 ? " move" : " moves");
   $("movesCard").classList.toggle("low-moves", state.movesLeft > 0 &&
     state.movesLeft <= 3);
@@ -158,14 +162,15 @@ function render() {
     }).join("")
     : '<p class="muted">Discover your first square by merging two matching bases.</p>';
   $("status").textContent = state.movesLeft === 0
-    ? "Out of moves! Game over. Bank two merged powers correctly to earn a move."
-    : state.over ? "No legal slides or bankable powers remain. Game over!"
+    ? "Out of moves. Start a new game to try again."
+    : state.over ? "No legal moves or banking options remain."
     : state.notice ||
       (state.movesLeft <= 3
-        ? "Low on moves! Correctly bank two merged powers to regain one."
-        : "Slide to merge powers, then bank them correctly for move bonuses.");
-  $("stage").textContent = state.movesLeft === 0
-    ? "OUT OF MOVES" : state.over ? "GAME OVER" : "SURVIVAL MODE";
+        ? "Low on moves: bank merged powers correctly to recover."
+        : "Swipe to merge, or select a glowing power to bank.");
+  $("status").classList.toggle("is-over", state.over);
+  $("stage").textContent = state.over ? "Game over" : "Playing";
+  $("endActions").hidden = !state.over;
   persist();
 }
 
@@ -254,9 +259,7 @@ function move(direction) {
   // A successful slide clears the incorrect-attempt and banking cooldowns.
   state.locked = [];
   const news = [];
-  news.push("Slide cost: " + budget.cost +
-    (budget.cost === 1 ? " move." : " moves."));
-  if (unlockedNow.length) news.push("Unlocked base " + unlockedNow.join(", ") + "!");
+  if (unlockedNow.length) news.push("New base unlocked: " + unlockedNow.join(", ") + ".");
   // Merging next to a blocker does not cause damage: students must bank
   // the merged power correctly while it is adjacent to the blocker.
   if (spawned.blockerAt >= 0) {
@@ -269,7 +272,7 @@ function move(direction) {
       + " blocker after your next successful slide.");
   }
   if (spawned.extraSpawned) news.push("Extra tile spawned!");
-  state.notice = news.join(" ");
+  state.notice = news.slice(0, 2).join(" ");
   state.over = gameEnded(state.board, new Set(state.banked),
     new Set(), state.movesLeft);
   render();
@@ -317,6 +320,7 @@ function openBank(i) {
   $("promptTitle").textContent = t.base + glyph(t.exp) + " = ?";
   $("feedback").textContent = "";
   $("answer").value = "";
+  document.querySelector(".bank-hint").open = false;
   const canStrike = state.mergeReady.includes(i) &&
     adjacentIndices(i).some(j => isBlocker(state.board[j]));
   $("promptHelp").textContent = canStrike
@@ -381,9 +385,9 @@ $("bankForm").addEventListener("submit", event => {
   state.score += outcome.points;
   state.best = Math.max(state.best, state.score);
   const { replacement, damaged, destroyed } = outcome;
-  state.notice = "Banked " + t.base + glyph(t.exp) + " for " + outcome.points
+  state.notice = "Banked " + t.base + glyph(t.exp) + " · +" + outcome.points
     + " points. " + replacement.base + glyph(replacement.exp)
-    + " remains. Slide once before banking that replacement.";
+    + " remains until your next slide.";
   if (outcome.creditedMerge) {
     if (award.earned) {
       state.notice += " +1 move earned for two correctly banked merges!";
@@ -418,13 +422,32 @@ $("cancel").addEventListener("click", closeBank);
 $("modal").addEventListener("click", event => {
   if (event.target === $("modal")) closeBank();
 });
-$("new").addEventListener("click", () => {
-  if (!confirm("Start a new game? Your current run will be replaced.")) return;
+function startNewGame() {
+  if (!state.over && !confirm("Start a new game? Your current run will be replaced.")) return;
   const best = state.best;
   stopMotion();
   closeBank();
   state = fresh(best);
   render();
+}
+$("new").addEventListener("click", startNewGame);
+$("newFromEnd").addEventListener("click", startNewGame);
+
+// Learning and full instructions are optional. Switching between the
+// two entry points uses one accessible native dialog and never edits
+// the game state or pauses the move budget.
+document.querySelectorAll("[data-help]").forEach(button => {
+  button.addEventListener("click", () => {
+    const maths = button.dataset.help === "maths";
+    $("helpTitle").textContent = maths ? "Maths help" : "How to play";
+    $("helpHow").hidden = maths;
+    $("helpMaths").hidden = !maths;
+    $("helpDialog").showModal();
+  });
+});
+$("helpClose").addEventListener("click", () => $("helpDialog").close());
+$("helpDialog").addEventListener("click", event => {
+  if (event.target === $("helpDialog")) $("helpDialog").close();
 });
 const keys = {
   ArrowLeft: "left", ArrowRight: "right", ArrowUp: "up", ArrowDown: "down",
@@ -432,7 +455,8 @@ const keys = {
 };
 document.addEventListener("keydown", event => {
   if (event.key === "Escape" && pending !== null) { closeBank(); return; }
-  if (pending !== null || ["INPUT", "TEXTAREA"].includes(document.activeElement.tagName)) return;
+  if ($("helpDialog").open || pending !== null ||
+      ["INPUT", "TEXTAREA"].includes(document.activeElement.tagName)) return;
   const direction = keys[event.key];
   if (direction) { event.preventDefault(); move(direction); }
 });
