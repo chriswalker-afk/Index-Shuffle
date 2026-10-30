@@ -1,7 +1,7 @@
 // Roguelite boss encounters. This module is deliberately independent of
 // roguelite.mjs so the round controller can apply boss rules without cycles.
 import {
-  blocker, isBlocker, isObstacle, isWarning, canMove, isBankable,
+  blocker, isBlocker, isObstacle, isWarning, canMove, isBankable, slide,
   MAX_BLOCKERS, adjacentIndices
 } from "./engine.mjs?v=hazard-counter-v1";
 
@@ -20,7 +20,9 @@ export const BOSS_CATALOG = Object.freeze([
   { id: "timekeeper", name: "The Timekeeper", summary: "No extra moves can be restored.",
     detail: "Correctly banked merges cannot restore moves, and Second Wind is unavailable during this boss. Protection can still reduce blocker slide surcharges." },
   { id: "three-curse", name: "The Three Curse", summary: "Merged 3 powers expire after three slides.",
-    detail: "Each newly merged base-3 power has three successful slides to be banked. Its countdown follows the tile when it moves; expiring powers become one-hit blockers if the board stays playable and the blocker cap allows it." }
+    detail: "Each newly merged base-3 power has three successful slides to be banked. Its countdown follows the tile when it moves; expiring powers become one-hit blockers if the board stays playable and the blocker cap allows it." },
+  { id: "frostlock", name: "The Frostlock", summary: "One movement direction is frozen.",
+    detail: "One randomly chosen slide direction is frozen. Its arrow button, keyboard shortcut and swipe cannot move the board. A frozen attempt costs no moves. The ice switches after each successful slide, correct bank or used item. The boss never freezes the only direction that could move the board." }
 ].map(b => Object.freeze(b)));
 export const BOSS_BY_ID = Object.freeze(Object.fromEntries(
   BOSS_CATALOG.map(b => [b.id, b])
@@ -170,4 +172,51 @@ export function applyThreeCurse(board, mergeDestinations, run,
     }
   }
   return { board: next, expired, spared };
+}
+
+
+// The Frostlock freezes one cardinal slide control, never a banking or item
+// control. Freezing affects keyboard, on-screen arrows and swipe identically.
+// Selection is saved in run.frozenDirection; never choose a new direction in
+// render(), since refreshing must not let the player reroll the boss for free.
+export const FROST_DIRECTIONS = Object.freeze(["left", "up", "down", "right"]);
+export const validFrozenDirection = direction => FROST_DIRECTIONS.includes(direction);
+
+export function frozenControl(run) {
+  return bossId(run) === "frostlock" && run?.phase === "playing" &&
+    validFrozenDirection(run.frozenDirection) ? run.frozenDirection : null;
+}
+
+// Never freeze the one and only direction that actually slides the board.
+// This avoids control soft-lock even when the only bankable tile is hidden
+// by Cloudy or otherwise unavailable. No randomness is consumed by the
+// eligibility calculation.
+export function frostlockChoices(board, rules = null) {
+  if (!Array.isArray(board) || board.length !== 16) {
+    throw new RangeError("Frostlock requires a sixteen-square board");
+  }
+  const usable = FROST_DIRECTIONS.filter(dir => slide(board, dir, rules).changed);
+  return usable.length === 1
+    ? FROST_DIRECTIONS.filter(dir => dir !== usable[0])
+    : FROST_DIRECTIONS.slice();
+}
+
+export function nextFrozenDirection(board, run, rng = Math.random, rules = null) {
+  if (bossId(run) !== "frostlock" || run?.phase !== "playing") return null;
+  if (typeof rng !== "function") throw new RangeError("Frostlock needs a random selector");
+  const safe = frostlockChoices(board, rules);
+  // Change the frozen control on each successful action. The initial roll
+  // has no previous control, so every safe direction has equal weight.
+  const candidates = safe.filter(dir => dir !== frozenControl(run));
+  const pool = candidates.length ? candidates : safe;
+  return pool[clampPick(rng, pool.length)];
+}
+
+// Used only when reading a legacy or malformed save. Keep a saved safe
+// direction unchanged, and choose a deterministic safe alternative if that
+// direction would now be the board's only playable slide.
+export function restoreFrozenDirection(board, run, rules = null) {
+  if (bossId(run) !== "frostlock" || run?.phase !== "playing") return null;
+  const safe = frostlockChoices(board, rules);
+  return safe.includes(frozenControl(run)) ? run.frozenDirection : safe[0];
 }

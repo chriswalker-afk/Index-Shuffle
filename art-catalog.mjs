@@ -33,6 +33,10 @@ export const BOSS_ART = Object.freeze({
   "three-curse": Object.freeze({
     src: "assets/art/boss-three-curse.svg",
     alt: "The Three Curse: a playful three-headed imp in violet robes surrounded by triangular curses and a ticking number-three rune."
+  }),
+  frostlock: Object.freeze({
+    src: "assets/art/boss-frostlock.svg",
+    alt: "The Frostlock: an icy clockwork jailer with glowing teal eyes and four arrow charms, one frozen inside a sharp blue crystal."
   })
 });
 
