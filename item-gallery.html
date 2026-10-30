@@ -62,7 +62,7 @@
     </nav>
     <p class="gallery-kicker">The Curious Numberworld · Shop art · Pass 2</p>
     <h1>Every relic has a story.</h1>
-    <p class="gallery-lede">All 33 original shop-item illustrations in one place.
+    <p class="gallery-lede">All 37 original shop-item illustrations in one place.
       These are the same icons used in the live shop and equipped build.
       Their colourful frames distinguish how items work, not their rarity.
       Purchases still happen only inside a Roguelike game.</p>
@@ -80,7 +80,7 @@
       <div class="gallery-grid" id="wardGallery"></div>
     </section>
     <section class="gallery-section" aria-labelledby="toolHeading">
-      <header><h2 id="toolHeading">One-use tools</h2><p>13 single-use items</p></header>
+      <header><h2 id="toolHeading">One-use tools</h2><p>17 single-use items</p></header>
       <div class="gallery-grid" id="toolGallery"></div>
     </section>
     <noscript><p>JavaScript is needed to display the item gallery.</p></noscript>
@@ -89,8 +89,8 @@
       existing inventory limits are unchanged.</footer>
   </main>
   <script type="module">
-    import { ITEM_CATALOG } from "./shop.mjs?v=hazard-counter-v1";
-    import { itemIconHref, itemArtKind } from "./shop-art.mjs?v=hazard-counter-v1-art-pass3";
+    import { ITEM_CATALOG } from "./shop.mjs?v=runestones-pass2";
+    import { itemIconHref, itemArtKind } from "./shop-art.mjs?v=runestones-pass2";
     const svgNS = "http://www.w3.org/2000/svg";
     const targets = { permanent: document.getElementById("relicGallery"),
       ward: document.getElementById("wardGallery"),
