@@ -41,6 +41,10 @@ button:focus-visible, input:focus-visible {
   display: block; color: #bdcedb; font-size: 11px;
   line-height: 1.4; margin-top: 6px;
 }
+.slide-cost {
+  display: block; color: #d4dce9; font-size: 11px;
+  line-height: 1.4; margin-top: 3px; font-weight: 750;
+}
 .stat-budget.low-moves { border-color: #d5ae67; }
 .stat-budget.low-moves strong { color: #ffce80; }
 .stat-budget.empty-moves { border-color: #e2999b; }
