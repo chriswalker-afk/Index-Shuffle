@@ -14,12 +14,15 @@ jobs:
         run: |
           node tests.mjs
           node hazards.tests.mjs
+          node roguelite.tests.mjs
       - name: Check JavaScript syntax
         run: |
           node --check engine.mjs
           node --check app.mjs
           node --check tests.mjs
           node --check hazards.tests.mjs
+          node --check roguelite.mjs
+          node --check roguelite.tests.mjs
       - name: Verify Pages static files
         run: |
           test -f .nojekyll
@@ -27,3 +30,4 @@ jobs:
           test -f styles.css
           test -f app.mjs
           test -f engine.mjs
+          test -f roguelite.mjs
