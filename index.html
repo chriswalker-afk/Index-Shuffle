@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#0c1428">
   <meta name="description" content="Slide and merge powers, solve banking challenges and stay in the game.">
   <title>Index Shuffle — Make every move count</title>
-  <link rel="stylesheet" href="styles.css?v=release-5a">
+  <link rel="stylesheet" href="styles.css?v=release-5b">
 </head>
 <body>
   <main class="shell">
@@ -154,11 +154,27 @@
           <p class="overline">CURRENT GAME</p>
           <strong id="currentModeName">Classic</strong>
         </div>
-        <button type="button" id="gameAchievements" class="achievement-open" hidden>
-          <img src="assets/art/achievement-trophy.svg" alt="" width="26" height="26"
-            class="achievement-button-art"> Achievements
-        </button>
+        <div class="playing-actions">
+          <button type="button" id="gameTour" class="tour-reopen"
+            aria-controls="coachPanel" aria-expanded="false">? Quick tour</button>
+          <button type="button" id="gameAchievements" class="achievement-open" hidden>
+            <img src="assets/art/achievement-trophy.svg" alt="" width="26" height="26"
+              class="achievement-button-art"> Achievements
+          </button>
+        </div>
       </div>
+      <section id="coachPanel" class="coach-panel" aria-label="Optional first-game guide" hidden>
+        <div class="coach-copy">
+          <span class="coach-kicker" id="coachProgress">1 OF 3 · QUICK TOUR</span>
+          <h2 id="coachTitle">Slide to combine</h2>
+          <p id="coachInstruction"></p>
+          <small id="coachCue"></small>
+        </div>
+        <div class="coach-actions">
+          <button type="button" id="coachNext" class="primary">Next tip</button>
+          <button type="button" id="coachSkip" class="outline">Skip guide</button>
+        </div>
+      </section>
       <div id="stageScene" class="stage-scene" hidden aria-label="Current Roguelike stage">
         <img id="stageSceneImage" class="stage-scene-image" alt=""
           width="960" height="260" decoding="async">
@@ -191,6 +207,8 @@
         <div id="status" class="game-feedback" role="status" aria-live="polite">
           Merge matching bases or bank a glowing power.
         </div>
+        <div id="rewardToast" class="reward-toast" role="status" aria-live="polite"
+          hidden></div>
         <div id="boardHazardStatus" class="board-hazard-status" hidden>
           <span class="board-hazard-icon" aria-hidden="true">◆</span>
           <span class="board-hazard-info">
@@ -357,6 +375,18 @@
           <div class="detail-body">
             <div id="collection" class="collection" aria-live="polite"></div>
             <p class="detail-hint">✓ Banked · ◇ Discovered</p>
+          </div>
+        </details>
+        <details id="activityDetails" class="details-card activity-details">
+          <summary>
+            <span class="summary-icon" aria-hidden="true">✧</span>
+            <span class="summary-copy"><strong>Recent events</strong>
+              <small>Important banks, hazards and upgrades</small></span>
+            <span class="chevron" aria-hidden="true">⌄</span>
+          </summary>
+          <div class="detail-body">
+            <ol id="activityList" class="activity-list" aria-label="Recent game events"></ol>
+            <p id="activityEmpty" class="detail-hint">Your important moments will appear here.</p>
           </div>
         </details>
       </aside>
@@ -603,6 +633,10 @@
       </div>
       <h2 id="resultsTitle">Your final score</h2>
       <p id="resultsSubtitle">How far did you get?</p>
+      <section class="results-ending" aria-label="How the game ended">
+        <strong id="resultsEndingTitle">Run completed</strong>
+        <p id="resultsEndingDetail"></p>
+      </section>
       <section id="resultsBossVictory" class="results-boss-victory" hidden
         aria-label="Final boss defeated">
         <img id="resultsBossPortrait" alt="" width="88" height="88" decoding="async">
@@ -617,7 +651,15 @@
         <strong id="resultsFinalScore">0</strong>
         <p id="resultsBestScore">Personal best: 0</p>
       </section>
+      <p id="resultsHighlight" class="results-highlight"></p>
       <div id="resultsStats" class="results-stats" aria-label="Game statistics"></div>
+      <details class="results-share">
+        <summary>Share your run</summary>
+        <label for="resultsShareText">Copyable score summary</label>
+        <textarea id="resultsShareText" rows="8" readonly></textarea>
+        <button type="button" id="resultsCopy" class="outline">Copy results</button>
+        <p id="resultsCopyStatus" role="status" aria-live="polite"></p>
+      </details>
       <section id="resultsAwardsSection" class="results-awards" hidden>
         <div class="results-awards-heading">
           <h3>Achievements earned this run</h3>
@@ -741,6 +783,6 @@
       <button type="button" id="cancel" class="textbtn">Keep this tile</button>
     </div>
   </dialog>
-  <script type="module" src="app.mjs?v=release-5a"></script>
+  <script type="module" src="app.mjs?v=release-5b"></script>
 </body>
 </html>
