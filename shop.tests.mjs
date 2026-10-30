@@ -89,7 +89,7 @@ assert.equal(rolled.run.coins, 7);
 assert.equal(rolled.run.shop.rerollCost, 2);
 assert.equal(rolled.run.shop.rerolls, 1);
 assert.deepEqual(rolled.run.shop.permanents, ["lucky-sevens", "threes-company"]);
-assert.deepEqual(rolled.run.shop.consumables, ["alchemist", "protection"]);
+assert.deepEqual(rolled.run.shop.consumables, ["second-wind", "alchemist"]);
 assert.deepEqual(full.run.shop.consumables, ["block-breaker", "power-surge"]);
 let rolledAgain = rerollRogueliteShop(rolled, rng);
 assert.equal(rolledAgain.run.coins, 5);
@@ -142,11 +142,11 @@ assert.deepEqual(consumables.run.inventory.consumables.map(x => x.id),
 assert.throws(() => discardConsumable(first, 0), RangeError);
 assert.throws(() => purchaseShopOffer(consumables, "consumables", 0), RangeError);
 const replaceOptions = rerollRogueliteShop(consumables, rng);
-assert.deepEqual(replaceOptions.run.shop.consumables, ["alchemist", "protection"]);
+assert.deepEqual(replaceOptions.run.shop.consumables, ["second-wind", "alchemist"]);
 const swapped = purchaseShopOffer(replaceOptions, "consumables", 0, 0);
-assert.equal(swapped.run.coins, replaceOptions.run.coins - 2);
+assert.equal(swapped.run.coins, replaceOptions.run.coins - 3);
 assert.deepEqual(swapped.run.inventory.consumables.map(x => x.id),
-  ["alchemist", "power-surge"]);
+  ["second-wind", "power-surge"]);
 const discarded = discardConsumable(swapped, 1);
 assert.equal(discarded.run.coins, swapped.run.coins);
 assert.equal(discarded.run.inventory.consumables[1], null);
