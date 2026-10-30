@@ -253,7 +253,7 @@ assert.match(css, /\.hazard-preview-grid/);
 assert.match(css, /@media \(max-width: 580px\)/);
 assert.match(app, /state\.hazards = restoreHazardLayer\(state\.hazards, state\.board\)/);
 assert.match(app, /const squareHazard = rogue \? hazardAt\(state\.hazards, i\) : null/);
-assert.match(app, /if \(rogue\) renderHazardLayer\(board, state\.hazards, state\.run\.hazardWarning\)/);
+assert.match(app, /renderHazardLayer\(board, state\.hazards, state\.run\.hazardWarning, eraseTargets\)/);
 assert.match(app, /button\.replaceChildren\(\)/,
   "Cloudy must hide source content in addition to the opaque overlay");
 assert.match(app, /button\.setAttribute\("aria-label", description\)/);
@@ -261,6 +261,6 @@ assert.match(app, /state\.board\.forEach\(\(t, i\) =>/);
 assert.match(app, /let result = slide\(before, direction, currentMovementRules\(\)\)/);
 assert.match(app, /progressHazardRound\(state\.board, state\.hazards, state\.run, nextMove/,
   "Hazard spawning now activates after a successful slide");
-assert.match(html, /styles\.css\?v=hazard-pass3-v1/);
-assert.match(html, /app\.mjs\?v=hazard-pass3-v1/);
+assert.match(html, /styles\.css\?v=hazard-pass4-v1/);
+assert.match(html, /app\.mjs\?v=hazard-pass4-v1/);
 console.log("All Index Shuffle hazard foundation Pass 1 tests passed.");
