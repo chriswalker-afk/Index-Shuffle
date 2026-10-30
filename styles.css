@@ -1263,3 +1263,145 @@ details[open] > summary .chevron { transform: rotate(180deg); }
   .shop-actions { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .shop-actions #shopContinue { grid-column: 1 / -1; }
 }
+
+/* Roguelike hazard layer — Pass 1.
+   These visual overlays belong to board coordinates, not the moving tiles.
+   Keep pointer-events disabled so existing bank clicks / swipes still work.
+   The slide animation's moving ghosts use z-index:5; hazards stay at z:4. */
+.hazard-layer {
+  position: absolute;
+  inset: 11px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-rows: repeat(4, minmax(0, 1fr));
+  gap: 9px;
+  pointer-events: none;
+  z-index: 4;
+}
+.hazard-slot {
+  min-width: 0; min-height: 0; position: relative;
+  border-radius: 10px;
+  pointer-events: none;
+}
+.hazard-slot[data-hazard] {
+  border: 2px solid var(--hazard-stroke);
+  background: var(--hazard-fill);
+  box-shadow: inset 0 0 0 2px #fff1, inset 0 -7px 14px #0004;
+}
+.hazard-slot .hazard-symbol {
+  position: absolute; inset: 0;
+  display: grid; place-items: center;
+  font-weight: 950; font-size: clamp(28px, 5vw, 45px);
+  line-height: 1; color: var(--hazard-ink);
+  opacity: .38; text-shadow: 0 2px 3px #07141d50;
+}
+.hazard-slot .hazard-corner-badge {
+  position: absolute; bottom: 4px; right: 4px;
+  min-width: 22px; min-height: 21px;
+  border: 1px solid var(--hazard-stroke);
+  border-radius: 6px; padding: 3px 5px;
+  display: grid; place-items: center;
+  background: #121d32dd; color: var(--hazard-ink);
+  font-size: 11px; line-height: 1; font-weight: 950;
+  box-shadow: 0 1px 4px #0004;
+}
+.hazard-cloudy {
+  --hazard-stroke: #d2e0ef;
+  --hazard-ink: #f4f9ff;
+  --hazard-fill:
+    radial-gradient(ellipse at 28% 42%, #b9c8db 0%, transparent 52%),
+    radial-gradient(ellipse at 70% 60%, #9aafc5 0%, transparent 58%),
+    linear-gradient(140deg, #738aa5, #526b86 53%, #344f6c);
+}
+.hazard-void {
+  --hazard-stroke: #a597f1;
+  --hazard-ink: #ddd3ff;
+  --hazard-fill: repeating-radial-gradient(circle at 50% 50%,
+    #654a9d95 0, #654a9d95 7px, #312b5a77 8px, #312b5a77 14px);
+}
+.hazard-null {
+  --hazard-stroke: #ec8b91;
+  --hazard-ink: #ffd5d7;
+  --hazard-fill: repeating-linear-gradient(135deg,
+    #842d4759 0, #842d4759 8px, #421c335e 8px, #421c335e 16px);
+}
+.hazard-cracked {
+  --hazard-stroke: #f1bf78;
+  --hazard-ink: #ffe5b6;
+  --hazard-fill: repeating-linear-gradient(123deg,
+    #73402e4d 0, #73402e4d 8px, #34233554 8px, #34233554 16px);
+}
+.hazard-greedy {
+  --hazard-stroke: #d5b250;
+  --hazard-ink: #ffe9a2;
+  --hazard-fill: repeating-conic-gradient(from 45deg at 50% 50%,
+    #916e2866 0deg 18deg, #473d3254 18deg 36deg);
+}
+.hazard-slot.hazard-cloudy {
+  /* Opaque: clouds genuinely conceal all tile text and coin markers.
+     The separate tile's accessible label is also concealed by the UI. */
+  background: var(--hazard-fill);
+  box-shadow: inset 0 5px 17px #e1ecf477, 0 0 12px #9caebe5f;
+}
+.hazard-slot.hazard-cloudy .hazard-symbol {
+  opacity: .7; transform: translateY(-12%);
+}
+.hazard-hidden-mark {
+  position: absolute; inset: 0;
+  display: grid; place-items: center;
+  color: #f9fdff; font-size: clamp(18px, 3vw, 26px);
+  text-shadow: 0 1px 5px #25405f;
+  transform: translateY(16%); pointer-events: none;
+}
+.hazard-cloud-timer {
+  position: absolute; bottom: 3px; right: 4px;
+  padding: 1px 5px; border-radius: 999px;
+  background: #263b59b8; color: #e4f2ff;
+  border: 1px solid #c2d4e7; font-size: 9px; font-weight: 950;
+}
+/* Field guide provides a useful preview while no hazards spawn yet. */
+.hazard-field-guide {
+  margin-top: 17px; border-top: 1px solid #526077;
+  padding-top: 15px;
+}
+.hazard-guide-header { display: flex; justify-content: space-between; align-items: start; gap: 12px; }
+.hazard-guide-header h4 { margin: 0 0 6px; font-size: 15px; }
+.hazard-guide-header p { margin: 0; color: #bdcde0; font-size: 11px; line-height: 1.5; }
+.hazard-guide-status { border: 1px solid #6e8398; border-radius: 6px;
+  font-size: 9px; color: #b7cbdc; padding: 5px 7px; font-weight: 900;
+  letter-spacing: .7px; white-space: nowrap; }
+.hazard-preview-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px; margin-top: 13px; }
+.hazard-preview-card { display: flex; align-items: center; gap: 10px;
+  background: #15273e; border: 1px solid #3d5069; padding: 11px;
+  border-radius: 11px; min-width: 0; }
+.hazard-preview-card strong { color: #e9f4ff; font-size: 12px; }
+.hazard-preview-card p { color: #b2c3d6; line-height: 1.45; margin: 5px 0 0;
+  font-size: 10px; }
+.hazard-example {
+  flex: 0 0 59px; width: 59px; height: 59px;
+  display: grid; place-items: center; position: relative;
+  border: 2px solid var(--hazard-stroke);
+  border-radius: 10px; background: var(--hazard-fill);
+  box-shadow: inset 0 2px 2px #fff2, inset 0 -5px 8px #0003;
+  color: var(--hazard-ink);
+}
+.hazard-example b { font-size: 28px; line-height: 1; opacity: .8; }
+.hazard-example i { position: absolute; bottom: 8px; color: #fff;
+  font-size: 18px; line-height: 1; font-style: normal; font-weight: 900; }
+.hazard-example small { position: absolute; bottom: 3px; right: 3px;
+  font-weight: 900; font-size: 10px; border-radius: 4px; padding: 2px 4px;
+  background: #18273ddc; border: 1px solid var(--hazard-stroke);
+}
+@media (max-width: 580px) {
+  .hazard-layer { inset: 8px; gap: 6px; }
+  .hazard-slot { border-radius: 8px; }
+  .hazard-slot .hazard-corner-badge { bottom: 2px; right: 2px;
+    min-width: 17px; min-height: 17px; padding: 2px 3px; font-size: 9px; }
+  .hazard-slot .hazard-symbol { font-size: clamp(23px, 7vw, 33px); }
+  .hazard-hidden-mark { font-size: 19px; }
+  .hazard-preview-grid { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hazard-layer, .hazard-slot { transition: none; animation: none; }
+}
