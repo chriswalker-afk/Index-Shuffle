@@ -1,0 +1,19 @@
+name: Test Index Shuffle
+on:
+  push:
+  pull_request:
+jobs:
+  engine:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run game engine tests
+        run: node tests.mjs
+      - name: Check JavaScript syntax
+        run: |
+          node --check engine.mjs
+          node --check app.mjs
+          node --check tests.mjs
