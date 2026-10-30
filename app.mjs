@@ -2,15 +2,14 @@ import {
   key, slide, turnSpawns, initial, canMove, isBankable, isBlocker, isWarning,
   blockerStrength, blockerHitsForMove, BLOCKER_START, BLOCKER_INTERVAL, MAX_BLOCKERS,
   mergeReadyAfterSlide, attemptBank, adjacentIndices, activeBases, BASE_UNLOCKS,
-  INITIAL_MOVES_LEFT, MAX_MOVES_LEFT, MERGES_PER_BONUS_MOVE,
-  spendMove, slideCost, creditCorrectBank, gameEnded
+  INITIAL_MOVES_LEFT, MERGES_PER_BONUS_MOVE, BUDGET_RULES_VERSION,
+  restoreMoveBudget, spendMove, slideCost, creditCorrectBank, gameEnded
 } from "./engine.mjs?v=banked-moves-v2";
 
 const $ = id => document.getElementById(id);
 const glyph = n => String(n).replace(/\d/g, d => "⁰¹²³⁴⁵⁶⁷⁸⁹"[+d]);
 const BANK_SECONDS = 60;
 const SLIDE_MS = 170;
-const BUDGET_RULES_VERSION = 2;
 const prefersReducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 function fresh(best = 0) {
@@ -34,20 +33,8 @@ if (!state || !Array.isArray(state.board) || state.board.length !== 16) {
   // Earlier saves never recorded which tiles came from genuine merges.
   // They remain playable; new merges earn bank-triggered blocker hits.
   state.mergeReady = Array.isArray(state.mergeReady) ? state.mergeReady : [];
-  // Version 1 awarded moves for unbanked merges. Reset just that old
-  // balance and progress once; preserve the board, score and slide count.
-  if (state.budgetRulesVersion !== BUDGET_RULES_VERSION) {
-    state.movesLeft = INITIAL_MOVES_LEFT;
-    state.mergeCredit = 0;
-    state.budgetRulesVersion = BUDGET_RULES_VERSION;
-  } else {
-    state.movesLeft = Number.isSafeInteger(state.movesLeft)
-      ? Math.min(MAX_MOVES_LEFT, Math.max(0, state.movesLeft))
-      : INITIAL_MOVES_LEFT;
-    state.mergeCredit = Number.isSafeInteger(state.mergeCredit) &&
-      state.mergeCredit >= 0 && state.mergeCredit < MERGES_PER_BONUS_MOVE
-      ? state.mergeCredit : 0;
-  }
+  // Upgrade older games once without losing their board or score.
+  Object.assign(state, restoreMoveBudget(state));
   state.notice = "";
   state.over = gameEnded(state.board, new Set(state.banked),
     new Set(state.locked), state.movesLeft);
