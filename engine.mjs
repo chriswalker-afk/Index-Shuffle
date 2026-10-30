@@ -1,28 +1,41 @@
 export const SIZE = 4;
 export const INITIAL_MOVES_LEFT = 10;
+export const MAX_MOVES_LEFT = 10;
 export const MERGES_PER_BONUS_MOVE = 2;
 
-// Each successful slide costs one move PLUS one per active blocker at
-// the START of the slide. Advance-warning tiles do not incur a surcharge.
-// Every two merges refund a move, even across separate slides. Calculate
-// the refund before checking for defeat; the budget never goes negative.
-export function spendMove(movesLeft, mergeCredit, mergesMade, activeBlockers = 0) {
+// Slides ONLY subtract moves: 1 plus one for every blocker already on
+// the board. Warning tiles are not active blockers. No merge performed
+// during the slide may offset this cost; the player must bank it correctly.
+export function spendMove(movesLeft, activeBlockers = 0) {
   if (!Number.isSafeInteger(movesLeft) || movesLeft < 0 ||
+      !Number.isSafeInteger(activeBlockers) || activeBlockers < 0) {
+    throw new RangeError("Invalid move balance or active blocker count");
+  }
+  const cost = 1 + activeBlockers;
+  return { movesLeft: Math.max(0, movesLeft - cost), cost };
+}
+
+// Only a correctly BANKED tile that genuinely originated in a merge
+// advances the bonus. Correctly banking two such tiles restores one move.
+// Banked random-spawn powers never count until they have merged. The bonus
+// can never raise Moves Left above 10.
+export function creditCorrectBank(movesLeft, mergeCredit, mergedPower) {
+  if (!Number.isSafeInteger(movesLeft) || movesLeft < 0 ||
+      movesLeft > MAX_MOVES_LEFT ||
       !Number.isSafeInteger(mergeCredit) || mergeCredit < 0 ||
       mergeCredit >= MERGES_PER_BONUS_MOVE ||
-      !Number.isSafeInteger(mergesMade) || mergesMade < 0 ||
-      !Number.isSafeInteger(activeBlockers) || activeBlockers < 0) {
-    throw new RangeError("Invalid move budget, merge count or blocker count");
+      typeof mergedPower !== "boolean") {
+    throw new RangeError("Invalid banking bonus state");
   }
-  if (movesLeft === 0) {
-    return { movesLeft: 0, mergeCredit, earned: 0 };
+  if (movesLeft === 0 || !mergedPower) {
+    return { movesLeft, mergeCredit, earned: 0 };
   }
-  const combined = mergeCredit + mergesMade;
-  const earned = Math.floor(combined / MERGES_PER_BONUS_MOVE);
-  const cost = 1 + activeBlockers;
+  const progress = mergeCredit + 1;
+  const possible = Math.floor(progress / MERGES_PER_BONUS_MOVE);
+  const earned = Math.min(possible, MAX_MOVES_LEFT - movesLeft);
   return {
-    movesLeft: Math.max(0, movesLeft - cost + earned),
-    mergeCredit: combined % MERGES_PER_BONUS_MOVE,
+    movesLeft: movesLeft + earned,
+    mergeCredit: progress % MERGES_PER_BONUS_MOVE,
     earned
   };
 }
@@ -355,6 +368,7 @@ export function attemptBank(board, index, answer,
   return {
     status: "success", board: next, replacement,
     powerKey: key(t), points: scoreFor(t),
+    creditedMerge: mergeReady.has(index),
     damaged, destroyed
   };
 }
