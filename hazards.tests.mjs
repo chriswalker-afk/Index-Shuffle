@@ -2,7 +2,8 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import {
   SIZE, tile, key, slide, initial, spawn, spawnOptions, activeBases,
-  blocker, isBlocker, blockerStrength, blockerHitsForMove, adjacentIndices,
+  blocker, warning, isBlocker, isWarning, isObstacle,
+  blockerStrength, blockerHitsForMove, adjacentIndices,
   isBankable, canMove, bankReplacement, turnSpawns,
   BLOCKER_HITS, MAX_BLOCKER_HITS, BLOCKER_START,
   BLOCKER_INTERVAL, MAX_BLOCKERS, EXTRA_SPAWN_START, EXTRA_SPAWN_INTERVAL
@@ -14,13 +15,21 @@ function boardWith(...entries) {
   for (const [index, value] of entries) board[index] = value;
   return board;
 }
-const countNumbers = board => board.filter(t => t && !isBlocker(t)).length;
+const countNumbers = board => board.filter(t => t && !isObstacle(t)).length;
 const countBlockers = board => board.filter(isBlocker).length;
+const countWarnings = board => board.filter(isWarning).length;
 
 // A blocker is NOT a number: it cannot merge, move, be banked,
 // become a power-spawn candidate, or cross row/column boundaries.
 assert.deepEqual(blocker(), { kind: "blocker", hits: 0, strength: 3 });
 assert.deepEqual(blocker(0, 1), { kind: "blocker", hits: 0, strength: 1 });
+assert.deepEqual(warning(2), { kind: "warning", strength: 2 });
+assert.equal(isWarning(warning(2)), true);
+assert.equal(isObstacle(warning(2)), true);
+assert.equal(isBlocker(warning(2)), false);
+assert.equal(key(warning(2)), "warning:2");
+assert.equal(isBankable(warning(2), new Set(), 0), false);
+assert.throws(() => bankReplacement(warning(2), new Set()), RangeError);
 assert.equal(blockerStrength(blocker(2, 5)), 5);
 assert.equal(blockerStrength({ kind: "blocker", hits: 2 }), 3,
   "legacy save without strength retains three-hit durability");
@@ -103,8 +112,19 @@ assert.deepEqual(result.damaged, []);
 // Existing values and banked status do not change the blocker.
 assert.deepEqual(spawn(boardWith([0, blocker()]), new Set(), () => 0)[0], blocker());
 
-// A new blocker is attempted every ten successful slides, from move 10.
-// Its durability increases 1, 2, 3, 4, 5 and stays capped at 5.
+// A blocker is always previewed one move in advance. A preview is a
+// reserved barrier; it cannot be banked, moved through, or damaged.
+board = boardWith([0, tile(2)], [1, warning(1)], [2, tile(3)], [3, tile(3)]);
+result = slide(board, "left");
+assert.deepEqual(result.board[1], warning(1));
+assert.deepEqual(result.board[2], tile(3, 2));
+assert.deepEqual(result.damaged, [], "the preview does not take merge damage");
+assert.deepEqual(result.destroyed, []);
+assert.equal(result.motions.some(m => m.from === 1), false);
+assert.deepEqual(board[1], warning(1), "the preview is not mutated");
+
+// A new blocker is previewed at 9, 19, 29, ..., then matures after the
+// 10th, 20th, 30th, ... successful slides. Durability caps at five.
 assert.equal(EXTRA_SPAWN_START, 40);
 assert.equal(EXTRA_SPAWN_INTERVAL, 10);
 assert.equal(BLOCKER_START, 10);
@@ -116,7 +136,7 @@ for (const [moves, expected] of [
   [50, 5], [60, 5], [1000, 5]
 ]) {
   assert.equal(blockerHitsForMove(moves), expected,
-    "tier calculated from successful slides at move " + moves);
+    "tier at successful slide " + moves);
 }
 
 // Existing extra-tile cadence is unchanged, including move 40.
@@ -125,55 +145,80 @@ for (const [moves, expected] of [
   [49, 1], [50, 2], [60, 2], [70, 2]
 ]) {
   const turn = turnSpawns(blank(), new Set(), moves, () => 0);
-  assert.equal(turn.spawned.length, expected, "spawn count at slide " + moves);
+  assert.equal(turn.spawned.length, expected, "number spawns at slide " + moves);
   assert.equal(countNumbers(turn.board), expected);
   assert.equal(turn.extraSpawned, expected === 2);
+  assert.equal(countWarnings(turn.board), 0,
+    "an empty board cannot forecast a blocker without neighbouring numbers");
 }
 
-// Authentic games already contain numbers. A blocker appears from move 10,
-// only on milestones, with the correct per-instance strength.
-for (const [moves, strength] of [
+// The exact predicted position is preserved between two turns. All
+// blockers require a prior warning; no surprise blocker appears at move 10.
+for (const [milestone, strength] of [
   [10, 1], [20, 2], [30, 3], [40, 4],
   [50, 5], [60, 5], [80, 5]
 ]) {
-  const turn = turnSpawns(boardWith([0, tile(2)]), new Set(), moves, () => 0);
-  assert.equal(turn.blockerAt, 1, "first candidate at move " + moves);
-  assert.deepEqual(turn.board[1], blocker(0, strength),
-    "correct blocker tier at move " + moves);
-  assert.equal(countBlockers(turn.board), 1);
-  assert.equal(turn.spawned.length, moves >= 40 ? 2 : 1,
-    "extra number spawning retained on blocker milestones");
+  const current = boardWith([0, tile(2)]);
+  const before = turnSpawns(current, new Set(), milestone - 1, () => 0);
+  assert.equal(before.blockerAt, -1);
+  assert.equal(before.warningAt, 1,
+    "warning appears one successful slide before move " + milestone);
+  assert.deepEqual(before.board[1], warning(strength));
+  assert.equal(countWarnings(before.board), 1);
+  const after = turnSpawns(before.board, new Set(), milestone, () => 0);
+  assert.equal(after.warningAt, -1);
+  assert.equal(after.blockerAt, before.warningAt,
+    "blocker appears in the exact marked square");
+  assert.deepEqual(after.board[1], blocker(0, strength));
+  assert.equal(countWarnings(after.board), 0);
+  assert.equal(countBlockers(after.board), 1);
+  assert.equal(after.spawned.length, milestone >= 40 ? 2 : 1,
+    "extra numbers continue to spawn on blocker milestones");
 }
-let turn = turnSpawns(boardWith([0, tile(2)]), new Set(), 9, () => 0);
-assert.equal(turn.blockerAt, -1);
+let turn = turnSpawns(boardWith([0, tile(2)]), new Set(), 10, () => 0);
+assert.equal(turn.blockerAt, -1, "no blocker appears without a forecast");
 turn = turnSpawns(boardWith([0, tile(2)]), new Set(), 11, () => 0);
-assert.equal(turn.blockerAt, -1);
+assert.equal(turn.warningAt, -1);
 
-// Two blockers may coexist but are never placed in neighbouring squares.
-// At the two-blocker cap subsequent milestone spawns are skipped.
+// Two blockers may coexist but are never placed next to one another.
+// The cap includes reserved warnings, so a third cannot be forecast.
 const firstBlocker = boardWith([0, tile(2)], [1, blocker(0, 1)]);
-turn = turnSpawns(firstBlocker, new Set(), 20, () => 0);
+const previewSecond = turnSpawns(firstBlocker, new Set(), 19, () => 0);
+assert.equal(previewSecond.warningAt, 4);
+assert.deepEqual(previewSecond.board[4], warning(2));
+assert.equal(adjacentIndices(4).includes(1), false,
+  "avoid adjacent blocker placements");
+turn = turnSpawns(previewSecond.board, new Set(), 20, () => 0);
 assert.equal(turn.blockerAt, 4);
 assert.deepEqual(turn.board[4], blocker(0, 2));
 assert.equal(countBlockers(turn.board), 2);
-assert.equal(adjacentIndices(turn.blockerAt).includes(1), false,
-  "blockers should not be orthogonal neighbours");
 turn = turnSpawns(boardWith([0, tile(2)], [1, blocker(0, 1)],
-  [4, blocker(0, 2)]), new Set(), 30, () => 0);
-assert.equal(turn.blockerAt, -1, "a third blocker never spawns");
+  [4, blocker(0, 2)]), new Set(), 29, () => 0);
+assert.equal(turn.warningAt, -1, "do not forecast a third blocker");
 assert.equal(countBlockers(turn.board), 2);
 
-// A blocker takes priority over number spawns on its scheduled turn:
-// if there is only one empty square, place the blocker rather than
-// silently missing the early milestone.
+// When there is only one vacancy at the warning milestone, reserve it
+// rather than let an ordinary number spawn crowd the blocker out.
 const almostFull = Array(16).fill(tile(2));
 almostFull[15] = null;
-turn = turnSpawns(almostFull, new Set(), 10, () => 0);
-assert.equal(turn.blockerAt, 15);
+turn = turnSpawns(almostFull, new Set(), 9, () => 0);
+assert.equal(turn.warningAt, 15);
 assert.equal(turn.spawned.length, 0);
-assert.deepEqual(turn.board[15], blocker(0, 1));
-assert.equal(countNumbers(turn.board), 15);
+assert.deepEqual(turn.board[15], warning(1));
+const matured = turnSpawns(turn.board, new Set(), 10, () => 0);
+assert.equal(matured.blockerAt, 15);
+assert.deepEqual(matured.board[15], blocker(0, 1));
 
+// The forecast is suppressed if occupying the square would leave no
+// legal swipe. This prevents a pre-blocker warning causing an instant loss.
+const nearStuck = boardWith([0, tile(2)], [1, tile(3)],
+  [2, tile(5)], [3, tile(7)]);
+const early = turnSpawns(nearStuck, new Set(), 9, () => 0);
+if (early.warningAt >= 0) {
+  assert.ok(["left", "right", "up", "down"]
+    .some(dir => slide(early.board, dir).changed),
+    "forecast must leave at least one legal swipe");
+}
 
 // Skip extra tiles and blockers when space is insufficient; never overwrite.
 board = Array(16).fill(tile(2));
@@ -186,13 +231,13 @@ turn = turnSpawns(Array(16).fill(tile(2)), new Set(), 20, () => 0);
 assert.equal(turn.blockerAt, -1);
 assert.equal(countBlockers(turn.board), 0);
 
-// The square freed by a destroyed blocker must stay empty for that swipe,
-// even if new tiles are scheduled or a blocker is due.
-turn = turnSpawns(boardWith([0, tile(2)]), new Set(), 20, () => 0, new Set([1]));
-assert.equal(turn.board[0], null);
-assert.ok(!turn.spawned.includes(0));
-assert.notEqual(turn.blockerAt, 1);
+// A square freed by a destroyed blocker is excluded from number spawns
+// and from the preview on that same slide.
+turn = turnSpawns(boardWith([0, tile(2)]), new Set(), 19, () => 0, new Set([1]));
+assert.equal(turn.board[0].base, 2);
+assert.ok(!turn.spawned.includes(1));
 assert.equal(turn.board[1], null);
+assert.notEqual(turn.warningAt, 1);
 turn = turnSpawns(blank(), new Set(), 40, () => 0, new Set([0, 1]));
 assert.equal(turn.board[0], null);
 assert.equal(turn.board[1], null);
@@ -231,6 +276,7 @@ for (const match of app.matchAll(/\$\("([a-zA-Z0-9]+)"\)/g)) {
 }
 assert.match(html, /id="blockerCount"/);
 assert.match(readFileSync("styles.css", "utf8"), /\.block-tile\b/);
+assert.match(readFileSync("styles.css", "utf8"), /\.warning-tile\b/);
 
 // A deterministic sequence of successful slides must preserve shape and
 // limit blocker count; no tile is duplicated or lost across segments.
@@ -249,14 +295,15 @@ for (let i = 0; i < 300; i++) {
   const turn = turnSpawns(next.board, discovered, moves, rng, new Set(next.destroyed));
   board = turn.board;
   assert.equal(board.length, 16);
-  assert.ok(countBlockers(board) <= MAX_BLOCKERS);
+  assert.ok(countBlockers(board) + countWarnings(board) <= MAX_BLOCKERS);
   for (const t of board) {
     if (!t) continue;
     if (isBlocker(t)) {
       assert.ok(t.hits >= 0 && t.hits < blockerStrength(t));
       assert.ok(blockerStrength(t) <= MAX_BLOCKER_HITS);
-    }
-    else {
+    } else if (isWarning(t)) {
+      assert.ok(blockerStrength(t) >= 1 && blockerStrength(t) <= MAX_BLOCKER_HITS);
+    } else {
       assert.ok(activeBases(moves).includes(t.base));
       assert.ok(Number.isSafeInteger(t.exp) && t.exp > 0);
     }
