@@ -4,27 +4,27 @@ import {
   mergeReadyAfterSlide, attemptBank, adjacentIndices, activeBases, BASE_UNLOCKS,
   INITIAL_MOVES_LEFT, MERGES_PER_BONUS_MOVE, BUDGET_RULES_VERSION,
   restoreMoveBudget, spendMove, slideCost, creditCorrectBank, gameEnded
-} from "./engine.mjs?v=roguelite-pass5-v1";
+} from "./engine.mjs?v=gold-banking-v2";
 import { newRogueliteRun, targetForRound, stageForRound, isBossRound,
   recordRogueliteBank, advanceRogueliteRound, validRogueliteRun,
   restoreRogueliteRun, markGoldSpawns, goldTier, goldForBank
-} from "./roguelite.mjs?v=roguelite-pass5-v1";
+} from "./roguelite.mjs?v=gold-banking-v2";
 import {
   restoreShopState, enterRogueliteShop, rerollRogueliteShop
-} from "./shop.mjs?v=roguelite-pass5-v1";
+} from "./shop.mjs?v=gold-banking-v2";
 import {
   renderRogueliteInventory, renderRogueliteShop
-} from "./shop-ui.mjs?v=roguelite-pass5-v1";
+} from "./shop-ui.mjs?v=gold-banking-v2";
 import {
   restoreEffectState, bankItemBonuses, goldChancesForRun,
   costOfNextSlide, canActivateConsumable, CONSUMABLE_TARGETS,
   consumableTargets, useConsumable
-} from "./effects.mjs?v=roguelite-pass5-v1";
-import { ITEM_BY_ID } from "./shop.mjs?v=roguelite-pass5-v1";
+} from "./effects.mjs?v=gold-banking-v2";
+import { ITEM_BY_ID } from "./shop.mjs?v=gold-banking-v2";
 import {
   bossForRound, bossTargetFor, bossPointsFor, bossMovementRules,
   bossAllowsMoveRestoration, applyThreeCurse
-} from "./bosses.mjs?v=roguelite-pass5-v1";
+} from "./bosses.mjs?v=gold-banking-v2";
 
 const $ = id => document.getElementById(id);
 const glyph = n => String(n).replace(/\d/g, d => "⁰¹²³⁴⁵⁶⁷⁸⁹"[+d]);
