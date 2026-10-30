@@ -2,6 +2,9 @@ name: Test Index Shuffle
 on:
   push:
   pull_request:
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
 jobs:
   engine:
     runs-on: ubuntu-latest
@@ -29,7 +32,6 @@ jobs:
           node shop-art.tests.mjs
           node boss-art.tests.mjs
           node world-art.tests.mjs
-          node quality-pass5.tests.mjs
       - name: Check JavaScript syntax
         run: |
           node --check engine.mjs
@@ -67,7 +69,6 @@ jobs:
           node --check stage-art.mjs
           node --check achievement-art.mjs
           node --check world-art.tests.mjs
-          node --check quality-pass5.tests.mjs
       - name: Verify Pages static files
         run: |
           test -f .nojekyll
@@ -126,3 +127,28 @@ jobs:
       - name: Validate Pass 4 SVG scene, hazard and award assets
         run: |
           python3 -c "import glob, xml.etree.ElementTree as ET; paths = glob.glob('assets/art/stage-*.svg') + glob.glob('assets/art/hazard-*.svg') + ['assets/art/title-numberworld.svg', 'assets/art/achievement-trophy.svg', 'assets/art/achievement-medals.svg']; [ET.parse(path) for path in paths]; assert len(paths) == 12"
+      - name: Run headless Chrome viewport and modal smoke test
+        run: |
+          CHROME="$(command -v google-chrome || command -v chromium || command -v chromium-browser || true)"
+          if [ -z "$CHROME" ]; then
+            echo "Chrome / Chromium is unavailable on this runner"
+            exit 1
+          fi
+          python3 -m http.server 8765 --bind 127.0.0.1 > /tmp/index-shuffle-http.log 2>&1 &
+          SERVER_PID="$!"
+          trap 'kill "$SERVER_PID" || true' EXIT
+          for attempt in 1 2 3 4 5 6 7 8 9 10; do
+            if curl -fsS http://127.0.0.1:8765/ > /dev/null; then break; fi
+            sleep 0.2
+          done
+          "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage \
+            --no-first-run --hide-scrollbars --virtual-time-budget=18000 \
+            --dump-dom http://127.0.0.1:8765/qa/browser-smoke.html \
+            > /tmp/index-shuffle-browser.log 2> /tmp/index-shuffle-chrome.log
+          if ! grep -q 'data-result="pass"' /tmp/index-shuffle-browser.log; then
+            echo "Browser smoke test failed:"
+            tail -n 110 /tmp/index-shuffle-browser.log
+            tail -n 30 /tmp/index-shuffle-chrome.log
+            exit 1
+          fi
+          grep -o "PASS: [0-9]* interactive layout/semantics checks" /tmp/index-shuffle-browser.log | head -n 1
