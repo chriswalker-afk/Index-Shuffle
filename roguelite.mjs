@@ -1,15 +1,15 @@
 // Roguelite progression and economy. Classic keeps its original scoring and rules.
 import {
   initial, INITIAL_MOVES_LEFT, MAX_MOVES_LEFT, BUDGET_RULES_VERSION
-} from "./engine.mjs?v=hazard-counter-v1";
+} from "./engine.mjs?v=runestones-pass2";
 import {
   createBossSchedule, restoreBossSchedule, bossPointsFor,
   bossTargetFor, startBossBoard, nextFrozenDirection, validFrozenDirection,
   BOSS_ROUNDS
-} from "./bosses.mjs?v=frostlock-v1";
+} from "./bosses.mjs?v=runestones-pass2";
 import { emptyRunStats, restoreRunStats } from "./milestones.mjs?v=hazard-counter-v1";
-import { emptyHazardLayer } from "./hazards.mjs?v=hazard-counter-v1";
-import { emptyEnchantmentLayer } from "./enchantments.mjs?v=runestones-pass1";
+import { emptyHazardLayer } from "./hazards.mjs?v=runestones-pass2";
+import { emptyEnchantmentLayer } from "./enchantments.mjs?v=runestones-pass2";
 
 export const ROUND_TARGETS = Object.freeze([
   8, 11, 14, 17, 20, 24, 28, 33, 39, 45, 52, 60
