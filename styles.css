@@ -69,6 +69,18 @@ button:focus-visible, input:focus-visible {
 .base7 { background: #a9e3b2; }
 .base11 { background: #f7b6bb; }
 .base13 { background: #b7c5ff; }
+.block-tile {
+  flex-direction: column; gap: 2px;
+  border: 2px solid #9ca9be;
+  background: repeating-linear-gradient(135deg,
+    #43536c 0, #43536c 8px, #3a4861 8px, #3a4861 16px);
+  color: #f6f7fb; cursor: not-allowed;
+}
+.block-symbol { font-size: .88em; line-height: 1; }
+.block-health {
+  color: #e5ecf7; font-size: clamp(9px, 1.5vw, 13px);
+  font-weight: 700; letter-spacing: .2px;
+}
 .bankable { box-shadow: inset 0 0 0 3px #ffffff99; cursor: pointer; }
 .bankable:hover { transform: scale(.97); }
 .locked { box-shadow: inset 0 0 0 2px #805e52; cursor: not-allowed; }
@@ -82,6 +94,26 @@ button:focus-visible, input:focus-visible {
 .merge-flash { animation: merge-pop .22s ease-out; }
 .spawn-flash { animation: spawn-pop .22s ease-out; }
 .bank-flash { animation: bank-pop .3s ease-out; }
+.block-hit-flash { animation: blocker-hit .4s ease-out; }
+.block-appear { animation: blocker-appear .25s ease-out; }
+.block-break-flash::after {
+  content: "✧";
+  color: #a9f6dd; font-size: 28px; font-weight: 900;
+  position: absolute; inset: 0; display: grid; place-items: center;
+  pointer-events: none; animation: blocker-break .55s ease-out forwards;
+}
+@keyframes blocker-hit {
+  0% { filter: brightness(1.7); transform: scale(1.04); }
+  100% { filter: brightness(1); transform: scale(1); }
+}
+@keyframes blocker-appear {
+  0% { transform: scale(.72); opacity: .3; }
+  100% { transform: scale(1); opacity: 1; }
+}
+@keyframes blocker-break {
+  0% { transform: scale(.6); opacity: .9; }
+  100% { transform: scale(1.5); opacity: 0; }
+}
 @keyframes merge-pop {
   0% { transform: scale(.92); } 60% { transform: scale(1.05); } 100% { transform: scale(1); }
 }
@@ -112,6 +144,15 @@ button:focus-visible, input:focus-visible {
   color: #172b3b; font-size: 14px; font-weight: 850;
 }
 .next-base { margin-left: auto; color: #a8bbd4; font-size: 11px; }
+.pressure-strip {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 9px;
+  margin-top: 9px; padding: 9px 13px; border: 1px solid #38445d;
+  border-radius: 11px; background: #19263b; color: #b6c4d9;
+  font-size: 12px;
+}
+.pressure-strip strong { font-size: 11px; letter-spacing: 1px; color: #e2e9f5; }
+.pressure-symbol { font-size: 21px; color: #d3dfeb; }
+.pressure-help { margin-left: auto; color: #92a4bd; font-size: 11px; }
 .tip { font-size: 13px; color: #acb9d1; text-align: center; line-height: 1.6; }
 .side { display: grid; gap: 16px; align-content: start; }
 .panel { padding: 22px; }

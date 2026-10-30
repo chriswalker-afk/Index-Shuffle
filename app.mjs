@@ -1,5 +1,5 @@
 import {
-  key, slide, spawn, initial, canMove, isBankable,
+  key, slide, turnSpawns, initial, canMove, isBankable, isBlocker, BLOCKER_HITS,
   bankReplacement, checkAnswer, scoreFor, activeBases, BASE_UNLOCKS
 } from "./engine.mjs";
 
@@ -62,10 +62,19 @@ function render() {
 
   state.board.forEach((t, i) => {
     const button = document.createElement("button");
-    button.className = "cell" + (t ? " tile base" + t.base : "");
+    button.className = "cell" + (isBlocker(t) ? " block-tile"
+      : t ? " tile base" + t.base : "");
     button.setAttribute("role", "gridcell");
     button.type = "button";
-    if (t) {
+    if (isBlocker(t)) {
+      const remaining = BLOCKER_HITS - t.hits;
+      button.innerHTML = '<span class="block-symbol" aria-hidden="true">▦</span>'
+        + '<small class="block-health">' + remaining + ' left</small>';
+      button.title = "Fixed blocker: " + remaining
+        + " adjacent " + (remaining === 1 ? "merge" : "merges") + " to break";
+      button.setAttribute("aria-label", button.title);
+      button.disabled = true;
+    } else if (t) {
       const available = isBankable(t, banked, i, locked);
       const blocked = t.exp >= 2 && locked.has(i) && !banked.has(key(t));
       button.innerHTML = tileContent(t, available
@@ -85,6 +94,7 @@ function render() {
     }
     board.appendChild(button);
   });
+  $("blockerCount").textContent = state.board.filter(isBlocker).length + " / 1";
 
   const all = [...new Set([...state.discovered, ...state.banked])].sort((a, b) => {
     const [x, y] = a.split("-").map(Number), [u, v] = b.split("-").map(Number);
@@ -115,7 +125,7 @@ function stopMotion() {
 
 // Animate original tiles towards their destinations. The next board, including
 // its new spawn, is revealed together when the 170 ms movement completes.
-function animateSlide(before, motions, mergedDestinations, spawnedAt) {
+function animateSlide(before, motions, mergedDestinations, spawned, damaged, destroyed, blockerAt) {
   if (prefersReducedMotion() || typeof Element.prototype.animate !== "function") return;
   const board = $("board");
   const cells = [...board.children];
@@ -155,7 +165,10 @@ function animateSlide(before, motions, mergedDestinations, spawnedAt) {
     for (const index of mergedDestinations) {
       cells[index]?.classList.add("merge-flash");
     }
-    cells[spawnedAt]?.classList.add("spawn-flash");
+    for (const index of spawned) cells[index]?.classList.add("spawn-flash");
+    for (const index of damaged) cells[index]?.classList.add("block-hit-flash");
+    for (const index of destroyed) cells[index]?.classList.add("block-break-flash");
+    if (blockerAt >= 0) cells[blockerAt]?.classList.add("block-appear");
   });
 }
 
@@ -168,20 +181,27 @@ function move(direction) {
     if (t.exp >= 2 && !state.discovered.includes(key(t))) state.discovered.push(key(t));
   }
   const nextMove = state.moves + 1;
-  state.board = spawn(result.board, new Set(state.discovered), Math.random, nextMove);
-  const spawnedAt = state.board.findIndex((t, i) => Boolean(t && !result.board[i]));
-  const unlockedNow = activeBases(nextMove).filter(base => !activeBases(state.moves).includes(base));
+  // The hole made by destroying a blocker stays clear for this entire
+  // swipe. New number tiles may enter that space on a later turn.
+  const spawned = turnSpawns(result.board, new Set(state.discovered),
+    nextMove, Math.random, new Set(result.destroyed));
+  state.board = spawned.board;
+  const unlockedNow = activeBases(nextMove)
+    .filter(base => !activeBases(state.moves).includes(base));
   state.moves = nextMove;
-  // A valid slide unlocks both incorrect-attempt and successful-bank replacements.
+  // A successful slide clears the incorrect-attempt and banking cooldowns.
   state.locked = [];
-  state.notice = unlockedNow.length
-    ? "New base unlocked: " + unlockedNow.join(", ") +
-      "! It will appear more frequently over the next few moves."
-    : "";
+  const news = [];
+  if (unlockedNow.length) news.push("Unlocked base " + unlockedNow.join(", ") + "!");
+  if (result.destroyed.length) news.push("Blocker broken — space freed!");
+  else if (result.damaged.length) news.push("Merge near a blocker to damage it.");
+  if (spawned.blockerAt >= 0) news.push("Blocker appeared: 3 adjacent merges to break it.");
+  if (spawned.extraSpawned) news.push("Extra tile spawned!");
+  state.notice = news.join(" ");
   state.over = !canMove(state.board, new Set(state.banked), new Set());
   render();
-  const mergedDestinations = new Set(result.motions.filter(m => m.merged).map(m => m.to));
-  animateSlide(before, result.motions, mergedDestinations, spawnedAt);
+  animateSlide(before, result.motions, new Set(result.mergeDestinations),
+    spawned.spawned, result.damaged, result.destroyed, spawned.blockerAt);
 }
 
 function updateClock() {
