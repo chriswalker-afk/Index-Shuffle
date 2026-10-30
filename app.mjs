@@ -324,6 +324,7 @@ function render() {
     state.movesLeft > 0 && state.movesLeft <= 3);
   $("mobileStatus").classList.toggle("empty-moves", state.movesLeft === 0);
   $("mobileRoundTarget").hidden = !rogue;
+  $("mobileStatus").classList.toggle("classic", !rogue);
   const noBonusMoves = rogue && !bossAllowsMoveRestoration(state.run);
   $("mergeProgress").textContent = noBonusMoves ? "DISABLED" :
     state.mergeCredit + " / " + MERGES_PER_BONUS_MOVE;

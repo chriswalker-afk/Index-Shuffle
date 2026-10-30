@@ -2782,3 +2782,28 @@ dialog.overlay > .dialog {
   .cell.bankable:hover, .cell.item-target:hover { transform: none !important; }
   dialog.overlay::backdrop { backdrop-filter: none; }
 }
+
+/* Pass 5 follow-up: predictable two-column quick status in Classic and a
+   focusable board shortcut for keyboard users. */
+.game-screen { position: relative; }
+.skip-game-board {
+  position: absolute; z-index: 11; top: 0; left: 0;
+  transform: translateY(-180%);
+  padding: 12px 17px; border: 2px solid #ffe3a0;
+  border-radius: 9px; color: #17323e; background: #f6ddaa;
+  font-size: 13px; font-weight: 900;
+  text-decoration: none;
+}
+.skip-game-board:focus-visible {
+  transform: translateY(0);
+  outline: 3px solid #fff9eb;
+  outline-offset: 3px;
+}
+@media (max-width: 650px) {
+  .mobile-status.classic {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .skip-game-board { transition: none !important; }
+}
