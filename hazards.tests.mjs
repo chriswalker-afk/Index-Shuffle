@@ -182,7 +182,8 @@ assert.equal(turn.warningAt, -1);
 
 // Two blockers may coexist but are never placed next to one another.
 // The cap includes reserved warnings, so a third cannot be forecast.
-const firstBlocker = boardWith([0, tile(2)], [1, blocker(0, 1)]);
+const firstBlocker = boardWith([0, tile(2)], [1, blocker(0, 1)],
+  [8, tile(3)]);
 const previewSecond = turnSpawns(firstBlocker, new Set(), 19, () => 0);
 assert.equal(previewSecond.warningAt, 4);
 assert.deepEqual(previewSecond.board[4], warning(2));
