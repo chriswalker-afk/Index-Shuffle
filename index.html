@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#0c1428">
   <meta name="description" content="Slide and merge powers, solve banking challenges and stay in the game.">
   <title>Index Shuffle — Make every move count</title>
-  <link rel="stylesheet" href="styles.css?v=hazard-counter-v1-art-pass4">
+  <link rel="stylesheet" href="styles.css?v=hazard-counter-v1-art-pass5">
 </head>
 <body>
   <main class="shell">
@@ -53,7 +53,7 @@
         </div>
         <div class="title-showcase" aria-hidden="true">
           <img class="title-numberworld-art" src="assets/art/title-numberworld.svg"
-            alt="" width="960" height="700" decoding="async">
+            alt="" width="960" height="700" decoding="async" fetchpriority="high">
           <div class="showcase-glow"></div>
           <div class="showcase-board">
             <div class="showcase-tile showcase-two">2<sup>2</sup></div>
@@ -80,19 +80,19 @@
         </header>
         <div class="title-realm-grid">
           <div class="title-realm-card title-realm--1">
-            <img src="assets/art/stage-observatory.svg" alt="" width="960" height="260" decoding="async">
+            <img src="assets/art/stage-observatory.svg" alt="" width="960" height="260" decoding="async" loading="lazy" fetchpriority="low">
             <div><span>STAGE I · ROUNDS 1–3</span><strong>The Observatory</strong></div>
           </div>
           <div class="title-realm-card title-realm--2">
-            <img src="assets/art/stage-mist-gardens.svg" alt="" width="960" height="260" decoding="async">
+            <img src="assets/art/stage-mist-gardens.svg" alt="" width="960" height="260" decoding="async" loading="lazy" fetchpriority="low">
             <div><span>STAGE II · ROUNDS 4–6</span><strong>The Mist Gardens</strong></div>
           </div>
           <div class="title-realm-card title-realm--3">
-            <img src="assets/art/stage-fracture-forge.svg" alt="" width="960" height="260" decoding="async">
+            <img src="assets/art/stage-fracture-forge.svg" alt="" width="960" height="260" decoding="async" loading="lazy" fetchpriority="low">
             <div><span>STAGE III · ROUNDS 7–9</span><strong>The Fracture Forge</strong></div>
           </div>
           <div class="title-realm-card title-realm--4">
-            <img src="assets/art/stage-eclipse-vault.svg" alt="" width="960" height="260" decoding="async">
+            <img src="assets/art/stage-eclipse-vault.svg" alt="" width="960" height="260" decoding="async" loading="lazy" fetchpriority="low">
             <div><span>STAGE IV · ROUNDS 10–12</span><strong>The Eclipse Vault</strong></div>
           </div>
         </div>
@@ -147,6 +147,7 @@
     </section>
 
     <section id="gameScreen" class="game-screen" hidden aria-label="Active game">
+      <a class="skip-game-board" href="#board">Skip to the maths board</a>
       <div class="playing-head">
         <div>
           <p class="overline">CURRENT GAME</p>
@@ -159,7 +160,7 @@
       </div>
       <div id="stageScene" class="stage-scene" hidden aria-label="Current Roguelike stage">
         <img id="stageSceneImage" class="stage-scene-image" alt=""
-          src="assets/art/stage-observatory.svg" width="960" height="260" decoding="async">
+          width="960" height="260" decoding="async">
         <div class="stage-scene-copy">
           <span id="stageSceneLabel">STAGE I · THE OBSERVATORY</span>
           <strong id="stageSceneTitle">The Observatory</strong>
@@ -167,6 +168,17 @@
         </div>
         <span id="stageSceneRound" class="stage-scene-round">ROUND 1 / 12</span>
       </div>
+      <section id="mobileStatus" class="mobile-status" aria-label="Quick game status">
+        <div class="mobile-status-item mobile-status-moves">
+          <span>Moves left</span><strong id="mobileMovesLeft">10</strong>
+        </div>
+        <div class="mobile-status-item">
+          <span>Next slide</span><strong id="mobileSlideCost">−1 move</strong>
+        </div>
+        <div class="mobile-status-item" id="mobileRoundTarget">
+          <span>Round target</span><strong id="mobileRoundScore">0 / 4</strong>
+        </div>
+      </section>
     <section class="play" aria-label="Index Shuffle game">
       <section class="game" aria-label="Game board">
         <div class="board-head">
@@ -198,8 +210,8 @@
           <span id="itemPromptText">Choose a tile for your item.</span>
           <button type="button" id="itemCancel" class="item-cancel">Cancel</button>
         </div>
-        <div id="board" class="board" role="grid"
-          aria-label="Four by four board of number powers and fixed blockers"></div>
+        <div id="board" class="board" role="group" tabindex="-1"
+          aria-label="Four by four board. Use arrow keys or WASD to slide; select a bankable power to answer."></div>
         <div class="controls-row">
           <span class="control-caption">Slide with arrow keys, WASD or swipe</span>
           <div class="controls" aria-label="Direction controls">
@@ -521,8 +533,7 @@
       </div>
       <div class="boss-intro-layout">
         <div class="boss-intro-art">
-          <img id="bossIntroPortrait" src="assets/art/boss-blockade.svg"
-            alt="The Blockade, a formidable stone guardian" width="480" height="480">
+          <img id="bossIntroPortrait" alt="" width="480" height="480" decoding="async">
           <span class="boss-intro-seal" aria-hidden="true">✦</span>
         </div>
         <div class="boss-intro-story">
@@ -599,7 +610,7 @@
       <div id="shopMerchant" class="shop-merchant-strip">
         <img src="assets/art/index-merchant.svg"
           alt="A cheerful clockwork owl merchant in a purple hat with an abacus and golden number tokens."
-          width="98" height="98" decoding="async">
+          width="98" height="98" decoding="async" loading="lazy">
         <div class="shop-merchant-copy">
           <p class="shop-merchant-kicker">A CURIOUS LITTLE CORNER OF THE NUMBERWORLD</p>
           <strong>Curios for clever minds</strong>
@@ -650,9 +661,9 @@
     </div>
   </dialog>
 
-  <div id="modal" class="overlay" hidden>
-    <div class="dialog" role="dialog" aria-modal="true"
-         aria-labelledby="promptTitle" aria-describedby="promptHelp">
+  <dialog id="modal" class="overlay" aria-labelledby="promptTitle"
+    aria-describedby="promptHelp">
+    <div class="dialog">
       <button type="button" class="close" id="close" aria-label="Close banking question">×</button>
       <p class="overline">BANK THIS POWER</p>
       <h2 id="promptTitle"></h2>
@@ -665,7 +676,7 @@
       <form id="bankForm">
         <label for="answer">Exact value</label>
         <input id="answer" type="text" inputmode="numeric" autocomplete="off"
-               placeholder="Your answer" required>
+               aria-describedby="promptHelp" placeholder="Your answer" required>
         <p id="feedback" aria-live="polite"></p>
         <button class="primary" type="submit">Bank power</button>
       </form>
@@ -677,7 +688,7 @@
       </details>
       <button type="button" id="cancel" class="textbtn">Keep this tile</button>
     </div>
-  </div>
-  <script type="module" src="app.mjs?v=hazard-counter-v1-art-pass4"></script>
+  </dialog>
+  <script type="module" src="app.mjs?v=hazard-counter-v1-art-pass5"></script>
 </body>
 </html>

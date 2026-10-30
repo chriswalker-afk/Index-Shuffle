@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Index Shuffle · Pass 5 browser smoke test</title>
+  <style>
+    body { margin: 0; padding: 20px; background: #172135; color: #fff; font: 14px system-ui, sans-serif; }
+    iframe { display: block; width: 320px; height: 900px; border: 2px solid #72e9ce; }
+    #result { white-space: pre-wrap; word-break: break-word; padding: 16px;
+      border: 1px solid #95aeca; border-radius: 9px; max-width: 70ch; }
+    #result[data-result="pass"] { border-color: #96efd5; }
+    #result[data-result="fail"] { border-color: #ffb0a0; }
+  </style>
+</head>
+<body>
+  <h1>Pass 5 browser smoke test</h1>
+  <pre id="result" role="status" data-result="running">RUNNING: Waiting for game iframe</pre>
+  <iframe id="game" title="Index Shuffle browser QA" src="../"></iframe>
+  <script>
+    "use strict";
+    const result = document.getElementById("result");
+    const frame = document.getElementById("game");
+    const logs = [];
+    const assert = (ok, description) => {
+      if (!ok) throw new Error(description);
+      logs.push("PASS " + description);
+    };
+    const tick = () => new Promise(resolve =>
+      frame.contentWindow.requestAnimationFrame(() =>
+        frame.contentWindow.requestAnimationFrame(resolve)));
+    const width = async value => {
+      frame.style.width = value + "px";
+      await tick();
+      const documentElement = frame.contentDocument.documentElement;
+      assert(documentElement.scrollWidth <= documentElement.clientWidth + 2,
+        value + "px: no horizontal overflow (" + documentElement.scrollWidth + " / " +
+        documentElement.clientWidth + ")");
+    };
+    function finish(kind, line) {
+      result.dataset.result = kind;
+      result.textContent = (kind === "pass" ? "PASS: " : "FAIL: ") +
+        line + "\n\n" + logs.join("\n");
+    }
+    async function run() {
+      try {
+        // iframe load waits for the real module graph to finish executing.
+        const doc = frame.contentDocument;
+        const win = frame.contentWindow;
+        const $ = id => doc.getElementById(id);
+        assert(Boolean($("titleScreen") && !$("titleScreen").hidden),
+          "title screen is visible and app module has initialized");
+        assert($("titleNew") && !($("titleNew").disabled),
+          "new game button is available");
+        assert($("modal") instanceof win.HTMLDialogElement,
+          "banking uses a native dialog element");
+        assert(!$("modal").open, "banking dialog starts closed");
+        await width(320);
+        await width(390);
+        $("titleNew").click();
+        assert(!$("newGameScreen").hidden, "mode selection opens");
+        $("modeClassic").click();
+        assert(!$("gameScreen").hidden, "Classic game starts");
+        assert($("stageScene").hidden, "Classic is not decorated with a Roguelike stage");
+        const board = $("board");
+        assert(board.getAttribute("role") === "group", "board is an accessible group");
+        assert(board.querySelectorAll(":scope > button.cell").length === 16,
+          "game board has sixteen native button squares");
+        assert([...board.querySelectorAll(":scope > button.cell")].every(b =>
+          b.getAttribute("aria-label")?.startsWith("Row ") &&
+          !b.hasAttribute("role")),
+          "all sixteen squares are labelled by position and keep button semantics");
+        for (const size of [320, 390, 650, 768, 1200]) {
+          await width(size);
+          const isMobile = size <= 650;
+          const barDisplay = win.getComputedStyle($("mobileStatus")).display;
+          assert(isMobile ? barDisplay === "grid" : barDisplay === "none",
+            size + "px: quick status shown only on phones");
+          if (isMobile) {
+            assert($("mobileRoundTarget").hidden, size + "px: Classic has no round target");
+            assert(board.getBoundingClientRect().top < $("movesCard").getBoundingClientRect().top,
+              size + "px: board precedes detailed HUD");
+            assert($("mobileStatus").getBoundingClientRect().bottom <= board.getBoundingClientRect().top,
+              size + "px: quick budget is immediately above the board");
+          }
+        }
+        await width(390);
+        const dialog = $("modal");
+        dialog.showModal();
+        $("answer").focus();
+        assert(dialog.open && doc.activeElement === $("answer"),
+          "native banking modal opens and focuses numeric answer");
+        assert(win.getComputedStyle(dialog).display !== "none",
+          "banking modal is visually open");
+        dialog.close();
+        assert(!dialog.open && win.getComputedStyle(dialog).display === "none",
+          "native banking modal closes cleanly");
+        $("headerTitle").click();
+        assert(!$("titleScreen").hidden, "returning to title works");
+        $("titleNew").click();
+        $("modeRoguelite").click();
+        assert(!$("gameScreen").hidden, "Roguelike game starts");
+        assert(!$("stageScene").hidden && $("stageSceneTitle").textContent.length > 2,
+          "stage art and stage name render in Roguelike");
+        assert(!$("mobileRoundTarget").hidden, "Roguelike quick HUD shows round target");
+        assert($("mobileMovesLeft").textContent === $("movesLeft").textContent,
+          "quick budget matches full HUD");
+        assert($("mobileRoundScore").textContent === $("rogueScore").textContent,
+          "quick target matches full HUD");
+        await width(320);
+        assert($("board").getBoundingClientRect().top < $("movesCard").getBoundingClientRect().top,
+          "Roguelike board-first layout holds at 320px");
+        assert($("stageSceneImage").getAttribute("src")?.includes("stage-observatory.svg"),
+          "current-stage art is loaded only for the actual stage");
+        finish("pass", logs.length + " interactive layout/semantics checks");
+      } catch (error) {
+        finish("fail", String(error && error.stack || error));
+      }
+    }
+    frame.addEventListener("load", run, { once: true });
+  </script>
+</body>
+</html>

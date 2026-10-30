@@ -1,7 +1,6 @@
 # Index Shuffle · Numberworld art direction
 
-Status: **Passes 1–4 artwork complete**: character art, illustrated shop, boss scenes and world environments. This guide is the single
-source of truth for visual design decisions in later passes.
+Status: **Passes 1–5 complete**: character art, shop, bosses, world environments and final usability polish. This guide is the design reference for further refinements.
 
 ## Concept: The Curious Numberworld
 
@@ -167,10 +166,47 @@ changed by Pass 1. All seven current bosses now have portraits (see Pass 3).
 - `world-gallery.html` provides easy, static review of the complete
   four-stage, five-hazard and 16-medal collections, without changing saves.
 
-## Next pass
+## Pass 5 · Final quality polish (complete)
 
-- **Pass 5:** final motion restraint, real-device mobile layout,
-  performance/accessibility review and maths/readability regression audit.
+- **Board-first phones:** on widths up to 650px, the mathematics board
+  appears before the extended HUD. A narrow strip immediately above the
+  board repeats the essential moves-left, next-slide cost and target
+  numbers, while preserving the full underlying HUD for detail.
+  Classic mode has two, not three, summary cards.
+- **Keyboard access and semantics:** the board is a labelled group
+  containing 16 native buttons, each announced with row/column location.
+  A "Skip to the maths board" link appears on keyboard focus.
+  Changing a button to ARIA `gridcell` had concealed its button role;
+  that override was removed.
+- **Banking modal:** the timed question now uses a native HTML `dialog`
+  and `showModal`/`close` with browser focus containment, cancel and
+  Escape handling. After banking, focus returns to the replacement
+  square, board, or the next visible action. No time limit or scoring
+  rule was changed.
+- **Mathematics:** the active question title uses a genuine `<sup>`
+  element with an accessible full-sentence exponent label. Power
+  tiles do not wrap and bankable markers no longer sit on the exponent.
+  A contrast regression test covers all six base tile colours.
+- **Performance and restraint:** the main title gateway is prioritized;
+  secondary title panoramas and merchant art are lazily loaded, and
+  boss/stage art is assigned only when needed. Tile animation is disabled
+  when reduced motion is requested, the document is hidden, or the
+  connection advertises Data Saver. Decorative motion never blocks
+  actions or changes saves.
+- **Responsive controls:** direction buttons have 44px targets on phones,
+  banking close/cancel controls are easier to tap, shop footer actions
+  account for the device safe-area inset, and focus outlines are
+  prominent.
+- **Automated QA:** the existing gameplay regressions, new Pass 5
+  accessibility/maths/mobile/performance assertions, syntax checks and
+  original SVG validations run in GitHub Actions. A real headless Chrome
+  smoke page exercises the title, Classic/Roguelike navigation, native
+  dialog, 16 tile controls and layouts at 320, 390, 650, 768 and 1200px,
+  with horizontal overflow checks.
+- **No rules altered:** board RNG, move costs, blockers, boss effects,
+  hazards, shop economics, achievements, saved keys, and round
+  progression remain unchanged.
 
-Review the art in `art-preview.html`, `item-gallery.html`,
-`boss-gallery.html` and `world-gallery.html` before finalising polishing.
+Refer to `QA_PASS5.md` for precise test boundaries and a real-device
+review checklist. A physical iOS/Android/Safari screen-reader audit
+still requires manual review; the automated browser smoke is Chrome.
