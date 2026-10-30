@@ -71,11 +71,16 @@ button:focus-visible, input:focus-visible {
 .base13 { background: #b7c5ff; }
 .block-tile {
   flex-direction: column; gap: 2px;
-  border: 2px solid #9ca9be;
+  border: 2px solid var(--tier-color, #9ca9be);
   background: repeating-linear-gradient(135deg,
     #43536c 0, #43536c 8px, #3a4861 8px, #3a4861 16px);
   color: #f6f7fb; cursor: not-allowed;
 }
+.block-tier1 { --tier-color: #90e6c3; }
+.block-tier2 { --tier-color: #a5d3e8; }
+.block-tier3 { --tier-color: #f0d797; }
+.block-tier4 { --tier-color: #e9b18b; }
+.block-tier5 { --tier-color: #ee979d; }
 .block-symbol { font-size: .88em; line-height: 1; }
 .block-health {
   color: #e5ecf7; font-size: clamp(9px, 1.5vw, 13px);
