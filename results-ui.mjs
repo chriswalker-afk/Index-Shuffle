@@ -8,6 +8,8 @@ import { bossForRound } from "./bosses.mjs?v=frostlock-v1";
 import { bossPortraitFor } from "./art-catalog.mjs?v=frostlock-v1";
 import { bossSceneFor } from "./boss-scenes.mjs?v=frostlock-v1";
 import { achievementMedalHref, achievementVisualTheme } from "./achievement-art.mjs?v=hazard-counter-v1-art-pass4";
+import { describeEnding, chooseRunHighlight, formatShareSummary
+} from "./experience.mjs?v=release-5b";
 
 const $ = id => document.getElementById(id);
 const node = (tag, className, text) => {
@@ -105,6 +107,11 @@ export function renderFinalScreen(mode, state, profile) {
     : rogue ? "You reached round " + summary.round +
       " of 12. Here's how far your build took you."
     : "Every slide and correct bank contributed to this score.";
+  const ending = describeEnding(mode, state, summary);
+  $("resultsEndingTitle").textContent = ending.title;
+  $("resultsEndingDetail").textContent = ending.detail;
+  $("resultsHighlight").textContent = "✦ " + chooseRunHighlight(mode, summary);
+  $("resultsShareText").value = formatShareSummary(mode, summary, ending);
   $("resultsScoreLabel").textContent = rogue ? "TOTAL RUN SCORE" : "FINAL SCORE";
   $("resultsFinalScore").textContent = pretty(summary.score);
   $("resultsBestScore").textContent = rogue
