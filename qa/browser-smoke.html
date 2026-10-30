@@ -52,6 +52,10 @@
           "title screen is visible and app module has initialized");
         assert($("titleNew") && !($("titleNew").disabled),
           "new game button is available");
+        assert(win.localStorage.getItem("index-shuffle-v1") === null &&
+          win.localStorage.getItem("index-shuffle-roguelite-v1") === null,
+          "visiting the title alone does not create a phantom game save");
+        assert($("saveWarning").hidden, "save warning is hidden when storage works");
         assert($("modal") instanceof win.HTMLDialogElement,
           "banking uses a native dialog element");
         assert(!$("modal").open, "banking dialog starts closed");
@@ -207,6 +211,34 @@
           .find(b => b.disabled)?.dataset.dir;
         assert(restored === after.run.frozenDirection,
           "reloading a Frostlock run preserves its frozen control");
+
+        // A failed durable save must be visibly disclosed and kept in memory
+        // so Continue remains usable in the same tab. No real game progress
+        // or virtual currency is invented by this fallback.
+        const originalWrite = win.Storage.prototype.setItem;
+        try {
+          win.Storage.prototype.setItem = function () {
+            throw new Error("simulated QuotaExceededError");
+          };
+          $("headerTitle").click();
+          assert(!$("saveWarning").hidden &&
+            $("saveWarning").textContent.includes("not being saved"),
+            "unavailable browser storage produces an accessible warning");
+          $("titleContinue").click();
+          const recover = [...$("continueSlots").querySelectorAll("button")]
+            .find(b => b.getAttribute("aria-label")?.includes("Roguelike"));
+          assert(Boolean(recover),
+            "an in-tab backup permits Continue after a storage failure");
+          recover.click();
+          await tick();
+          assert($("bossName").textContent === "The Frostlock",
+            "memory fallback restores the existing saved boss encounter");
+        } finally {
+          win.Storage.prototype.setItem = originalWrite;
+        }
+        $("headerTitle").click();
+        assert($("saveWarning").hidden,
+          "warning clears after game and achievements save successfully again");
         finish("pass", logs.length + " interactive layout/semantics checks");
       } catch (error) {
         finish("fail", String(error && error.stack || error));
