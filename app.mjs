@@ -628,6 +628,7 @@ $("bankForm").addEventListener("submit", event => {
     return;
   }
   if (outcome.status !== "success") return;
+  recentAchievementIds = [];
   closeBank();
   state.board = outcome.board;
   state.mergeReady = state.mergeReady.filter(index => index !== i);
@@ -680,6 +681,27 @@ $("bankForm").addEventListener("submit", event => {
       + (destroyed.length === 1 ? " blocker destroyed!" : " blockers destroyed!");
   } else if (damaged.length) {
     state.notice += " Blocker damaged by your correct bank!";
+  }
+
+  // Track only mathematically correct bank submissions. Gold cannot earn
+  // an award from merely spawning, merging, or an incorrect answer.
+  const bankEvent = {
+    type: "bank", points: points.points, exponent: t.exp,
+    goldTier: mode === "roguelite" ? goldTier(t) : 0,
+    goldCoins: mode === "roguelite" ? points.bankGold : 0,
+    blockersDestroyed: destroyed.length
+  };
+  if (mode === "roguelite") {
+    awardRunEvent(bankEvent);
+    if (points.cleared) {
+      awardRunEvent({
+        type: "round-clear", movesLeft: state.movesLeft,
+        boss: isBossRound(state.run.round),
+        victory: state.run.phase === "victory"
+      });
+    }
+  } else {
+    state.stats = recordRunStats(state.stats, bankEvent);
   }
   state.over = mode === "roguelite" && state.run.phase !== "playing" ? false :
     currentGameEnded();
