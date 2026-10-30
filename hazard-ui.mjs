@@ -4,6 +4,16 @@ import {
   HAZARD_CELLS, HAZARD_DEFINITIONS, hazardAt, activeHazardCount
 } from "./hazards.mjs?v=hazard-counter-v1";
 
+// New original hazard icons are presentation-only CSS background images.
+// The central symbols, active names, warnings and accessible square labels
+// remain untouched. Every overlay still passes all pointer events through.
+function hazardEmblem() {
+  const emblem = document.createElement("span");
+  emblem.className = "hazard-art-emblem";
+  emblem.setAttribute("aria-hidden", "true");
+  return emblem;
+}
+
 export function renderHazardLayer(boardElement, hazards, warning = null,
   eraseTargets = []) {
   if (!boardElement || typeof boardElement.appendChild !== "function") {
@@ -34,7 +44,7 @@ export function renderHazardLayer(boardElement, hazards, warning = null,
       caption.textContent = "NEXT";
       square.classList.add("hazard-incoming");
       square.dataset.warning = warning.type;
-      square.append(alert, caption);
+      square.append(alert, caption, hazardEmblem());
     }
     if (entry) {
       const definition = HAZARD_DEFINITIONS[entry.type];
@@ -50,7 +60,7 @@ export function renderHazardLayer(boardElement, hazards, warning = null,
       const symbol = document.createElement("span");
       symbol.className = "hazard-symbol";
       symbol.textContent = definition.icon;
-      square.append(symbol);
+      square.append(symbol, hazardEmblem());
       if (entry.type === "cloudy") {
         const obscured = document.createElement("strong");
         obscured.className = "hazard-hidden-mark";
