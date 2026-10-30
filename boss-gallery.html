@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#152337">
+  <title>Boss gallery · Index Shuffle</title>
+  <link rel="stylesheet" href="styles.css?v=hazard-counter-v1-art-pass3">
+  <style>
+    body { background:
+      radial-gradient(circle at 91% 0,#51345450,transparent 38%),
+      radial-gradient(circle at 4% 80%,#304c5c5b,transparent 40%),#0b1325; }
+    .boss-gallery-shell { max-width: 1160px; padding-top: 24px; padding-bottom: 60px; }
+    .boss-gallery-back { display: flex; flex-wrap: wrap; gap: 18px; margin-bottom: 37px; }
+    .boss-gallery-back a { color: #aaf2e1; font-size: 13px; font-weight: 800; }
+    .boss-gallery-eyebrow { color: #e7b5ba; font-size: 11px; font-weight: 900;
+      text-transform: uppercase; letter-spacing: .18em; margin-bottom: 11px; }
+    h1 { font-size: clamp(34px, 6vw, 61px); letter-spacing: -.055em;
+      line-height: 1.05; max-width: 16ch; margin: 0 0 15px; }
+    .boss-gallery-intro { max-width: 75ch; color: #c3d6e5;
+      font-size: 14px; line-height: 1.75; margin: 0 0 30px; }
+    .boss-gallery-grid {
+      display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 17px;
+    }
+    .boss-gallery-card {
+      display: flex; flex-direction: column; min-width: 0;
+      border: 1px solid #936e82; border-radius: 18px; overflow: hidden;
+      background: linear-gradient(145deg,#312a40,#1c2a3e);
+      box-shadow: 0 14px 25px #04091766;
+    }
+    .boss-gallery-card > img { width: 100%; height: auto; display: block;
+      aspect-ratio:1; object-fit:cover; background: #202b3b; }
+    .boss-gallery-copy { padding: 17px; display: flex; flex-direction: column;
+      gap: 9px; flex: 1; }
+    .boss-gallery-kind { color: #f1b5af; letter-spacing: .12em;
+      text-transform: uppercase; font-size: 10px; font-weight: 900; }
+    .boss-gallery-copy h2 { margin: 0; color: #fff0e8;
+      font-size: 21px; line-height: 1.13; letter-spacing: -.035em; }
+    .boss-gallery-copy p { color: #ccdaec; margin: 0; line-height: 1.56; font-size: 12px; }
+    .boss-gallery-copy button {
+      min-height: 42px; margin-top: auto; border: 1px solid #bda18b;
+      background: #493e56; color: #fff1e3; font-weight: 800;
+      padding: 10px 11px; border-radius: 10px; font-size: 12px;
+    }
+    .boss-gallery-copy button:hover { background: #6a526d; }
+    .boss-gallery-note { padding: 18px 0; margin-top: 26px;
+      border-top: 1px solid #53637a; color: #b9ccdd;
+      font-size: 13px; line-height: 1.65; }
+    @media (max-width:900px) { .boss-gallery-grid { grid-template-columns: repeat(2,minmax(0,1fr)); } }
+    @media (max-width:580px) {
+      .boss-gallery-grid { grid-template-columns: 1fr; }
+      .boss-gallery-card { display: grid; grid-template-columns: 37% 1fr;
+        align-items: stretch; }
+      .boss-gallery-card > img { height: 100%; aspect-ratio:auto; }
+      .boss-gallery-copy { padding: 12px; }
+      .boss-gallery-copy h2 { font-size: 17px; }
+      .boss-gallery-copy p { font-size: 11px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell boss-gallery-shell">
+    <nav class="boss-gallery-back" aria-label="Gallery navigation">
+      <a href="./">← Back to Index Shuffle</a>
+      <a href="art-preview.html">Visual style guide</a>
+      <a href="item-gallery.html">Illustrated items</a>
+    </nav>
+    <p class="boss-gallery-eyebrow">The Curious Numberworld · Boss art · Pass 3</p>
+    <h1>Meet your mathematical nightmares.</h1>
+    <p class="boss-gallery-intro">Seven opponents, four encounters per Roguelike run.
+      Each portrait has its own silhouette and colour story. The game always explains
+      the boss's actual effect; no one needs to guess the rules from the artwork.
+      Select <strong>Preview encounter</strong> to inspect the in-game introduction
+      without starting a game or altering any saved progress.</p>
+    <div class="boss-gallery-grid" id="bossGallery" aria-label="Seven Index Shuffle bosses"></div>
+    <p class="boss-gallery-note">Every preview here is cosmetic. The actual bosses
+      appear on rounds 3, 6, 9 and 12 and are revealed in the previous shop.
+      Boss introductions can be skipped immediately and never change moves or scoring.</p>
+  </main>
+
+  <dialog id="previewDialog" class="boss-intro-dialog" aria-labelledby="previewTitle"
+    aria-describedby="previewRule">
+    <div class="boss-intro-shell">
+      <div class="boss-intro-topline">
+        <span class="boss-intro-kicker">☠ &nbsp; ENCOUNTER PREVIEW</span>
+        <button type="button" id="previewSkip" class="boss-intro-skip">Close preview</button>
+      </div>
+      <div class="boss-intro-layout">
+        <div class="boss-intro-art">
+          <img id="previewPortrait" src="assets/art/boss-blockade.svg"
+            alt="" width="480" height="480">
+          <span class="boss-intro-seal" aria-hidden="true">✦</span>
+        </div>
+        <div class="boss-intro-story">
+          <span class="boss-intro-round">ARTWORK DEMONSTRATION · NOT A GAME ROUND</span>
+          <h2 id="previewTitle">Boss</h2>
+          <p class="boss-intro-quote" id="previewQuote"></p>
+          <div class="boss-intro-rule">
+            <strong>YOUR CHALLENGE</strong>
+            <p id="previewRule"></p>
+          </div>
+          <p class="boss-intro-target">In the real game, your round target appears here.</p>
+          <button type="button" id="previewClose" class="primary boss-intro-start">Back to gallery</button>
+        </div>
+      </div>
+    </div>
+  </dialog>
+  <script type="module">
+    import { BOSS_CATALOG } from "./bosses.mjs?v=hazard-counter-v1";
+    import { bossPortraitFor } from "./art-catalog.mjs?v=hazard-counter-v1-art-pass3";
+    import { bossSceneFor } from "./boss-scenes.mjs?v=hazard-counter-v1-art-pass3";
+
+    const gallery = document.getElementById("bossGallery");
+    const dialog = document.getElementById("previewDialog");
+    const close = () => dialog.close();
+    document.getElementById("previewClose").addEventListener("click", close);
+    document.getElementById("previewSkip").addEventListener("click", close);
+    for (const boss of BOSS_CATALOG) {
+      const art = bossPortraitFor(boss.id);
+      const card = document.createElement("article");
+      card.className = "boss-gallery-card";
+      const portrait = document.createElement("img");
+      portrait.src = art.src; portrait.alt = art.alt;
+      portrait.width = 480; portrait.height = 480; portrait.loading = "lazy";
+      const body = document.createElement("div");
+      body.className = "boss-gallery-copy";
+      const kind = document.createElement("span"); kind.className = "boss-gallery-kind";
+      kind.textContent = "Boss encounter";
+      const title = document.createElement("h2"); title.textContent = boss.name;
+      const description = document.createElement("p"); description.textContent = boss.summary;
+      const button = document.createElement("button");
+      button.type = "button"; button.textContent = "Preview encounter";
+      button.setAttribute("aria-label", "Preview encounter with " + boss.name);
+      button.addEventListener("click", () => {
+        dialog.dataset.boss = boss.id;
+        const preview = document.getElementById("previewPortrait");
+        preview.src = art.src; preview.alt = art.alt;
+        document.getElementById("previewTitle").textContent = boss.name;
+        document.getElementById("previewQuote").textContent =
+          bossSceneFor(boss.id).entrance;
+        document.getElementById("previewRule").textContent = boss.detail;
+        dialog.showModal();
+      });
+      body.append(kind, title, description, button);
+      card.append(portrait, body);
+      gallery.append(card);
+    }
+  </script>
+</body>
+</html>
