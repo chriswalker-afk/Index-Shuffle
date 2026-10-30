@@ -52,7 +52,10 @@ const $ = id => document.getElementById(id);
 const glyph = n => String(n).replace(/\d/g, d => "⁰¹²³⁴⁵⁶⁷⁸⁹"[+d]);
 const BANK_SECONDS = 60;
 const SLIDE_MS = 170;
-const prefersReducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+// Honour user preferences and avoid motion while backgrounded or in data-saving mode.
+const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+const prefersReducedMotion = () => reducedMotion.matches ||
+  document.hidden || navigator.connection?.saveData === true;
 
 function fresh(best = 0) {
   return { board: initial(), discovered: [], banked: [], locked: [], mergeReady: [],
@@ -278,6 +281,7 @@ function render() {
     }
     const target = bossTargetFor(state.run, targetForRound(state.run.round));
     $("rogueScore").textContent = state.score + " / " + target;
+    $("mobileRoundScore").textContent = state.score + " / " + target;
     $("roundScoreProgress").value = Math.min(state.score, target);
     $("roundScoreProgress").max = target;
     $("rogueTotal").textContent = state.run.totalScore;
@@ -315,6 +319,11 @@ function render() {
   $("count").textContent = state.banked.length;
   $("moves").textContent = state.moves;
   $("movesLeft").textContent = state.movesLeft;
+  $("mobileMovesLeft").textContent = state.movesLeft;
+  $("mobileStatus").classList.toggle("low-moves",
+    state.movesLeft > 0 && state.movesLeft <= 3);
+  $("mobileStatus").classList.toggle("empty-moves", state.movesLeft === 0);
+  $("mobileRoundTarget").hidden = !rogue;
   const noBonusMoves = rogue && !bossAllowsMoveRestoration(state.run);
   $("mergeProgress").textContent = noBonusMoves ? "DISABLED" :
     state.mergeCredit + " / " + MERGES_PER_BONUS_MOVE;
@@ -329,6 +338,7 @@ function render() {
   const currentSlideCost = rogue ? costOfNextSlide(state) : slideCost(state.board);
   $("slideCost").textContent = "−" + currentSlideCost +
     (currentSlideCost === 1 ? " move" : " moves");
+  $("mobileSlideCost").textContent = $("slideCost").textContent;
   $("movesCard").classList.toggle("low-moves", state.movesLeft > 0 &&
     state.movesLeft <= 3);
   $("movesCard").classList.toggle("empty-moves", state.movesLeft === 0);
@@ -376,7 +386,8 @@ function render() {
     button.className = "cell" + (isBlocker(t) ? " block-tile block-tier" + blockerStrength(t)
       : isWarning(t) ? " warning-tile warning-tier" + blockerStrength(t)
       : t ? " tile base" + t.base : "");
-    button.setAttribute("role", "gridcell");
+    // Native button semantics are important for screen readers and keyboard
+    // banking; a role="gridcell" overrides the announced button role.
     button.type = "button";
     if (isBlocker(t)) {
       const strength = blockerStrength(t);
@@ -384,7 +395,8 @@ function render() {
       button.innerHTML = '<span class="block-symbol" aria-hidden="true">▦</span>'
         + '<small class="block-health">' + remaining + ' / ' + strength + '</small>';
       button.title = "Tier " + strength + " fixed blocker: " + remaining
-        + " adjacent " + (remaining === 1 ? "merge" : "merges") + " to break";
+        + " correctly banked adjacent merged " +
+        (remaining === 1 ? "power" : "powers") + " to break";
       button.setAttribute("aria-label", button.title);
       button.disabled = true;
     } else if (isWarning(t)) {
@@ -488,6 +500,12 @@ function render() {
         button.setAttribute("aria-label", button.title);
       }
     }
+    // Every square has a position. This stays non-revealing under Cloudy:
+    // the accessible name never includes concealed tile values or gold.
+    const position = "Row " + (Math.floor(i / 4) + 1) +
+      ", column " + (i % 4 + 1);
+    const label = button.getAttribute("aria-label") || "Empty square";
+    button.setAttribute("aria-label", position + ". " + label);
     board.appendChild(button);
   });
   // Stationary hazard overlay comes after the 16 tiles. It never intercepts
@@ -797,7 +815,25 @@ function closeBank() {
   if (bankTimer !== null) clearInterval(bankTimer);
   bankTimer = null;
   pending = null;
-  $("modal").hidden = true;
+  // Native modal dialog automatically traps focus and restores it on cancel.
+  if ($("modal").open) $("modal").close();
+}
+
+// The banked tile is re-rendered after a successful or failed attempt.
+// Give keyboard and screen-reader users a predictable place to continue.
+function focusAfterBank(index) {
+  if (screen !== "game" || $("modal").open ||
+      $("shopDialog").open || $("resultsDialog").open) return;
+  if (mode === "roguelite" && state.run.phase === "round-clear") {
+    $("nextRound").focus({ preventScroll: true });
+    return;
+  }
+  if (state.over || (mode === "roguelite" && state.run.phase === "victory")) {
+    $("viewResults").focus({ preventScroll: true });
+    return;
+  }
+  const cell = $("board").children[index];
+  (cell && !cell.disabled ? cell : $("board")).focus({ preventScroll: true });
 }
 function openBank(i) {
   if (screen !== "game" || pendingItem !== null || state.over || animating || pending !== null || (mode === "roguelite" && state.run.phase !== "playing")) return;
@@ -806,7 +842,15 @@ function openBank(i) {
       mode === "roguelite" ? state.hazards : null)) return;
   pending = { i, t };
   remainingMs = BANK_SECONDS * 1000;
-  $("promptTitle").textContent = t.base + glyph(t.exp) + " = ?";
+  // Use the same mathematical exponent markup as board tiles, not a
+  // Unicode superscript approximation. Announce the full phrase in speech.
+  const heading = $("promptTitle");
+  const exponent = document.createElement("sup");
+  exponent.textContent = String(t.exp);
+  heading.replaceChildren(document.createTextNode(String(t.base)),
+    exponent, document.createTextNode(" = ?"));
+  heading.setAttribute("aria-label",
+    t.base + " to the power " + t.exp + ". What is its exact value?");
   $("feedback").textContent = "";
   $("answer").value = "";
   document.querySelector(".bank-hint").open = false;
@@ -828,7 +872,7 @@ function openBank(i) {
     (bonuses ? " Correct bank scores " + previewScore + " points." +
       (previewScore === 0 && bonuses.score > 0
         ? " The boss prevents this power from scoring." : "") : "");
-  $("modal").hidden = false;
+  if (!$("modal").open) $("modal").showModal();
   if (!document.hidden) resumeClock();
   $("answer").focus();
 }
@@ -844,6 +888,7 @@ function lockPending(reason) {
     : "Not quite. That tile is locked until your next successful slide.";
   state.over = currentGameEnded();
   render();
+  focusAfterBank(i);
 }
 document.addEventListener("visibilitychange", () => {
   if (!pending) return;
@@ -948,6 +993,7 @@ $("bankForm").addEventListener("submit", event => {
   state.over = mode === "roguelite" && state.run.phase !== "playing" ? false :
     currentGameEnded();
   render();
+  focusAfterBank(i);
   if (!prefersReducedMotion()) {
     $("board").children[i]?.classList.add("bank-flash");
     for (const index of damaged) {
@@ -963,6 +1009,10 @@ $("close").addEventListener("click", closeBank);
 $("cancel").addEventListener("click", closeBank);
 $("modal").addEventListener("click", event => {
   if (event.target === $("modal")) closeBank();
+});
+$("modal").addEventListener("cancel", event => {
+  event.preventDefault();
+  closeBank();
 });
 function closeNavigationDialogs() {
   stopMotion();
@@ -1228,7 +1278,11 @@ const keys = {
   a: "left", d: "right", w: "up", s: "down"
 };
 document.addEventListener("keydown", event => {
-  if (event.key === "Escape" && pending !== null) { closeBank(); return; }
+  if (event.key === "Escape" && pending !== null) {
+    event.preventDefault();
+    closeBank();
+    return;
+  }
   // Let arrow keys scroll the modal shop instead of swallowing them as slides.
   if (screen !== "game" || $("shopDialog").open || $("bossIntroDialog").open ||
       $("achievementsDialog").open || $("resultsDialog").open) return;
