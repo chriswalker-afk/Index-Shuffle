@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 480" role="img" aria-labelledby="title desc">
+  <title id="title">The Scorekeeper</title>
+  <desc id="desc">An imposing owl-like mathematical accountant in a burgundy robe, peering over golden spectacles at a giant abacus and ledger.</desc>
+  <defs>
+    <linearGradient id="scene" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#574051"/><stop offset="1" stop-color="#1d243a"/></linearGradient>
+    <radialGradient id="aura"><stop stop-color="#efc18c" stop-opacity=".33"/><stop offset="1" stop-color="#efc18c" stop-opacity="0"/></radialGradient>
+    <linearGradient id="brass" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#fff0b6"/><stop offset=".5" stop-color="#dba46e"/><stop offset="1" stop-color="#946348"/></linearGradient>
+    <linearGradient id="cloth" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#825b8d"/><stop offset="1" stop-color="#32284e"/></linearGradient>
+    <linearGradient id="steel" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#b5c0c5"/><stop offset=".48" stop-color="#76899b"/><stop offset="1" stop-color="#35465d"/></linearGradient>
+    <filter id="shadow" x="-25%" y="-25%" width="150%" height="160%"><feDropShadow dx="0" dy="12" stdDeviation="9" flood-color="#071022" flood-opacity=".65"/></filter>
+  </defs>
+  <rect width="480" height="480" rx="36" fill="url(#scene)"/>
+  <circle cx="240" cy="213" r="220" fill="url(#aura)"/>
+  <path d="M0 390 48 356l64 12 53-44 72 24 77-43 73 43 48-31 45 31v132H0Z" fill="#13253a" opacity=".52"/>
+  <path d="M39 103l47-30m311 5 47 41M35 361l65-42m300 14 40 35" stroke="#efc18c" stroke-opacity=".19" stroke-width="5"/>
+  
+  <g opacity=".6" stroke="#d9ac7b" stroke-width="4" fill="none">
+    <path d="M45 170h73v72H45zM60 182h44M60 205h44M60 228h44M375 146h65v95h-65z"/>
+    <path d="M391 160v68m18-68v68m17-68v68"/>
+  </g>
+  <g filter="url(#shadow)" stroke="#172638" stroke-width="8" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M128 415q-17-93 32-139l86-36 72 39q52 48 39 138Z" fill="#5e394f"/>
+    <path d="M160 298 239 396l78-98-33-27h-88Z" fill="url(#cloth)"/>
+    <path d="M213 282l27 23 27-23-18-33h-22Z" fill="#d7a985"/>
+    <path d="M163 294q-22-66-9-125 11-61 82-78 75-14 92 70 14 65-15 130l-59 28Z" fill="#c1a4a1"/>
+    <path d="M175 164q-20-69 33-98l33 37 35-37q60 38 28 106l-24-29-41-14-39 14Z" fill="#563d57"/>
+    <path d="M195 189q23-24 45 0m-1 0q23-24 45 0" stroke="#423c51" stroke-width="8" fill="none"/>
+    <circle cx="215" cy="202" r="27" fill="#f1dcc0" stroke="#b88658" stroke-width="6"/>
+    <circle cx="273" cy="202" r="27" fill="#f1dcc0" stroke="#b88658" stroke-width="6"/>
+    <path d="M241 201h6" stroke="#c89c65" stroke-width="8"/>
+    <circle cx="219" cy="205" r="10" fill="#3d4453" stroke="none"/><circle cx="273" cy="205" r="10" fill="#3d4453" stroke="none"/>
+    <path d="M237 233 251 232l5 18-15 8-15-9Z" fill="#e0ae7b"/>
+    <path d="M204 264q34 20 72-3" stroke="#6b4546" stroke-width="6" fill="none"/>
+    <path d="M144 309q-56 4-62 77m266-78q53 6 48 78" stroke="#4b334e" stroke-width="28" fill="none"/>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="49" y="320" width="380" height="118" rx="16" fill="#794d4c" stroke="#30293f" stroke-width="9"/>
+    <path d="M60 335h360" stroke="#efbe89" stroke-width="6"/>
+    <rect x="80" y="334" width="175" height="93" rx="9" fill="#ede0c7" stroke="#9e7959" stroke-width="6"/>
+    <path d="M96 352h126m-126 16h140m-140 16h120" stroke="#bea790" stroke-width="4"/>
+    <path d="M229 345v70" stroke="#a06c61" stroke-width="4"/>
+    <rect x="274" y="332" width="133" height="97" rx="11" fill="#28364d" stroke="#deb77d" stroke-width="7"/>
+    <path d="M289 349h101M289 375h101M289 402h101" stroke="#e1bc7b" stroke-width="4"/>
+    <g stroke="#6b4d41" stroke-width="3">
+      <circle cx="311" cy="349" r="11" fill="#efbd79"/><circle cx="347" cy="349" r="11" fill="#dfa66c"/>
+      <circle cx="374" cy="375" r="11" fill="#a6d0cc"/><circle cx="331" cy="375" r="11" fill="#d6b0ab"/>
+      <circle cx="300" cy="402" r="11" fill="#efbd79"/><circle cx="325" cy="402" r="11" fill="#efa66d"/>
+    </g>
+  </g>
+  <g fill="#fff0c3"><path d="M94 112l6 12 13 4-13 5-6 13-6-13-13-5 13-4Z"/><path d="M379 94l4 10 11 4-11 5-4 11-5-11-10-5 10-4Z"/></g>
+
+  <path d="M37 449h406" stroke="#efc18c" stroke-width="4" opacity=".4"/>
+</svg>

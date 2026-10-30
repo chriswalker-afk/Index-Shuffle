@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 480" role="img" aria-labelledby="title desc">
+  <title id="title">The Silent Seven</title>
+  <desc id="desc">A mysterious faceless hooded figure holding two chained seven-shaped runes that cannot merge, surrounded by blue spectral light.</desc>
+  <defs>
+    <linearGradient id="scene" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#373356"/><stop offset="1" stop-color="#121f34"/></linearGradient>
+    <radialGradient id="aura"><stop stop-color="#a9d2f6" stop-opacity=".33"/><stop offset="1" stop-color="#a9d2f6" stop-opacity="0"/></radialGradient>
+    <linearGradient id="brass" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#fff0b6"/><stop offset=".5" stop-color="#dba46e"/><stop offset="1" stop-color="#946348"/></linearGradient>
+    <linearGradient id="cloth" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#825b8d"/><stop offset="1" stop-color="#32284e"/></linearGradient>
+    <linearGradient id="steel" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#b5c0c5"/><stop offset=".48" stop-color="#76899b"/><stop offset="1" stop-color="#35465d"/></linearGradient>
+    <filter id="shadow" x="-25%" y="-25%" width="150%" height="160%"><feDropShadow dx="0" dy="12" stdDeviation="9" flood-color="#071022" flood-opacity=".65"/></filter>
+  </defs>
+  <rect width="480" height="480" rx="36" fill="url(#scene)"/>
+  <circle cx="240" cy="213" r="220" fill="url(#aura)"/>
+  <path d="M0 390 48 356l64 12 53-44 72 24 77-43 73 43 48-31 45 31v132H0Z" fill="#13253a" opacity=".52"/>
+  <path d="M39 103l47-30m311 5 47 41M35 361l65-42m300 14 40 35" stroke="#a9d2f6" stroke-opacity=".19" stroke-width="5"/>
+  
+  <g stroke="#a6c9ef" stroke-width="4" fill="none" opacity=".42">
+    <circle cx="240" cy="209" r="176" stroke-dasharray="6 13"/>
+    <path d="M80 237h75m170 0h75M240 32v57M240 340v87" stroke-dasharray="7 11"/>
+  </g>
+  <g fill="#b6d5f1" opacity=".8">
+    <path d="M67 151h63l-41 75h-20l32-59H67Z"/><path d="M358 156h63l-41 75h-20l32-58h-34Z"/>
+  </g>
+  <g filter="url(#shadow)" stroke="#14243a" stroke-width="9" stroke-linejoin="round">
+    <path d="M91 428q4-124 71-172 23-93 79-106 59 12 78 109 70 50 76 169Z" fill="url(#cloth)"/>
+    <path d="M152 278q-38-112-4-171 41-65 95-65 56 0 95 62 34 56-4 174l-61 34H208Z" fill="#3a385d"/>
+    <path d="M164 234q-30-94 16-145 58-54 119 0 47 51 13 145l-68 65Z" fill="#29344f"/>
+    <path d="M179 170q18-60 62-63 49 2 68 63l-16 60q-48 21-99 0Z" fill="#182b40"/>
+    <path d="M201 191h31m21 0h30" stroke="#91edf0" stroke-width="11" stroke-linecap="round"/>
+    <path d="M222 229q20-4 39 0" stroke="#54657a" stroke-width="6" stroke-linecap="round"/>
+    <path d="M199 305l41 78 42-78" fill="#4b486a"/>
+    <path d="M163 291q-43 13-53 70m202-70q44 13 54 70" fill="none" stroke="#3c3b5a" stroke-width="28" stroke-linecap="round"/>
+  </g>
+  <g fill="none" stroke="#d7c19c" stroke-width="9" stroke-linecap="round">
+    <path d="M120 345 155 327l29 19 30-14 31 18 34-15 27 19 49-15"/>
+    <path d="M83 362q30 14 64 2m197 0q36 16 64-7"/>
+  </g>
+  <g fill="none" stroke="#57687d" stroke-width="6">
+    <path d="M154 330 142 350l14 14m16-16-14 20m164-36 14 20-15 17m-18-17 14 20"/>
+  </g>
+  <g filter="url(#shadow)">
+    <path d="M69 341h84l-55 101H77l43-82H69Z" fill="#b7d8f5" stroke="#375272" stroke-width="7"/>
+    <path d="M333 331h84l-55 103h-21l42-83h-50Z" fill="#b7d8f5" stroke="#375272" stroke-width="7"/>
+    <rect x="150" y="328" width="35" height="39" rx="8" fill="url(#brass)" stroke="#3c3950" stroke-width="5"/>
+    <rect x="298" y="334" width="35" height="39" rx="8" fill="url(#brass)" stroke="#3c3950" stroke-width="5"/>
+    <circle cx="167" cy="346" r="5" fill="#635043"/><circle cx="315" cy="352" r="5" fill="#635043"/>
+  </g>
+  <g fill="#b8f8f6"><circle cx="91" cy="108" r="5"/><circle cx="389" cy="120" r="5"/><path d="M240 30l5 12 11 5-11 5-5 11-5-11-11-5 11-5Z"/></g>
+
+  <path d="M37 449h406" stroke="#a9d2f6" stroke-width="4" opacity=".4"/>
+</svg>

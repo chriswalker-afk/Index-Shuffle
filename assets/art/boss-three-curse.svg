@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 480" role="img" aria-labelledby="title desc">
+  <title id="title">The Three Curse</title>
+  <desc id="desc">A mischievous three-headed imp with three different expressions, triangular collars, glowing runes shaped like threes and a crackling cursed hourglass.</desc>
+  <defs>
+    <linearGradient id="scene" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#4f3456"/><stop offset="1" stop-color="#201d39"/></linearGradient>
+    <radialGradient id="aura"><stop stop-color="#e999bc" stop-opacity=".33"/><stop offset="1" stop-color="#e999bc" stop-opacity="0"/></radialGradient>
+    <linearGradient id="brass" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#fff0b6"/><stop offset=".5" stop-color="#dba46e"/><stop offset="1" stop-color="#946348"/></linearGradient>
+    <linearGradient id="cloth" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#825b8d"/><stop offset="1" stop-color="#32284e"/></linearGradient>
+    <linearGradient id="steel" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#b5c0c5"/><stop offset=".48" stop-color="#76899b"/><stop offset="1" stop-color="#35465d"/></linearGradient>
+    <filter id="shadow" x="-25%" y="-25%" width="150%" height="160%"><feDropShadow dx="0" dy="12" stdDeviation="9" flood-color="#071022" flood-opacity=".65"/></filter>
+  </defs>
+  <rect width="480" height="480" rx="36" fill="url(#scene)"/>
+  <circle cx="240" cy="213" r="220" fill="url(#aura)"/>
+  <path d="M0 390 48 356l64 12 53-44 72 24 77-43 73 43 48-31 45 31v132H0Z" fill="#13253a" opacity=".52"/>
+  <path d="M39 103l47-30m311 5 47 41M35 361l65-42m300 14 40 35" stroke="#e999bc" stroke-opacity=".19" stroke-width="5"/>
+  
+  <g stroke="#dcacc3" stroke-width="4" opacity=".45" fill="none">
+    <path d="M240 55 75 363h330Z" stroke-dasharray="8 11"/>
+    <path d="M240 95 114 347h252Z" stroke-dasharray="4 10"/>
+    <circle cx="240" cy="238" r="174" stroke-dasharray="3 15"/>
+  </g>
+  <g filter="url(#shadow)" stroke="#192238" stroke-width="8" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M119 419q-12-99 55-141h142q59 39 50 141Z" fill="url(#cloth)"/>
+    <path d="M156 301 240 395l82-94-35-22H192Z" fill="#543852"/>
+    <path d="M174 325l-36 80h204l-32-80" fill="none" stroke="#c584a7" stroke-width="9"/>
+    <path d="M125 205 85 155l14 76m248-31 41-50-14 78" fill="#b77c90"/>
+    <path d="M146 156q-38-65-13-101 34-36 79 3 38 25 22 101l-23 49h-51Z" fill="#d5a1a5"/>
+    <path d="M248 143q-22-70 13-98 43-29 83 12 27 31-12 97l-34 52Z" fill="#aa8ebc"/>
+    <path d="M191 208q-15-70 37-101 60-19 87 31l-8 91-50 35-57-17Z" fill="#edbb9e"/>
+    <path d="M124 114q25-26 61 4m87-7q28-23 57 7" stroke="#5b415c" stroke-width="9" fill="none"/>
+    <path d="M152 147h18m27 0h18m59-14h17m20 0h17" stroke="#3d3c57" stroke-width="6"/>
+    <path d="M165 176q15 17 32-2m91 1q14 17 29-2" stroke="#4f3f58" stroke-width="6" fill="none"/>
+    <path d="M205 172q13-14 27 0m28 0q13-14 26 0" stroke="#4e3c55" stroke-width="6" fill="none"/>
+    <circle cx="220" cy="181" r="8" fill="#323b52" stroke-width="2"/>
+    <circle cx="272" cy="181" r="8" fill="#323b52" stroke-width="2"/>
+    <path d="M239 202l-7 17 16 3" stroke="#b07b76" stroke-width="5" fill="none"/>
+    <path d="M219 230q27 25 56-3-7 33-47 29Z" fill="#733c63" stroke-width="5"/>
+    <path d="M171 286q-42 0-52 64m190-65q48 2 56 63" stroke="#694466" stroke-width="25" fill="none"/>
+  </g>
+  <g filter="url(#shadow)">
+    <path d="M78 343h85v7l-36 35 36 34v8H78v-8l34-34-34-35Z" fill="#f1d4b5" stroke="#563b52" stroke-width="6"/>
+    <path d="M99 356h44l-22 25Zm0 57h44l-22-19Z" fill="#ce6d95"/>
+    <path d="M77 341h90m-90 88h90" stroke="#ebb985" stroke-width="8"/>
+    <path d="M329 356l18-39 26 35-16 35Z" fill="#ae88b1" stroke="#3e3858" stroke-width="6"/>
+    <circle cx="372" cy="385" r="39" fill="#513d5e" stroke="#e7a8d2" stroke-width="7"/>
+    <text x="372" y="399" text-anchor="middle" font-family="Georgia,serif" font-size="47" fill="#ffe5c2" font-weight="900">3</text>
+  </g>
+  <g fill="#ffe3c4"><path d="M240 24l6 13 13 6-13 5-6 13-5-13-13-5 13-6Z"/><path d="M77 248l5 12 12 5-12 5-5 12-5-12-12-5 12-5Z"/><path d="M397 246l5 12 12 5-12 5-5 12-5-12-12-5 12-5Z"/></g>
+
+  <path d="M37 449h406" stroke="#e999bc" stroke-width="4" opacity=".4"/>
+</svg>
