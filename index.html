@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#0c1428">
   <meta name="description" content="Slide and merge powers, solve banking challenges and stay in the game.">
   <title>Index Shuffle — Make every move count</title>
-  <link rel="stylesheet" href="styles.css?v=hazard-pass4-v1">
+  <link rel="stylesheet" href="styles.css?v=hazard-counter-v1">
 </head>
 <body>
   <main class="shell">
@@ -356,6 +356,14 @@
           in the shop to remove any active hazard without using a move,
           including a Cloudy square hiding a tile. Hazard Eraser can also
           rescue a board that has no other legal actions.</p>
+        <p><strong>Permanent hazard defences</strong> appear in shops before
+          the relevant hazards are unlocked. Some reduce hazard warnings or
+          make a particular type less likely; Hazard Tamer changes incoming
+          Null to Cracked and Cracked to Void. Others shorten Cloudy,
+          prevent Void reducing a square to exponent 1, or protect gold
+          passing through Greedy. Each defence is partial: hazards still
+          matter. They occupy the same two permanent slots as scoring
+          bonuses, so choose which advantages matter most.</p>
         <section class="hazard-field-guide" aria-labelledby="hazardGuideTitle">
           <div class="hazard-guide-header">
             <div>
@@ -547,6 +555,6 @@
       <button type="button" id="cancel" class="textbtn">Keep this tile</button>
     </div>
   </div>
-  <script type="module" src="app.mjs?v=hazard-pass4-v1"></script>
+  <script type="module" src="app.mjs?v=hazard-counter-v1"></script>
 </body>
 </html>

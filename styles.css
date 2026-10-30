@@ -1526,3 +1526,19 @@ details[open] > summary .chevron { transform: rotate(180deg); }
   .hazard-slot.hazard-incoming,
   .hazard-slot.hazard-erase-target { animation: none; transition: none; }
 }
+
+/* Hazard-defence permanents share the two standard permanent slots.
+   The shop distinguishes them from scoring and economy items. */
+.shop-offer-card.hazard-counter-offer {
+  border-color: #618f8a;
+  background: linear-gradient(155deg, #1f3b44, #1c2d43);
+}
+.shop-offer-card.hazard-counter-offer .shop-offer-type {
+  color: #a6f3d9;
+  letter-spacing: .5px;
+}
+.equip-chip.hazard-counter-equipped {
+  border-color: #69b99d;
+  background: linear-gradient(130deg, #264a45, #283e52);
+  color: #d9ffee;
+}

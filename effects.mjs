@@ -3,13 +3,13 @@
 import {
   tile, key, isObstacle, isBlocker, blockerStrength, canMove,
   MAX_MOVES_LEFT
-} from "./engine.mjs?v=hazard-pass4-v1";
-import { goldTier } from "./roguelite.mjs?v=hazard-pass4-v1";
-import { ITEM_BY_ID } from "./shop.mjs?v=hazard-pass4-v1";
-import { bossId, bossMovementRules } from "./bosses.mjs?v=hazard-pass4-v1";
+} from "./engine.mjs?v=hazard-counter-v1";
+import { goldTier } from "./roguelite.mjs?v=hazard-counter-v1";
+import { ITEM_BY_ID } from "./shop.mjs?v=hazard-counter-v1";
+import { bossId, bossMovementRules } from "./bosses.mjs?v=hazard-counter-v1";
 import {
   hazardAt, restoreHazardLayer, removeHazard
-} from "./hazards.mjs?v=hazard-pass4-v1";
+} from "./hazards.mjs?v=hazard-counter-v1";
 
 const whole = n => Number.isSafeInteger(n) && n >= 0;
 const numericTile = t => Boolean(t && !isObstacle(t) &&
@@ -21,6 +21,30 @@ export function permanentIds(run) {
     entry && ITEM_BY_ID[entry.id]?.type === "permanents").map(entry => entry.id));
 }
 export const hasPermanent = (run, id) => permanentIds(run).has(id);
+
+// Pure defensive configuration. The hazard engine receives these values
+// explicitly; it never imports the shop or item engine (no circular graph).
+// Rates are multipliers, NOT complete immunity. At most two items can be
+// equipped simultaneously under the existing permanent-slot rules.
+export function hazardItemProtection(run) {
+  const equipped = permanentIds(run);
+  const has = id => equipped.has(id);
+  return {
+    warningMultiplier: has("storm-shelter") ? 0.70 : 1,
+    weightMultipliers: {
+      cloudy: has("mist-filter") ? 0.35 : 1,
+      void: 1,
+      cracked: has("fracture-ward") ? 0.40 : 1,
+      greedy: has("gilded-compass") ? 0.30 : 1,
+      null: has("fracture-ward") ? 0.40 : 1
+    },
+    downgrade: has("hazard-tamer"),
+    cloudySlides: has("fog-lantern") ? 2 : 3,
+    voidFloor: has("void-cushion") ? 2 : 1,
+    greedyLandingOnly: has("gilded-soles")
+  };
+}
+
 
 export function restoreEffectState(run) {
   if (!run || typeof run !== "object") throw new RangeError("Invalid run");

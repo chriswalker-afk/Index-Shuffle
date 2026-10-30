@@ -2,7 +2,7 @@
 // touches or banking, so a Hazard Eraser can target the tile button below.
 import {
   HAZARD_CELLS, HAZARD_DEFINITIONS, hazardAt, activeHazardCount
-} from "./hazards.mjs?v=hazard-pass4-v1";
+} from "./hazards.mjs?v=hazard-counter-v1";
 
 export function renderHazardLayer(boardElement, hazards, warning = null,
   eraseTargets = []) {

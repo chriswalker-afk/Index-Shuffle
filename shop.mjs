@@ -1,6 +1,6 @@
 // Roguelite shop and two-slot inventory system. Gameplay effects are applied in effects.mjs.
 // Pure reducers make purchases, resale, replacement and rerolls testable.
-import { validRogueliteRun } from "./roguelite.mjs?v=hazard-pass4-v1";
+import { validRogueliteRun } from "./roguelite.mjs?v=hazard-counter-v1";
 
 export const INVENTORY_SLOTS = 2;
 export const SHOP_OFFERS_PER_TYPE = 2;
@@ -21,6 +21,25 @@ export const ITEM_CATALOG = Object.freeze([
   { id: "blockbuster", name: "Blockbuster", type: "permanents", price: 6, description: "Correctly banked merged powers deal an extra hit to adjacent blockers." },
   { id: "lucky-spawn", name: "Lucky Spawn", type: "permanents", price: 8, description: "New tiles have a higher chance of being golden." },
   { id: "bulk-discount", name: "Bulk Discount", type: "permanents", price: 7, description: "All future shop items cost one coin less (minimum one)." },
+  // Hazard-counter permanents deliberately occupy the SAME two upgrade
+  // slots as scoring bonuses. Earliest offers occur in the shop immediately
+  // BEFORE a stage that can spawn the relevant hazard.
+  { id: "storm-shelter", name: "Storm Shelter", type: "permanents", price: 8, unlockRound: 4, hazardCounter: true,
+    description: "30% fewer hazard warnings. Does not prevent all hazards or affect blockers." },
+  { id: "mist-filter", name: "Mist Filter", type: "permanents", price: 4, unlockRound: 4, hazardCounter: true,
+    description: "Cloudy's selection weight is 65% lower; it can still appear." },
+  { id: "fracture-ward", name: "Fracture Ward", type: "permanents", price: 6, unlockRound: 4, hazardCounter: true,
+    description: "Cracked and Null each have 60% lower selection weight; both remain possible." },
+  { id: "gilded-compass", name: "Gilded Compass", type: "permanents", price: 5, unlockRound: 7, hazardCounter: true,
+    description: "Greedy's selection weight is 70% lower, but it can still steal gold." },
+  { id: "hazard-tamer", name: "Hazard Tamer", type: "permanents", price: 8, unlockRound: 4, hazardCounter: true,
+    description: "Incoming Null becomes Cracked; incoming Cracked becomes Void. They can still cause damage." },
+  { id: "fog-lantern", name: "Fog Lantern", type: "permanents", price: 5, unlockRound: 4, hazardCounter: true,
+    description: "New Cloudy squares last 2 slides instead of 3. They still hide tiles and prevent banking." },
+  { id: "void-cushion", name: "Void Cushion", type: "permanents", price: 5, unlockRound: 4, hazardCounter: true,
+    description: "Void cannot reduce exponent 2 to 1. Higher exponents still lose one." },
+  { id: "gilded-soles", name: "Gilded Soles", type: "permanents", price: 5, unlockRound: 7, hazardCounter: true,
+    description: "Greedy steals gold only when a tile lands on its square, not when it passes through." },
   { id: "block-breaker", name: "Block Breaker", type: "consumables", price: 2, description: "Remove one active blocker." },
   { id: "hazard-eraser", name: "Hazard Eraser", type: "consumables", price: 3, description: "Remove one active Cloudy, Void, Null, Cracked or Greedy square without changing its tile." },
   { id: "power-surge", name: "Power Surge", type: "consumables", price: 3, description: "Raise the exponent of one power by 1." },
@@ -76,12 +95,14 @@ function restoreSlots(entries, type) {
   return slots;
 }
 
-function drawOffers(type, inventory, rng, previous = []) {
+function drawOffers(type, inventory, rng, previous = [], nextRound = 1) {
   checkType(type);
   const owned = new Set(type === "permanents"
     ? inventory.permanents.filter(Boolean).map(entry => entry.id) : []);
   const last = new Set(previous.filter(Boolean));
-  const valid = ITEM_CATALOG.filter(item => item.type === type && !owned.has(item.id));
+  const valid = ITEM_CATALOG.filter(item =>
+    item.type === type && !owned.has(item.id) &&
+    (item.unlockRound === undefined || nextRound >= item.unlockRound));
   const fresh = valid.filter(item => !last.has(item.id));
   const pool = (fresh.length >= SHOP_OFFERS_PER_TYPE ? fresh : valid).slice();
   const offered = [];
@@ -94,13 +115,15 @@ function drawOffers(type, inventory, rng, previous = []) {
   return offered;
 }
 
-function makeShop(inventory, rng, previous = null) {
+function makeShop(inventory, rng, previous = null, nextRound = 1) {
   // Remember the ORIGINAL offer IDs even after a purchase empties a slot.
   // Otherwise, rerolling two sold-out cards could immediately offer the
   // exact same items the player just bought.
   const priorIds = previous?.lastOffers || previous;
-  const permanents = drawOffers("permanents", inventory, rng, priorIds?.permanents);
-  const consumables = drawOffers("consumables", inventory, rng, priorIds?.consumables);
+  const permanents = drawOffers("permanents", inventory, rng,
+    priorIds?.permanents, nextRound);
+  const consumables = drawOffers("consumables", inventory, rng,
+    priorIds?.consumables, nextRound);
   return {
     permanents, consumables,
     lastOffers: { permanents: [...permanents], consumables: [...consumables] },
@@ -110,7 +133,7 @@ function makeShop(inventory, rng, previous = null) {
   };
 }
 
-function validShop(shop, inventory) {
+function validShop(shop, inventory, nextRound = 1) {
   if (!shop || !Number.isSafeInteger(shop.rerolls) || shop.rerolls < 0 ||
       shop.rerolls > 10000 || shop.rerollCost !== shop.rerolls + INITIAL_REROLL_COST ||
       typeof shop.notice !== "string") return false;
@@ -120,7 +143,9 @@ function validShop(shop, inventory) {
     const ids = (offers || []).filter(Boolean);
     return Array.isArray(offers) && offers.length === SHOP_OFFERS_PER_TYPE &&
       Array.isArray(lastOffers) && lastOffers.length === SHOP_OFFERS_PER_TYPE &&
-      lastOffers.every(id => ITEM_BY_ID[id]?.type === type) &&
+      lastOffers.every(id => ITEM_BY_ID[id]?.type === type &&
+        (ITEM_BY_ID[id].unlockRound === undefined ||
+          nextRound >= ITEM_BY_ID[id].unlockRound)) &&
       lastOffers.length === new Set(lastOffers).size &&
       ids.length === new Set(ids).size &&
       offers.every((id, i) => id === null || id === lastOffers[i]) &&
@@ -142,13 +167,13 @@ export function restoreShopState(run, rng = Math.random) {
   };
   let shop = null;
   if (run.phase === "shop") {
-    shop = validShop(run.shop, inventory)
+    shop = validShop(run.shop, inventory, run.round + 1)
       ? { ...run.shop, permanents: [...run.shop.permanents],
         consumables: [...run.shop.consumables],
         lastOffers: { permanents: [...run.shop.lastOffers.permanents],
           consumables: [...run.shop.lastOffers.consumables] },
         notice: run.shop.notice.slice(0, 200) }
-      : makeShop(inventory, rng);
+      : makeShop(inventory, rng, null, run.round + 1);
   }
   return { ...run, inventory, shop };
 }
@@ -159,7 +184,9 @@ function shopState(state) {
     throw new RangeError("Shop actions are only allowed during a Roguelite shop visit");
   }
   const run = restoreShopState(state.run);
-  if (!validShop(run.shop, run.inventory)) throw new RangeError("Invalid shop inventory");
+  if (!validShop(run.shop, run.inventory, run.round + 1)) {
+    throw new RangeError("Invalid shop inventory");
+  }
   return run;
 }
 
@@ -172,7 +199,7 @@ export function enterRogueliteShop(state, rng = Math.random) {
   }
   const run = restoreShopState(state.run, rng);
   return { ...state, run: { ...run, phase: "shop",
-    shop: makeShop(run.inventory, rng) } };
+    shop: makeShop(run.inventory, rng, null, run.round + 1) } };
 }
 
 export function purchaseShopOffer(state, type, offerIndex, replaceSlot = null) {
@@ -255,6 +282,6 @@ export function rerollRogueliteShop(state, rng = Math.random) {
   const cost = run.shop.rerollCost;
   if (run.coins < cost) throw new RangeError("Not enough coins to reroll");
   // Always replace all four stock positions, including bought-out offers.
-  const shop = makeShop(run.inventory, rng, run.shop);
+  const shop = makeShop(run.inventory, rng, run.shop, run.round + 1);
   return { ...state, run: { ...run, coins: run.coins - cost, shop } };
 }
