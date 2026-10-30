@@ -20,8 +20,8 @@ assert.match(html, /<a class="skip-game-board" href="#board">Skip to the maths b
 assert.match(html, /<dialog id="modal" class="overlay" aria-labelledby="promptTitle"/);
 assert.doesNotMatch(html, /<div id="modal" class="overlay" hidden>/);
 assert.match(html, /id="answer"[\s\S]*?aria-describedby="promptHelp"/);
-assert.match(html, /styles\.css\?v=frostlock-v1/);
-assert.match(html, /app\.mjs\?v=runestones-pass1/);
+assert.match(html, /styles\.css\?v=runestones-pass2/);
+assert.match(html, /app\.mjs\?v=runestones-pass2/);
 
 // Native modal handles focus containment; all exits cancel the existing timer.
 assert.match(app, /if \(!\$\("modal"\)\.open\) \$\("modal"\)\.showModal\(\)/);
