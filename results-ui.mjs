@@ -4,6 +4,9 @@ import {
   ACHIEVEMENTS, ACHIEVEMENT_BY_ID, countUnlocked,
   progressForAchievement, isFinishedRun, finalScoreSummary
 } from "./milestones.mjs?v=hazard-counter-v1";
+import { bossForRound } from "./bosses.mjs?v=hazard-counter-v1";
+import { bossPortraitFor } from "./art-catalog.mjs?v=hazard-counter-v1-art-pass3";
+import { bossSceneFor } from "./boss-scenes.mjs?v=hazard-counter-v1-art-pass3";
 
 const $ = id => document.getElementById(id);
 const node = (tag, className, text) => {
@@ -94,6 +97,22 @@ export function renderFinalScreen(mode, state, profile) {
   $("resultsBestScore").textContent = rogue
     ? "Best run score: " + pretty(summary.best)
     : "Personal best: " + pretty(summary.best);
+
+  // The final boss falls only when the twelve-round run is won. A lost
+  // run never displays a boss-defeated ribbon, regardless of round number.
+  const finalBoss = rogue && summary.won ? bossForRound(state.run) : null;
+  $("resultsBossVictory").hidden = !finalBoss;
+  $("resultsBossVictory").dataset.boss = finalBoss?.id ?? "";
+  if (finalBoss) {
+    const art = bossPortraitFor(finalBoss.id);
+    $("resultsBossPortrait").src = art.src;
+    $("resultsBossPortrait").alt = art.alt;
+    $("resultsBossName").textContent = finalBoss.name;
+    $("resultsBossLine").textContent = bossSceneFor(finalBoss.id)?.defeated ?? "";
+  } else {
+    $("resultsBossPortrait").removeAttribute("src");
+    $("resultsBossPortrait").alt = "";
+  }
 
   const statistics = rogue ? [
     ["Rounds cleared", summary.roundsCleared + " / 12"],
