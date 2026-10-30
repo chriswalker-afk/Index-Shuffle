@@ -4,7 +4,7 @@ import {
   mergeReadyAfterSlide, attemptBank, adjacentIndices, activeBases, BASE_UNLOCKS,
   INITIAL_MOVES_LEFT, MAX_MOVES_LEFT, MERGES_PER_BONUS_MOVE,
   spendMove, slideCost, creditCorrectBank, gameEnded
-} from "./engine.mjs";
+} from "./engine.mjs?v=banked-moves-v2";
 
 const $ = id => document.getElementById(id);
 const glyph = n => String(n).replace(/\d/g, d => "⁰¹²³⁴⁵⁶⁷⁸⁹"[+d]);
