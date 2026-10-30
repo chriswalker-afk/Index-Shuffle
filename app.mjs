@@ -1,7 +1,8 @@
 import {
   key, slide, turnSpawns, initial, canMove, isBankable, isBlocker, isWarning,
   blockerStrength, blockerHitsForMove, BLOCKER_START, BLOCKER_INTERVAL, MAX_BLOCKERS,
-  mergeReadyAfterSlide, attemptBank, adjacentIndices, activeBases, BASE_UNLOCKS
+  mergeReadyAfterSlide, attemptBank, adjacentIndices, activeBases, BASE_UNLOCKS,
+  INITIAL_MOVES_LEFT, MERGES_PER_BONUS_MOVE, spendMove, slideCost, gameEnded
 } from "./engine.mjs";
 
 const $ = id => document.getElementById(id);
@@ -12,7 +13,8 @@ const prefersReducedMotion = () => window.matchMedia("(prefers-reduced-motion: r
 
 function fresh(best = 0) {
   return { board: initial(), discovered: [], banked: [], locked: [], mergeReady: [],
-    score: 0, best, moves: 0, over: false, notice: "" };
+    score: 0, best, moves: 0, movesLeft: INITIAL_MOVES_LEFT,
+    mergeCredit: 0, over: false, notice: "" };
 }
 function saved() {
   try { return JSON.parse(localStorage.getItem("index-shuffle-v1")); }
@@ -29,8 +31,16 @@ if (!state || !Array.isArray(state.board) || state.board.length !== 16) {
   // Earlier saves never recorded which tiles came from genuine merges.
   // They remain playable; new merges earn bank-triggered blocker hits.
   state.mergeReady = Array.isArray(state.mergeReady) ? state.mergeReady : [];
+  // Older saved games have no move budget. Give them a fresh 10-move
+  // allowance without altering their cumulative slide count or powers.
+  state.movesLeft = Number.isSafeInteger(state.movesLeft) && state.movesLeft >= 0
+    ? state.movesLeft : INITIAL_MOVES_LEFT;
+  state.mergeCredit = Number.isSafeInteger(state.mergeCredit) &&
+    state.mergeCredit >= 0 && state.mergeCredit < MERGES_PER_BONUS_MOVE
+    ? state.mergeCredit : 0;
   state.notice = "";
-  state.over = !canMove(state.board, new Set(state.banked), new Set(state.locked));
+  state.over = gameEnded(state.board, new Set(state.banked),
+    new Set(state.locked), state.movesLeft);
 }
 let pending = null;
 let bankTimer = null;
@@ -55,6 +65,15 @@ function render() {
   $("best").textContent = state.best;
   $("count").textContent = state.banked.length;
   $("moves").textContent = state.moves;
+  $("movesLeft").textContent = state.movesLeft;
+  $("mergeProgress").textContent = state.mergeCredit + " / " +
+    MERGES_PER_BONUS_MOVE + " merges to +1 move";
+  const currentSlideCost = slideCost(state.board);
+  $("slideCost").textContent = "Next slide costs " + currentSlideCost +
+    (currentSlideCost === 1 ? " move" : " moves");
+  $("movesCard").classList.toggle("low-moves", state.movesLeft > 0 &&
+    state.movesLeft <= 3);
+  $("movesCard").classList.toggle("empty-moves", state.movesLeft === 0);
   const active = activeBases(state.moves);
   $("activeBases").innerHTML = active.map(base =>
     '<span class="base-chip base' + base + '">' + base + '</span>').join("");
@@ -141,10 +160,15 @@ function render() {
         + base + "<sup>" + exp + "</sup> " + (banked.has(k) ? "✓" : "◇") + "</span>";
     }).join("")
     : '<p class="muted">Discover your first square by merging two matching bases.</p>';
-  $("status").textContent = state.over
-    ? "No slides or bankable powers remain. Game over!"
-    : state.notice || "Tap a glowing power to bank it, or keep merging.";
-  $("stage").textContent = state.over ? "GAME OVER" : "SURVIVAL MODE";
+  $("status").textContent = state.movesLeft === 0
+    ? "Out of moves! Game over. Every two merges restore one move."
+    : state.over ? "No legal slides or bankable powers remain. Game over!"
+    : state.notice ||
+      (state.movesLeft <= 3
+        ? "Low on moves! Make two merges to earn one back."
+        : "Merge pairs of powers to earn more moves, or bank a tile.");
+  $("stage").textContent = state.movesLeft === 0
+    ? "OUT OF MOVES" : state.over ? "GAME OVER" : "SURVIVAL MODE";
   persist();
 }
 
@@ -214,6 +238,13 @@ function move(direction) {
     if (t.exp >= 2 && !state.discovered.includes(key(t))) state.discovered.push(key(t));
   }
   const nextMove = state.moves + 1;
+  // Snapshot active blockers BEFORE the slide. A warning that matures
+  // on this slide only increases the cost of the following slide.
+  const activeBlockers = slideCost(before) - 1;
+  const budget = spendMove(state.movesLeft, state.mergeCredit,
+    result.merges.length, activeBlockers);
+  state.movesLeft = budget.movesLeft;
+  state.mergeCredit = budget.mergeCredit;
   // Keep merge provenance attached to its tile as it slides, and mark
   // newly merged powers. Spawned powers never inherit that provenance.
   state.mergeReady = mergeReadyAfterSlide(state.mergeReady, result.motions);
@@ -226,6 +257,11 @@ function move(direction) {
   // A successful slide clears the incorrect-attempt and banking cooldowns.
   state.locked = [];
   const news = [];
+  if (budget.earned) {
+    news.push("+" + budget.earned + " " +
+      (budget.earned === 1 ? "move" : "moves") +
+      " earned from merging!");
+  }
   if (unlockedNow.length) news.push("Unlocked base " + unlockedNow.join(", ") + "!");
   // Merging next to a blocker does not cause damage: students must bank
   // the merged power correctly while it is adjacent to the blocker.
@@ -240,7 +276,8 @@ function move(direction) {
   }
   if (spawned.extraSpawned) news.push("Extra tile spawned!");
   state.notice = news.join(" ");
-  state.over = !canMove(state.board, new Set(state.banked), new Set());
+  state.over = gameEnded(state.board, new Set(state.banked),
+    new Set(), state.movesLeft);
   render();
   animateSlide(before, result.motions, new Set(result.mergeDestinations),
     spawned.spawned, result.damaged, result.destroyed,
@@ -309,7 +346,8 @@ function lockPending(reason) {
   state.notice = reason === "time"
     ? "Time's up. Slide the board once before retrying that tile."
     : "Not quite. That tile is locked until your next successful slide.";
-  state.over = !canMove(state.board, new Set(state.banked), new Set(state.locked));
+  state.over = gameEnded(state.board, new Set(state.banked),
+    new Set(state.locked), state.movesLeft);
   render();
 }
 document.addEventListener("visibilitychange", () => {
@@ -352,7 +390,8 @@ $("bankForm").addEventListener("submit", event => {
   } else if (damaged.length) {
     state.notice += " Blocker damaged by your correct bank!";
   }
-  state.over = !canMove(state.board, new Set(state.banked), new Set(state.locked));
+  state.over = gameEnded(state.board, new Set(state.banked),
+    new Set(state.locked), state.movesLeft);
   render();
   if (!prefersReducedMotion()) {
     $("board").children[i]?.classList.add("bank-flash");
