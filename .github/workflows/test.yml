@@ -214,7 +214,7 @@ jobs:
           "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage \
             --no-first-run --hide-scrollbars --force-prefers-reduced-motion=reduce \
             --virtual-time-budget=18000 --dump-dom \
-            http://127.0.0.1:8766/qa/browser-smoke.html \
+            http://127.0.0.1:8766/qa/browser-smoke.html?expect-reduced=1 \
             > /tmp/index-shuffle-reduced-browser.log 2> /tmp/index-shuffle-reduced-chrome.log
           if ! grep -q 'data-result="pass"' /tmp/index-shuffle-reduced-browser.log; then
             echo "Reduced-motion browser smoke test failed:"
