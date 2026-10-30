@@ -345,7 +345,7 @@ assert.match(uiSource, /\$\("movesLeft"\)\.textContent = state\.movesLeft/,
 assert.match(page, /id="movesLeft"/);
 assert.match(page, /app\.mjs\?v=focused-ui-v3/);
 assert.match(uiSource, /engine\.mjs\?v=focused-ui-v3/);
-assert.match(page, /correctly banked merges/);
+assert.match(page, /Correct merged-power banks/);
 
 // Presentation regression checks: learning content is optional and the
 // first-screen hierarchy is board + budget, not permanently expanded notes.
