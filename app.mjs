@@ -4,10 +4,11 @@ import {
   mergeReadyAfterSlide, attemptBank, adjacentIndices, activeBases, BASE_UNLOCKS,
   INITIAL_MOVES_LEFT, MERGES_PER_BONUS_MOVE, BUDGET_RULES_VERSION,
   restoreMoveBudget, spendMove, slideCost, creditCorrectBank, gameEnded
-} from "./engine.mjs?v=roguelite-pass1-v1";
+} from "./engine.mjs?v=roguelite-pass2-v1";
 import { newRogueliteRun, targetForRound, stageForRound, isBossRound,
-  recordRogueliteBank, advanceRogueliteRound, validRogueliteRun
-} from "./roguelite.mjs?v=roguelite-pass1-v1";
+  recordRogueliteBank, advanceRogueliteRound, validRogueliteRun,
+  restoreRogueliteRun, markGoldSpawns, goldTier, goldForBank
+} from "./roguelite.mjs?v=roguelite-pass2-v1";
 
 const $ = id => document.getElementById(id);
 const glyph = n => String(n).replace(/\d/g, d => "⁰¹²³⁴⁵⁶⁷⁸⁹"[+d]);
@@ -44,9 +45,12 @@ if (!state || !Array.isArray(state.board) || state.board.length !== 16) {
   Object.assign(state, restoreMoveBudget(state));
   state.notice = "";
   if (mode === "roguelite" && !validRogueliteRun(state.run)) state = newRogueliteRun();
-  else if (mode === "roguelite" && state.run.phase !== "playing") state.over = false;
-  else state.over = gameEnded(state.board, new Set(state.banked),
-    new Set(state.locked), state.movesLeft);
+  else {
+    if (mode === "roguelite") state.run = restoreRogueliteRun(state.run, state.movesLeft);
+    state.over = mode === "roguelite" && state.run.phase !== "playing" ? false
+      : gameEnded(state.board, new Set(state.banked),
+        new Set(state.locked), state.movesLeft);
+  }
 }
 let pending = null;
 let bankTimer = null;
@@ -68,6 +72,8 @@ function render() {
   $("modeClassic").setAttribute("aria-pressed", String(!rogue));
   $("modeRoguelite").setAttribute("aria-pressed", String(rogue));
   $("rogueProgress").hidden = !rogue;
+  $("helpRogueBlock").hidden = !rogue;
+  $("rogueEndSummary").hidden = !rogue || state.run.phase !== "victory";
   $("roundClearPanel").hidden = !rogue || state.run.phase !== "round-clear";
   $("nextRound").textContent = rogue && state.run.phase === "round-clear"
     ? "Continue to round " + (state.run.round + 1) : "Next round";
@@ -81,8 +87,18 @@ function render() {
     $("roundScoreProgress").value = Math.min(state.score, target);
     $("roundScoreProgress").max = target;
     $("rogueTotal").textContent = state.run.totalScore;
-    $("roundClearMessage").textContent = "You banked " + state.score + " points. " +
-      "The shop and boss effects arrive in later passes.";
+    $("rogueCoins").textContent = state.run.coins;
+    const reward = state.run.lastRoundReward;
+    $("roundClearMessage").textContent = reward
+      ? "Target reached! You had " + reward.unusedMoves +
+        " unused moves. Your coins carry into the next round."
+      : "Round complete. Your coins carry into the next round.";
+    $("roundBankCoins").textContent = "+" + (reward?.bankCoins ?? 0);
+    $("roundSpareCoins").textContent = "+" + (reward?.moveCoins ?? 0);
+    $("roundRewardTotal").textContent = "+" + (reward?.totalCoins ?? 0);
+    $("rogueEndSummary").textContent = "All 12 rounds cleared! " +
+      state.run.totalScore + " points scored and " + state.run.coins +
+      " coins remaining. Final-round gold: +" + (reward?.totalCoins ?? 0) + ".";
   }
   const banked = new Set(state.banked);
   const locked = new Set(state.locked);
@@ -143,13 +159,22 @@ function render() {
       const blocked = t.exp >= 2 && locked.has(i) && !banked.has(key(t));
       const strike = available && mergeReady.has(i) &&
         adjacentIndices(i).some(j => isBlocker(state.board[j]));
-      button.innerHTML = tileContent(t, available
+      const gold = rogue ? goldTier(t) : 0;
+      const coinBadge = gold
+        ? '<small class="tile-gold-mark" aria-hidden="true">●' + (gold === 2 ? '×2' : '') + '</small>'
+        : "";
+      button.innerHTML = tileContent(t, coinBadge + (available
         ? '<i aria-hidden="true">' + (strike ? '⚡' : '✦') + '</i>'
-        : blocked ? '<i aria-hidden="true">⌛</i>' : "");
+        : blocked ? '<i aria-hidden="true">⌛</i>' : ""));
       const description = t.base + " to the power " + t.exp;
-      button.title = blocked ? "Wait one slide before retrying " + description
+      const goldCoins = gold ? goldForBank(t, mergeReady.has(i)) : 0;
+      const goldHint = !gold ? "" : goldCoins
+        ? ". Golden power: a correct bank earns " + goldCoins + " coins."
+        : ". Golden tile: merge it before banking to earn coins.";
+      button.title = (blocked ? "Wait one slide before retrying " + description
         : strike ? "Bank " + description + " correctly to damage adjacent blocker"
-        : available ? "Bank " + description : description;
+        : available ? "Bank " + description : description) + goldHint;
+      if (gold) button.classList.add("gold-tile");
       button.setAttribute("aria-label", button.title);
       if (blocked) button.classList.add("locked");
       if (strike) button.classList.add("block-strike");
@@ -236,12 +261,14 @@ function animateSlide(before, motions, mergedDestinations, spawned, damaged, des
     if (!t) continue;
     const from = rects[movement.from], to = rects[movement.to];
     const ghost = document.createElement("div");
-    ghost.className = "tile-ghost base" + t.base;
+    ghost.className = "tile-ghost base" + t.base +
+      (mode === "roguelite" && goldTier(t) ? " gold-tile" : "");
     ghost.style.left = (from.left - boardRect.left) + "px";
     ghost.style.top = (from.top - boardRect.top) + "px";
     ghost.style.width = from.width + "px";
     ghost.style.height = from.height + "px";
-    ghost.innerHTML = tileContent(t);
+    ghost.innerHTML = tileContent(t, mode === "roguelite" && goldTier(t)
+      ? '<small class="tile-gold-mark" aria-hidden="true">●</small>' : "");
     layer.appendChild(ghost);
     const animation = ghost.animate([
       { transform: "translate3d(0, 0, 0)" },
@@ -287,7 +314,13 @@ function move(direction) {
   if (mode === "roguelite") state.run.totalSlides += 1;
   const spawned = turnSpawns(result.board, new Set(state.discovered),
     nextMove, Math.random, new Set(), mode === "roguelite" ? state.run.totalSlides : nextMove);
-  state.board = spawned.board;
+  if (mode === "roguelite") {
+    const gold = markGoldSpawns(spawned.board, spawned.spawned, state.run.goldDryStreak);
+    state.board = gold.board;
+    state.run.goldDryStreak = gold.dryStreak;
+  } else {
+    state.board = spawned.board;
+  }
   const progression = mode === "roguelite" ? state.run.totalSlides : nextMove;
   const previousProgression = mode === "roguelite" ? progression - 1 : state.moves;
   const unlockedNow = activeBases(progression)
@@ -360,9 +393,13 @@ function openBank(i) {
   document.querySelector(".bank-hint").open = false;
   const canStrike = state.mergeReady.includes(i) &&
     adjacentIndices(i).some(j => isBlocker(state.board[j]));
-  $("promptHelp").textContent = canStrike
+  const bankGold = mode === "roguelite" ? goldForBank(t, state.mergeReady.includes(i)) : 0;
+  const goldHelp = mode !== "roguelite" || !goldTier(t) ? ""
+    : bankGold ? " Correct banking also earns " + bankGold + " coins."
+    : " This tile is golden, but must be merged before banking to earn coins.";
+  $("promptHelp").textContent = (canStrike
     ? "Correct answer: bank this power and damage the nearby blocker."
-    : "Calculate its exact value to bank this power.";
+    : "Calculate its exact value to bank this power.") + goldHelp;
   $("modal").hidden = false;
   if (!document.hidden) resumeClock();
   $("answer").focus();
@@ -416,7 +453,9 @@ $("bankForm").addEventListener("submit", event => {
   state.movesLeft = award.movesLeft;
   state.mergeCredit = award.mergeCredit;
   const points = mode === "roguelite"
-    ? recordRogueliteBank(state.run, state.score, t)
+    ? recordRogueliteBank(state.run, state.score, t, {
+        merged: outcome.creditedMerge, movesLeft: state.movesLeft
+      })
     : { points: outcome.points, roundScore: state.score + outcome.points };
   state.score = points.roundScore;
   if (mode === "roguelite") state.run = points.run;
@@ -425,6 +464,12 @@ $("bankForm").addEventListener("submit", event => {
   state.notice = "Banked " + t.base + glyph(t.exp) + " · +" + points.points
     + " points. " + replacement.base + glyph(replacement.exp)
     + " stays on the board.";
+  if (mode === "roguelite" && points.bankGold) {
+    state.notice += " +" + points.bankGold + " gold!";
+  }
+  if (mode === "roguelite" && points.cleared) {
+    state.notice += " Round complete: +" + points.moveGold + " coins for unused moves!";
+  }
   if (outcome.creditedMerge) {
     if (award.earned) {
       state.notice += " +1 move earned for two correctly banked merges!";
@@ -495,6 +540,7 @@ function switchMode(selected) {
   state.mergeReady = Array.isArray(state.mergeReady) ? state.mergeReady : [];
   state.discovered = Array.isArray(state.discovered) ? state.discovered : [];
   state.banked = Array.isArray(state.banked) ? state.banked : [];
+  if (mode === "roguelite") state.run = restoreRogueliteRun(state.run, state.movesLeft);
   state.over = mode === "roguelite" && state.run.phase !== "playing" ? false
     : gameEnded(state.board, new Set(state.banked), new Set(state.locked), state.movesLeft);
   render();

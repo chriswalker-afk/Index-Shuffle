@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#0c1428">
   <meta name="description" content="Slide and merge powers, solve banking challenges and stay in the game.">
   <title>Index Shuffle — Make every move count</title>
-  <link rel="stylesheet" href="styles.css?v=roguelite-pass1-v1">
+  <link rel="stylesheet" href="styles.css?v=roguelite-pass2-v1">
 </head>
 <body>
   <main class="shell">
@@ -59,7 +59,13 @@
           <span id="stage" class="run-state">Playing</span>
         </div>
         <div id="rogueProgress" class="rogue-progress" hidden>
-          <p class="overline" id="rogueRound">Stage 1 · Round 1/12</p>
+          <div class="rogue-progress-head">
+            <p class="overline" id="rogueRound">Stage 1 · Round 1/12</p>
+            <div class="coin-count" aria-label="Gold coins in wallet">
+              <span aria-hidden="true">●</span> <strong id="rogueCoins" aria-live="polite">0</strong>
+              <span class="coin-caption">coins</span>
+            </div>
+          </div>
           <div class="rogue-score-row"><span>Round target</span><strong id="rogueScore">0 / 4</strong></div>
           <progress id="roundScoreProgress" value="0" max="4" aria-label="Score towards round target"></progress>
           <p class="rogue-total">Run score: <strong id="rogueTotal">0</strong></p>
@@ -89,11 +95,17 @@
         <div id="roundClearPanel" class="round-clear-panel" hidden>
           <strong>Round complete!</strong>
           <p id="roundClearMessage"></p>
+          <div class="round-reward-breakdown" aria-label="Round gold earnings">
+            <div><span>Gold powers banked</span><strong id="roundBankCoins">+0</strong></div>
+            <div><span>Unused moves (up to 5)</span><strong id="roundSpareCoins">+0</strong></div>
+            <div class="round-reward-total"><span>Total gold earned this round</span><strong id="roundRewardTotal">+0</strong></div>
+          </div>
           <button type="button" id="nextRound" class="primary">Next round</button>
         </div>
         <div id="endActions" class="end-actions" hidden>
           <strong>Run finished</strong>
           <p>You can start a new game and try a different strategy.</p>
+          <p id="rogueEndSummary" hidden></p>
           <button type="button" id="newFromEnd" class="primary">Play again</button>
         </div>
       </section>
@@ -175,10 +187,24 @@
            <b>⚡</b> merged power directly beside a blocker to damage it.
            Different blocker tiers take different numbers of successful banks.</p>
       </div>
+      <div class="help-block" id="helpRogueBlock" hidden>
+        <h3>Roguelite: earn points and coins</h3>
+        <p>Each correctly banked power scores points equal to its exponent:
+          7² scores 2 points. Reach your round target before running out of moves.
+          Clear twelve rounds to win the run.</p>
+        <p>Golden tiles appear occasionally. Merge a golden tile into a
+          bankable power, then answer correctly to earn coins. Gold survives
+          slides and merges; combining two gold tiles gives a larger coin reward.
+          A golden power banked without a genuine merge earns points, but no coins.</p>
+        <p>When you clear a round you also earn 1 coin per unused move
+          (up to 5 bonus coins). Your coins carry forward. The item shop
+          and special boss conditions arrive in later passes.</p>
+      </div>
       <div class="symbol-guide" aria-label="Board symbol legend">
         <span><b>✦</b> Bankable</span><span><b>⚡</b> Damages blocker if banked</span>
         <span><b>⌛</b> Banking cooldown</span><span><b>!</b> Incoming blocker</span>
         <span><b>▦</b> Fixed blocker</span>
+        <span><b>●</b> Golden tile (Roguelite)</span>
       </div>
     </section>
 
@@ -233,6 +259,6 @@
       <button type="button" id="cancel" class="textbtn">Keep this tile</button>
     </div>
   </div>
-  <script type="module" src="app.mjs?v=roguelite-pass1-v1"></script>
+  <script type="module" src="app.mjs?v=roguelite-pass2-v1"></script>
 </body>
 </html>

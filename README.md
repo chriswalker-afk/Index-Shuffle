@@ -20,6 +20,21 @@
 - Moves animate briefly (170 ms). System **reduced motion** preferences disable animations. Banking timers pause while the browser tab is hidden.
 - Game state, correctly banked merge credit, remaining moves and high score are saved locally in the browser. New games start with 10 moves. **Existing saved games created under the earlier automatic-merge-reward rule** keep their board, score, discoveries and historical slide count but receive a fresh ten-move balance and zero correct-bank credit; this upgrade occurs once.
 
+## Roguelite — Pass 2 (Gold economy)
+
+Select **Roguelite** for a separate 12-round run. Correctly banking a power earns **exactly its exponent in points** (for example, 7² earns 2 points). Classic scoring is unchanged. Each round has a rising target: **8, 11, 14, 17, 20, 24, 28, 33, 39, 45, 52, 60**. Every third round is labelled as a boss milestone; actual boss effects arrive in a later pass. These targets are intentionally harder than the Pass 1 values and will require balancing once items are available.
+
+**Gold rules (Roguelite only):**
+
+- Around **12% of ordinary number spawns** receive a gold outline and coin marker. If five successful slides have produced no gold, the next eligible spawned tile is guaranteed gold. The opening board may also contain gold. A gold tile has the same base and exponent as an ordinary tile.
+- Gold follows tiles as they slide. Merging a gold tile makes its resulting power golden. Merging **two** gold tiles creates a double-gold power. Correctly **banking a genuinely merged golden power** awards **2 coins**, or **3 coins** for a golden power of exponent 4 or higher; a double-gold bank earns **4 coins**. The exact-answer maths question must succeed to earn either points or coins. Golden higher powers that simply spawned cannot pay out unless they are merged first.
+- Banking replaces the original power with an ordinary, non-gold smaller tile. Coins cannot be collected twice from the same bank.
+- Clearing a round grants **1 extra coin per unused move, capped at 5 coins**. This payout happens once, at the correct-answer bank that clears the round (after any move refund from that bank). No unused-move reward is given when a round is lost.
+- The wallet, cumulative earned gold and per-round bank earnings persist across rounds and browser restarts, independently of Classic. Gold markings, temporary banking locks and the gold drought counter reset for each new round. The round-clear screen displays banked gold, unused-move bonus and their total.
+- Existing Roguelite saves migrate safely; if a Pass 1 save was already at round-clear or victory, its unused-move reward is credited once on restore.
+
+**Still to build:** item shop, consumables, permanent items, actual boss constraints and difficulty tuning. No shop/purchase interface is displayed yet. Round targets remain provisional.
+
 ## Interface
 
 The play screen is intentionally **focused on making decisions**, not on displaying the rulebook:
@@ -33,7 +48,7 @@ The panel layout is deliberately compact: a player should not need to read instr
 
 ## Tests
 
-Run **node tests.mjs** and **node hazards.tests.mjs** (Node 18+). GitHub Actions runs both tests, JavaScript syntax checks, and static entrypoint verification on pushes and pull requests.
+Run **node tests.mjs**, **node hazards.tests.mjs** and **node roguelite.tests.mjs** (Node 18+). GitHub Actions runs all three test suites, JavaScript syntax checks and static entrypoint verification on pushes and pull requests.
 
 The engine and hazard regression tests cover the **ten-move budget**, blocker slide costs, the maximum of 10, the rule that slides and unbanked merges never restore moves, and the rule that **only two correctly banked powers created by merging** earn one move. They also test save migration, banking lockouts, blocker mechanics, and zero-move loss conditions. The answer timer and visual effects should be manually checked on desktop and mobile.
 
@@ -41,7 +56,8 @@ The engine and hazard regression tests cover the **ten-move budget**, blocker sl
 
 The game is plain HTML, CSS, and native JavaScript modules, with no external runtime dependencies.
 
-- **engine.mjs:** deterministic game rules, sliding segments, blocker damage, dual spawning, power replacement, and question validation.
+- **engine.mjs:** deterministic game rules, sliding segments, blocker damage, gold metadata propagation during merges, dual spawning, power replacement and question validation.
+- **roguelite.mjs:** exponent-only scoring, 12-round progression, golden spawns, coin payouts, leftover-move rewards and saved-state migration.
 - **app.mjs:** browser interaction, banking timer, accessible help dialog, persistent state, move-cost display and short tile animations. The HTML uses versioned script and stylesheet URLs to prevent stale modules from keeping the old layout or obsolete move rules after deployment.
 - **styles.css:** responsive visual design, including reduced-motion support.
 
