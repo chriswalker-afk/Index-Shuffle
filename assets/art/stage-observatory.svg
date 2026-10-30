@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 260" role="img" aria-labelledby="title desc">
+ <title id="title">Stage One: The Observatory</title><desc id="desc">A peaceful mathematical observatory with emerald glass roofs, geometric stone towers and constellations above a glowing garden.</desc>
+ <defs>
+   <linearGradient id="sky" x1="0" y1="0" x2="1" y2="1">
+     <stop stop-color="#173a4b"/><stop offset="1" stop-color="#0d2034"/>
+   </linearGradient>
+   <radialGradient id="halo"><stop stop-color="#a9f6dd" stop-opacity=".32"/><stop offset="1" stop-color="#a9f6dd" stop-opacity="0"/></radialGradient>
+   <linearGradient id="land" x1="0" y1="0" x2="0" y2="1">
+     <stop stop-color="#173a4b"/><stop offset="1" stop-color="#0a1527"/>
+   </linearGradient>
+ </defs>
+ <rect width="960" height="260" fill="url(#sky)"/>
+ <circle cx="736" cy="111" r="220" fill="url(#halo)"/>
+ <circle cx="480" cy="127" r="3" fill="#fff7df" opacity="0.180"/>
+<circle cx="818" cy="30" r="1.5" fill="#fff7df" opacity="0.255"/>
+<circle cx="41" cy="118" r="1.5" fill="#fff7df" opacity="0.330"/>
+<circle cx="712" cy="40" r="1.5" fill="#fff7df" opacity="0.405"/>
+<circle cx="618" cy="107" r="1.5" fill="#fff7df" opacity="0.480"/>
+<circle cx="69" cy="52" r="1.5" fill="#fff7df" opacity="0.555"/>
+<circle cx="876" cy="95" r="3" fill="#fff7df" opacity="0.630"/>
+<circle cx="377" cy="65" r="1.5" fill="#fff7df" opacity="0.180"/>
+<circle cx="217" cy="81" r="1.5" fill="#fff7df" opacity="0.255"/>
+<circle cx="924" cy="78" r="1.5" fill="#fff7df" opacity="0.330"/>
+<circle cx="167" cy="68" r="1.5" fill="#fff7df" opacity="0.405"/>
+<circle cx="443" cy="92" r="1.5" fill="#fff7df" opacity="0.480"/>
+<circle cx="841" cy="55" r="3" fill="#fff7df" opacity="0.555"/>
+<circle cx="48" cy="105" r="1.5" fill="#fff7df" opacity="0.630"/>
+<circle cx="680" cy="43" r="1.5" fill="#fff7df" opacity="0.180"/>
+<circle cx="653" cy="116" r="1.5" fill="#fff7df" opacity="0.255"/>
+<circle cx="56" cy="32" r="1.5" fill="#fff7df" opacity="0.330"/>
+<circle cx="858" cy="125" r="1.5" fill="#fff7df" opacity="0.405"/>
+<circle cx="414" cy="24" r="3" fill="#fff7df" opacity="0.480"/>
+<circle cx="188" cy="132" r="1.5" fill="#fff7df" opacity="0.555"/>
+<circle cx="925" cy="19" r="1.5" fill="#fff7df" opacity="0.630"/>
+<circle cx="194" cy="135" r="1.5" fill="#fff7df" opacity="0.180"/>
+<circle cx="407" cy="17" r="1.5" fill="#fff7df" opacity="0.255"/>
+<circle cx="862" cy="136" r="1.5" fill="#fff7df" opacity="0.330"/>
+<circle cx="58" cy="18" r="3" fill="#fff7df" opacity="0.405"/>
+<circle cx="646" cy="133" r="1.5" fill="#fff7df" opacity="0.480"/>
+<circle cx="686" cy="22" r="1.5" fill="#fff7df" opacity="0.555"/>
+<circle cx="46" cy="128" r="1.5" fill="#fff7df" opacity="0.630"/>
+<circle cx="837" cy="29" r="1.5" fill="#fff7df" opacity="0.180"/>
+<circle cx="450" cy="120" r="1.5" fill="#fff7df" opacity="0.255"/>
+<circle cx="162" cy="38" r="3" fill="#fff7df" opacity="0.330"/>
+<circle cx="923" cy="109" r="1.5" fill="#fff7df" opacity="0.405"/>
+<circle cx="223" cy="50" r="1.5" fill="#fff7df" opacity="0.480"/>
+<circle cx="370" cy="97" r="1.5" fill="#fff7df" opacity="0.555"/>
+<circle cx="879" cy="62" r="1.5" fill="#fff7df" opacity="0.630"/>
+<circle cx="71" cy="84" r="1.5" fill="#fff7df" opacity="0.180"/>
+<circle cx="611" cy="76" r="3" fill="#fff7df" opacity="0.255"/>
+<circle cx="718" cy="70" r="1.5" fill="#fff7df" opacity="0.330"/>
+<circle cx="39" cy="89" r="1.5" fill="#fff7df" opacity="0.405"/>
+<circle cx="814" cy="57" r="1.5" fill="#fff7df" opacity="0.480"/>
+<circle cx="487" cy="102" r="1.5" fill="#fff7df" opacity="0.555"/>
+<circle cx="137" cy="45" r="1.5" fill="#fff7df" opacity="0.630"/>
+<circle cx="918" cy="114" r="3" fill="#fff7df" opacity="0.180"/>
+<circle cx="254" cy="34" r="1.5" fill="#fff7df" opacity="0.255"/>
+<circle cx="335" cy="123" r="1.5" fill="#fff7df" opacity="0.330"/>
+<circle cx="894" cy="26" r="1.5" fill="#fff7df" opacity="0.405"/>
+ <path d="M0 163q94-48 170-17t175-11 180 0 173-21 262 20V260H0Z" fill="url(#land)" opacity=".65"/>
+ <circle cx="732" cy="114" r="58" fill="#a6f6dc" opacity=".15"/>
+ <circle cx="732" cy="114" r="39" stroke="#f8e3a6" stroke-width="3" fill="none" opacity=".7"/>
+ <path d="M695 114h74M732 77v74M704 86l56 57m-56 0 56-57" stroke="#9ee9d2" stroke-width="2" opacity=".7"/>
+ <path d="M0 227q133-67 259-13 145-72 282-8 139-51 419-8v62H0Z" fill="#16474b" opacity=".85"/>
+ <g stroke="#a5dcd4" stroke-width="4" stroke-linejoin="round">
+ <path d="M98 232V108l43-38 43 38v125Z" fill="#254c58"/>
+ <path d="M112 114h58l-29-28Z" fill="#83c7b9"/>
+ <path d="M118 142v30h45v-30Q140 117 118 142Z" fill="#ffe5a2" opacity=".75"/>
+ <path d="M112 201h56" opacity=".7"/>
+ <path d="M238 242V91l48-44 48 44v151Z" fill="#304b59"/>
+ <path d="M245 95h82l-41-37Z" fill="#b6e7c8"/>
+ <path d="M257 121h59v42h-59Z" fill="#b5edd9" opacity=".66"/>
+ <path d="M266 120v42m22-42v42m21-42v42"/>
+ <path d="M438 236v-94l37-29 38 29v94Z" fill="#294b55"/>
+ <path d="M451 154h48v33h-48Z" fill="#f4c986" opacity=".78"/>
+ </g>
+ <g fill="#f3db9d" opacity=".9"><path d="M349 71l1.76 6.24L357 79l-6.24 1.76L349 87l-1.76 -6.24L341 79l6.24 -1.76Z" fill="#fff5dd"/><path d="M408 99l1.1 3.9000000000000004L413 104l-3.9000000000000004 1.1L408 109l-1.1 -3.9000000000000004L403 104l3.9000000000000004 -1.1Z" fill="#fff5dd"/><path d="M565 68l1.54 5.46L572 75l-5.46 1.54L565 82l-1.54 -5.46L558 75l5.46 -1.54Z" fill="#fff5dd"/></g>
+ <path d="M75 232l36-27 29 27m182 7 43-34 30 34" stroke="#d5e6b2" stroke-width="3" fill="none" opacity=".8"/>
+ <path d="M560 237q55-50 110 0m88 2q53-40 100 0" stroke="#71c9a6" stroke-width="6" fill="none" opacity=".7"/>
+ <path d="M0 248q120-13 243-3t240-3 225 2 252-5v21H0Z" fill="#071324" opacity=".45"/>
+ <path d="M0 254h960" stroke="#ecce85" stroke-width="3" opacity=".43"/>
+ </svg>

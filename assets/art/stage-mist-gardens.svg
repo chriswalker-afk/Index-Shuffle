@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 260" role="img" aria-labelledby="title desc">
+ <title id="title">Stage Two: The Mist Gardens</title><desc id="desc">A deep mist-filled garden with floating stone arches, fog bands and pale blue lanterns.</desc>
+ <defs>
+   <linearGradient id="sky" x1="0" y1="0" x2="1" y2="1">
+     <stop stop-color="#36445b"/><stop offset="1" stop-color="#18263e"/>
+   </linearGradient>
+   <radialGradient id="halo"><stop stop-color="#c8e5ed" stop-opacity=".32"/><stop offset="1" stop-color="#c8e5ed" stop-opacity="0"/></radialGradient>
+   <linearGradient id="land" x1="0" y1="0" x2="0" y2="1">
+     <stop stop-color="#36445b"/><stop offset="1" stop-color="#0a1527"/>
+   </linearGradient>
+ </defs>
+ <rect width="960" height="260" fill="url(#sky)"/>
+ <circle cx="736" cy="111" r="220" fill="url(#halo)"/>
+ <circle cx="480" cy="127" r="3" fill="#fff7df" opacity="0.180"/>
+<circle cx="818" cy="30" r="1.5" fill="#fff7df" opacity="0.255"/>
+<circle cx="41" cy="118" r="1.5" fill="#fff7df" opacity="0.330"/>
+<circle cx="712" cy="40" r="1.5" fill="#fff7df" opacity="0.405"/>
+<circle cx="618" cy="107" r="1.5" fill="#fff7df" opacity="0.480"/>
+<circle cx="69" cy="52" r="1.5" fill="#fff7df" opacity="0.555"/>
+<circle cx="876" cy="95" r="3" fill="#fff7df" opacity="0.630"/>
+<circle cx="377" cy="65" r="1.5" fill="#fff7df" opacity="0.180"/>
+<circle cx="217" cy="81" r="1.5" fill="#fff7df" opacity="0.255"/>
+<circle cx="924" cy="78" r="1.5" fill="#fff7df" opacity="0.330"/>
+<circle cx="167" cy="68" r="1.5" fill="#fff7df" opacity="0.405"/>
+<circle cx="443" cy="92" r="1.5" fill="#fff7df" opacity="0.480"/>
+<circle cx="841" cy="55" r="3" fill="#fff7df" opacity="0.555"/>
+<circle cx="48" cy="105" r="1.5" fill="#fff7df" opacity="0.630"/>
+<circle cx="680" cy="43" r="1.5" fill="#fff7df" opacity="0.180"/>
+<circle cx="653" cy="116" r="1.5" fill="#fff7df" opacity="0.255"/>
+<circle cx="56" cy="32" r="1.5" fill="#fff7df" opacity="0.330"/>
+<circle cx="858" cy="125" r="1.5" fill="#fff7df" opacity="0.405"/>
+<circle cx="414" cy="24" r="3" fill="#fff7df" opacity="0.480"/>
+<circle cx="188" cy="132" r="1.5" fill="#fff7df" opacity="0.555"/>
+<circle cx="925" cy="19" r="1.5" fill="#fff7df" opacity="0.630"/>
+<circle cx="194" cy="135" r="1.5" fill="#fff7df" opacity="0.180"/>
+<circle cx="407" cy="17" r="1.5" fill="#fff7df" opacity="0.255"/>
+<circle cx="862" cy="136" r="1.5" fill="#fff7df" opacity="0.330"/>
+<circle cx="58" cy="18" r="3" fill="#fff7df" opacity="0.405"/>
+<circle cx="646" cy="133" r="1.5" fill="#fff7df" opacity="0.480"/>
+<circle cx="686" cy="22" r="1.5" fill="#fff7df" opacity="0.555"/>
+<circle cx="46" cy="128" r="1.5" fill="#fff7df" opacity="0.630"/>
+<circle cx="837" cy="29" r="1.5" fill="#fff7df" opacity="0.180"/>
+<circle cx="450" cy="120" r="1.5" fill="#fff7df" opacity="0.255"/>
+<circle cx="162" cy="38" r="3" fill="#fff7df" opacity="0.330"/>
+<circle cx="923" cy="109" r="1.5" fill="#fff7df" opacity="0.405"/>
+<circle cx="223" cy="50" r="1.5" fill="#fff7df" opacity="0.480"/>
+<circle cx="370" cy="97" r="1.5" fill="#fff7df" opacity="0.555"/>
+<circle cx="879" cy="62" r="1.5" fill="#fff7df" opacity="0.630"/>
+<circle cx="71" cy="84" r="1.5" fill="#fff7df" opacity="0.180"/>
+<circle cx="611" cy="76" r="3" fill="#fff7df" opacity="0.255"/>
+<circle cx="718" cy="70" r="1.5" fill="#fff7df" opacity="0.330"/>
+<circle cx="39" cy="89" r="1.5" fill="#fff7df" opacity="0.405"/>
+<circle cx="814" cy="57" r="1.5" fill="#fff7df" opacity="0.480"/>
+<circle cx="487" cy="102" r="1.5" fill="#fff7df" opacity="0.555"/>
+<circle cx="137" cy="45" r="1.5" fill="#fff7df" opacity="0.630"/>
+<circle cx="918" cy="114" r="3" fill="#fff7df" opacity="0.180"/>
+<circle cx="254" cy="34" r="1.5" fill="#fff7df" opacity="0.255"/>
+<circle cx="335" cy="123" r="1.5" fill="#fff7df" opacity="0.330"/>
+<circle cx="894" cy="26" r="1.5" fill="#fff7df" opacity="0.405"/>
+ <path d="M0 163q94-48 170-17t175-11 180 0 173-21 262 20V260H0Z" fill="url(#land)" opacity=".65"/>
+ <path d="M0 190q135-45 275-16 109-57 242-26 142-39 263-16 111-19 180 8v120H0Z" fill="#384e63" opacity=".63"/>
+ <g stroke="#8da6b9" stroke-width="6" stroke-linejoin="round" fill="#344b63">
+ <path d="M90 242V100q25-39 53-7v149Z"/><path d="M205 242V90q24-45 50 0v152Z"/>
+ <path d="M90 109q56-95 165-10l-13 15q-63-45-137 15Z" fill="#536a7a"/>
+ <path d="M355 242V82h53v160Z"/><path d="M489 242V82h53v160Z"/>
+ <path d="M367 88Q445 2 532 88l-14 22Q445 41 380 109Z" fill="#59758c"/>
+ <path d="M716 243V114q27-43 52 0v129Z"/>
+ <path d="M811 243V97q27-40 48 0v146Z"/>
+ <path d="M716 121q70-77 143 3l-20 13q-49-47-104 0Z" fill="#58687b"/>
+ </g>
+ <g fill="#d1e8e9" opacity=".8">
+ <circle cx="309" cy="144" r="9"/><circle cx="608" cy="164" r="8"/><circle cx="895" cy="105" r="10"/>
+ </g>
+ <g stroke="#d5e5e8" stroke-width="4" opacity=".43">
+ <path d="M309 144v74m299-54v63m287-122v74" />
+ </g>
+ <path d="M0 202Q145 182 294 199t275-6 391 1" stroke="#a4c5d1" stroke-width="34" stroke-linecap="round" opacity=".24" fill="none"/>
+ <path d="M0 236q210-31 416-11 217-44 544-15" stroke="#c6dbe2" stroke-width="29" stroke-linecap="round" opacity=".16" fill="none"/>
+ <g fill="#e8e8ca" opacity=".65"><path d="M660 85l1.76 6.24L668 93l-6.24 1.76L660 101l-1.76 -6.24L652 93l6.24 -1.76Z" fill="#fff5dd"/><path d="M823 50l1.1 3.9000000000000004L828 55l-3.9000000000000004 1.1L823 60l-1.1 -3.9000000000000004L818 55l3.9000000000000004 -1.1Z" fill="#fff5dd"/></g>
+ <path d="M0 248q120-13 243-3t240-3 225 2 252-5v21H0Z" fill="#071324" opacity=".45"/>
+ <path d="M0 254h960" stroke="#a6b4da" stroke-width="3" opacity=".43"/>
+ </svg>
