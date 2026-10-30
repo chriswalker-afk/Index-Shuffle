@@ -27,7 +27,7 @@ button:focus-visible, input:focus-visible {
   border: 1px solid #465572; background: #18243f; color: #fff;
   padding: 12px 17px; border-radius: 13px; font-weight: 700;
 }
-.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 31px 0; }
+.stats { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; margin: 31px 0; }
 .stats > div, .panel, .game {
   background: #151f37; border: 1px solid #32405c;
   box-shadow: 0 15px 30px #050a1d28; border-radius: 20px;
@@ -35,6 +35,16 @@ button:focus-visible, input:focus-visible {
 .stats > div { padding: 18px 22px; }
 .stats small { display: block; color: #9babc8; font-size: 11px; font-weight: 850; letter-spacing: 1.6px; }
 .stats strong { display: block; font-size: 27px; margin-top: 5px; font-variant-numeric: tabular-nums; }
+.stats .stat-budget { border-color: #48867d; background: #182a3a; }
+.stat-budget strong { color: #9af1d8; }
+.merge-progress {
+  display: block; color: #bdcedb; font-size: 11px;
+  line-height: 1.4; margin-top: 6px;
+}
+.stat-budget.low-moves { border-color: #d5ae67; }
+.stat-budget.low-moves strong { color: #ffce80; }
+.stat-budget.empty-moves { border-color: #e2999b; }
+.stat-budget.empty-moves strong { color: #f5a7ac; }
 .play { display: grid; grid-template-columns: minmax(300px, 1.2fr) minmax(280px, .8fr); gap: 20px; }
 .game { padding: 21px; }
 .board-head, .between { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
@@ -247,7 +257,8 @@ footer { color: #8191ad; text-align: center; font-size: 12px; margin: 29px; }
   .top { align-items: start; }
   .top h1 { font-size: 40px; }
   .outline { font-size: 12px; padding: 10px; }
-  .stats { gap: 7px; margin: 22px 0; }
+  .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; margin: 22px 0; }
+  .stats .stat-budget { grid-column: span 2; }
   .stats > div { padding: 11px; }
   .stats strong { font-size: 23px; }
   .stats small { font-size: 9px; }
