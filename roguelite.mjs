@@ -1,11 +1,15 @@
-// Roguelite round progression, deliberately independent of Classic scoring.
-// Later passes can extend bank bonuses, shops, gold and boss effects here.
-import { initial, INITIAL_MOVES_LEFT, BUDGET_RULES_VERSION } from "./engine.mjs?v=roguelite-pass1-v1";
+// Roguelite progression and economy. Classic keeps its original scoring and rules.
+import {
+  initial, INITIAL_MOVES_LEFT, MAX_MOVES_LEFT, BUDGET_RULES_VERSION
+} from "./engine.mjs?v=roguelite-pass2-v1";
 
 export const ROUND_TARGETS = Object.freeze([
   4, 6, 8, 9, 11, 15, 17, 20, 25, 27, 33, 40
 ]);
 export const TOTAL_ROUNDS = ROUND_TARGETS.length;
+export const GOLD_SPAWN_CHANCE = 0.12;
+export const GOLD_PITY_SLIDES = 5;
+export const MAX_SPARE_MOVE_COINS = 5;
 
 export function targetForRound(round) {
   if (!Number.isInteger(round) || round < 1 || round > TOTAL_ROUNDS) {
@@ -24,8 +28,73 @@ export function stageForRound(round) {
   return Math.ceil(round / 3);
 }
 
-// A correct bank always earns its exponent, irrespective of the base.
-// Future items and boss conditions will modify this score at bank time.
+// Gold is carried by number tiles, not by a separate obstacle. Two golden
+// tiles merged together create a double-gold power; repeated merges cap at 2.
+export function goldTier(power) {
+  return power?.gold === 2 ? 2 : power?.gold === 1 ? 1 : 0;
+}
+
+// Run this on the indices of newly spawned number tiles, AFTER the ordinary
+// spawning logic. Pity is based on successful slides, not how many number
+// tiles appeared during a slide. A gold opportunity is guaranteed on the
+// sixth successful slide if the preceding five produced no gold.
+export function markGoldSpawns(board, spawnedIndices, dryStreak = 0,
+  rng = Math.random, countAsSlide = true) {
+  if (!Array.isArray(board) || board.length !== 16 ||
+      !Array.isArray(spawnedIndices) ||
+      !Number.isSafeInteger(dryStreak) || dryStreak < 0 ||
+      typeof rng !== "function") {
+    throw new RangeError("Invalid gold spawn inputs");
+  }
+  const next = board.slice();
+  const unique = [...new Set(spawnedIndices)];
+  let goldSpawned = 0;
+  for (const index of unique) {
+    if (!Number.isInteger(index) || index < 0 || index >= board.length ||
+        !board[index] || !Number.isInteger(board[index].base) ||
+        goldTier(board[index]) !== 0) {
+      throw new RangeError("Gold may only be added to new ordinary number tiles");
+    }
+    const force = dryStreak >= GOLD_PITY_SLIDES && goldSpawned === 0;
+    if (force || rng() < GOLD_SPAWN_CHANCE) {
+      next[index] = { ...board[index], gold: 1 };
+      goldSpawned++;
+    }
+  }
+  return {
+    board: next, goldSpawned,
+    dryStreak: countAsSlide
+      ? (goldSpawned ? 0 : Math.min(GOLD_PITY_SLIDES, dryStreak + 1)) : 0
+  };
+}
+
+function startingBoard(rng, progress = 0) {
+  const board = initial(rng, progress);
+  const indices = board.map((value, index) => value ? index : -1).filter(i => i >= 0);
+  return markGoldSpawns(board, indices, 0, rng, false).board;
+}
+
+// A golden tile must first participate in a REAL merge, then be banked
+// correctly. Gold status alone or a spawned higher power does not pay coins.
+// Banking removes the gold from the replacement tile.
+export function goldForBank(power, merged) {
+  if (typeof merged !== "boolean") throw new RangeError("Invalid merge status");
+  const gold = goldTier(power);
+  if (!gold || !merged) return 0;
+  if (gold === 2) return 4;
+  return power.exp >= 4 ? 3 : 2;
+}
+
+export function spareMoveGold(movesLeft) {
+  if (!Number.isSafeInteger(movesLeft) || movesLeft < 0 ||
+      movesLeft > MAX_MOVES_LEFT) {
+    throw new RangeError("Invalid remaining move count");
+  }
+  return Math.min(movesLeft, MAX_SPARE_MOVE_COINS);
+}
+
+// Each correct bank awards its exponent, irrespective of base or gold.
+// Future items and boss conditions will modify this calculation here.
 export function scoreForRoguelitePower(power) {
   if (!power || !Number.isSafeInteger(power.exp) || power.exp < 2 ||
       !Number.isSafeInteger(power.base) || power.base < 2) {
@@ -45,46 +114,94 @@ export function validRogueliteRun(run) {
   return true;
 }
 
+const nonnegativeInteger = value =>
+  Number.isSafeInteger(value) && value >= 0 ? value : 0;
+
+// Pass-one saves did not have an economy. Preserve their game and grant an
+// outstanding spare-move reward exactly once if a round was already cleared.
+export function restoreRogueliteRun(run, movesLeft = 0) {
+  if (!validRogueliteRun(run)) throw new RangeError("Invalid Roguelite save");
+  const coins = nonnegativeInteger(run.coins);
+  const roundBankCoins = nonnegativeInteger(run.roundBankCoins);
+  const totalCoinsEarned = Math.max(coins, nonnegativeInteger(run.totalCoinsEarned));
+  const goldDryStreak = Math.min(GOLD_PITY_SLIDES, nonnegativeInteger(run.goldDryStreak));
+  const previousReward = run.lastRoundReward;
+  const validReward = previousReward && [ "bankCoins", "moveCoins", "unusedMoves", "totalCoins" ]
+    .every(key => Number.isSafeInteger(previousReward[key]) && previousReward[key] >= 0);
+  const restored = {
+    ...run, coins, roundBankCoins, totalCoinsEarned, goldDryStreak,
+    lastRoundReward: validReward ? { ...previousReward } : null
+  };
+  if (run.phase !== "playing" && !restored.lastRoundReward) {
+    const bonus = spareMoveGold(movesLeft);
+    restored.coins += bonus;
+    restored.totalCoinsEarned += bonus;
+    restored.lastRoundReward = {
+      bankCoins: restored.roundBankCoins, moveCoins: bonus,
+      unusedMoves: movesLeft, totalCoins: restored.roundBankCoins + bonus
+    };
+  }
+  return restored;
+}
+
 export function newRogueliteRun(best = 0, rng = Math.random) {
   return {
     mode: "roguelite",
-    board: initial(rng), discovered: [], banked: [], locked: [], mergeReady: [],
+    board: startingBoard(rng), discovered: [], banked: [], locked: [], mergeReady: [],
     score: 0, best: Number.isSafeInteger(best) && best > 0 ? best : 0,
     moves: 0, movesLeft: INITIAL_MOVES_LEFT, mergeCredit: 0,
     budgetRulesVersion: BUDGET_RULES_VERSION, over: false, notice: "",
-    run: { round: 1, totalScore: 0, totalSlides: 0, phase: "playing" }
+    run: {
+      round: 1, totalScore: 0, totalSlides: 0, phase: "playing",
+      coins: 0, totalCoinsEarned: 0, roundBankCoins: 0,
+      goldDryStreak: 0, lastRoundReward: null
+    }
   };
 }
 
-// Invoked only after the existing exact-answer banking engine succeeds.
-export function recordRogueliteBank(run, previousScore, power) {
+// Invoked ONLY after the correct-answer banking engine succeeds. The
+// final successful bank also awards the spare-move bonus, including any
+// +1 move earned by that bank before this function is called.
+export function recordRogueliteBank(run, previousScore, power,
+  { merged = false, movesLeft = 0 } = {}) {
   if (!validRogueliteRun(run) || run.phase !== "playing" ||
-      !Number.isSafeInteger(previousScore) || previousScore < 0) {
+      !Number.isSafeInteger(previousScore) || previousScore < 0 ||
+      typeof merged !== "boolean") {
     throw new RangeError("Cannot score outside an active Roguelite round");
   }
+  const current = restoreRogueliteRun(run);
   const points = scoreForRoguelitePower(power);
+  const bankGold = goldForBank(power, merged);
   const roundScore = previousScore + points;
   const cleared = roundScore >= targetForRound(run.round);
   const phase = !cleared ? "playing"
     : run.round === TOTAL_ROUNDS ? "victory" : "round-clear";
-  return {
-    points, roundScore, cleared,
-    run: { ...run, totalScore: run.totalScore + points, phase }
+  const moveGold = cleared ? spareMoveGold(movesLeft) : 0;
+  const roundBankCoins = current.roundBankCoins + bankGold;
+  const next = {
+    ...current, totalScore: current.totalScore + points, phase,
+    roundBankCoins, coins: current.coins + bankGold + moveGold,
+    totalCoinsEarned: current.totalCoinsEarned + bankGold + moveGold,
+    lastRoundReward: cleared ? {
+      bankCoins: roundBankCoins, moveCoins: moveGold,
+      unusedMoves: movesLeft, totalCoins: roundBankCoins + moveGold
+    } : null
   };
+  return { points, roundScore, cleared, bankGold, moveGold, run: next };
 }
 
-// Keep purchased upgrades/coins here in later passes. For now, the
-// banked-power registry, move budget and hazards reset for each round,
-// while discovered powers and cumulative slides survive the transition.
+// Currency, discoveries and lifetime slides persist. Round bank locks,
+// tile gold, dry streak, blockers, moves, and round score all reset.
 export function advanceRogueliteRound(state, rng = Math.random) {
   if (state?.mode !== "roguelite" || !validRogueliteRun(state.run) ||
       state.run.phase !== "round-clear") {
     throw new RangeError("Advance only after clearing a Roguelite round");
   }
   const nextRound = state.run.round + 1;
+  const run = restoreRogueliteRun(state.run, state.movesLeft);
   return {
     ...state,
-    board: initial(rng, state.run.totalSlides),
+    board: startingBoard(rng, run.totalSlides),
     discovered: [...state.discovered],
     banked: [], locked: [], mergeReady: [],
     score: 0, moves: 0, movesLeft: INITIAL_MOVES_LEFT, mergeCredit: 0,
@@ -92,6 +209,9 @@ export function advanceRogueliteRound(state, rng = Math.random) {
     over: false,
     notice: "Round " + nextRound + ". Reach " + targetForRound(nextRound) +
       " points by banking powers correctly.",
-    run: { ...state.run, round: nextRound, phase: "playing" }
+    run: {
+      ...run, round: nextRound, phase: "playing",
+      roundBankCoins: 0, goldDryStreak: 0, lastRoundReward: null
+    }
   };
 }
