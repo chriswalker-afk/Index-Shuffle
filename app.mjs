@@ -603,6 +603,8 @@ const keys = {
 };
 document.addEventListener("keydown", event => {
   if (event.key === "Escape" && pending !== null) { closeBank(); return; }
+  // Let arrow keys scroll the modal shop instead of swallowing them as slides.
+  if ($("shopDialog").open) return;
   if ($("helpDialog").open || pending !== null ||
       ["INPUT", "TEXTAREA"].includes(document.activeElement.tagName)) return;
   const direction = keys[event.key];
