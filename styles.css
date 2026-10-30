@@ -3144,3 +3144,22 @@ dialog.overlay > .dialog {
     animation: none;
   }
 }
+
+/* Release 5A: never disguise unavailable/corrupt local saves. This alert
+   remains visible on the title as well as in-game, but consumes no room
+   when the browser saves normally. */
+.save-warning {
+  margin: 10px 0 14px;
+  padding: 11px 14px;
+  border-radius: 9px;
+  border: 1px solid #d6b778;
+  background: #413827;
+  color: #fff0c9;
+  font-size: 12px;
+  line-height: 1.6;
+  font-weight: 700;
+}
+.save-warning[hidden] { display: none; }
+@media (max-width: 580px) {
+  .save-warning { padding: 9px 11px; font-size: 11px; }
+}
