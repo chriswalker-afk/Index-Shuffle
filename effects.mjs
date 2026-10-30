@@ -84,8 +84,8 @@ export function goldChancesForRun(run) {
   const baseChance = owned.has("lucky-spawn") ? 0.27 : 0.12;
   return {
     baseChance,
-    sevenChance: Math.min(0.95, baseChance +
-      (owned.has("lucky-sevens") ? 0.30 : 0))
+    sevenChance: Math.min(0.95, Math.round((baseChance +
+      (owned.has("lucky-sevens") ? 0.30 : 0)) * 100) / 100)
   };
 }
 
