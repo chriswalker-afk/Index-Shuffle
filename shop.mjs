@@ -115,7 +115,11 @@ function drawOffers(type, inventory, rng, previous = [], nextRound = 1) {
     (item.unlockRound === undefined || nextRound >= item.unlockRound));
   const fresh = valid.filter(item => !last.has(item.id));
   const pool = (fresh.length >= SHOP_OFFERS_PER_TYPE ? fresh : valid).slice();
-  const offered = [];
+  const offered = selectedRare ? [selectedRare] : [];
+  if (selectedRare) {
+    const index = pool.findIndex(item => item.id === selectedRare);
+    if (index >= 0) pool.splice(index, 1);
+  }
   while (offered.length < SHOP_OFFERS_PER_TYPE) {
     const randomIndex = Math.min(pool.length - 1,
       Math.max(0, Math.floor(rng() * pool.length)));
