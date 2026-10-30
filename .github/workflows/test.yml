@@ -17,3 +17,10 @@ jobs:
           node --check engine.mjs
           node --check app.mjs
           node --check tests.mjs
+      - name: Verify Pages static files
+        run: |
+          test -f .nojekyll
+          test -f index.html
+          test -f styles.css
+          test -f app.mjs
+          test -f engine.mjs
