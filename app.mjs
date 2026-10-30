@@ -136,6 +136,9 @@ function render() {
   const noBonusMoves = rogue && !bossAllowsMoveRestoration(state.run);
   $("mergeProgress").textContent = noBonusMoves ? "DISABLED" :
     state.mergeCredit + " / " + MERGES_PER_BONUS_MOVE;
+  $("mergeMeterCaption").textContent = noBonusMoves
+    ? "The Timekeeper: correct banking cannot restore moves this round."
+    : "Bank two merged powers correctly to earn +1 move.";
   $("bonusMeter").value = noBonusMoves ? 0 : state.mergeCredit;
   $("bonusMeter").setAttribute("aria-valuetext", noBonusMoves
     ? "The Timekeeper prevents extra moves this round"
