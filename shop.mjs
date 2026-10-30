@@ -52,7 +52,15 @@ export const ITEM_CATALOG = Object.freeze([
   { id: "clear-space", name: "Clear Space", type: "consumables", price: 2, description: "Remove one ordinary number tile without scoring." },
   { id: "second-chance", name: "Second Chance", type: "consumables", price: 2, description: "Unlock one temporarily locked banking attempt." },
   { id: "foundry-runestone", name: "Gilded Foundry", type: "consumables", price: 5, unlockRound: 4, rare: true, description: "Place a golden foundry on one safe board square. Two useful merges or correct banks there become golden." },
-  { id: "prism-runestone", name: "Power Prism", type: "consumables", price: 6, unlockRound: 4, rare: true, description: "Place a prism on one safe board square. Two merges or correct banks there can gain double scoring." }
+  { id: "prism-runestone", name: "Power Prism", type: "consumables", price: 6, unlockRound: 4, rare: true, description: "Place a prism on one safe board square. Two merges or correct banks there can gain double scoring." },
+  { id: "echo-runestone", name: "Echo Seal", type: "consumables", price: 7, unlockRound: 7, rare: true,
+    description: "Enchant one square. Once, a correct answer there may bank a power already scored this round." },
+  { id: "mint-runestone", name: "Twin Mint", type: "consumables", price: 8, unlockRound: 10, rare: true,
+    description: "Enchant one square. Its next eligible merge becomes double gold; one charge." },
+  { id: "sanctuary-runestone", name: "Time Sanctuary", type: "consumables", price: 5, unlockRound: 4, rare: true,
+    description: "Enchant one square. Two questions opened there gain 10 seconds each (maximum 60)." },
+  { id: "shatter-runestone", name: "Shatter Crest", type: "consumables", price: 5, unlockRound: 7, rare: true,
+    description: "Enchant one square. Two correctly banked merges beside blockers deal an extra hit." }
 ].map(item => Object.freeze(item)));
 export const ITEM_BY_ID = Object.freeze(
   Object.fromEntries(ITEM_CATALOG.map(item => [item.id, item]))
