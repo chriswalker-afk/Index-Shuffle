@@ -20,6 +20,17 @@
 - Moves animate briefly (170 ms). System **reduced motion** preferences disable animations. Banking timers pause while the browser tab is hidden.
 - Game state, correctly banked merge credit, remaining moves and high score are saved locally in the browser. New games start with 10 moves. **Existing saved games created under the earlier automatic-merge-reward rule** keep their board, score, discoveries and historical slide count but receive a fresh ten-move balance and zero correct-bank credit; this upgrade occurs once.
 
+## Interface
+
+The play screen is intentionally **focused on making decisions**, not on displaying the rulebook:
+
+- **Always visible:** the 4×4 board, short contextual feedback, remaining moves, next-slide cost, progress toward the next bonus move, score, and keyboard/touch controls. Remaining moves is visually prominent; low-move and game-over states are distinct.
+- **Only when requested:** **How to play** and **Maths help** open separate views in an accessible learning dialog. The banking question also has an optional, collapsed maths reminder.
+- **Collapsed by default:** **Run details** (personal best, number banked, cumulative slides, active blockers, unlocked bases and forthcoming milestones) and **Power collection**. Expanding them does not affect the game or timer.
+- **Responsive:** on a narrow screen the move budget appears immediately above the board, with expandable details below the board. Keyboard controls are disabled while the help dialog is open, and the native dialog returns focus when closed.
+
+The panel layout is deliberately compact: a player should not need to read instructions or open statistics to complete a normal turn. New-game, banking, 60-second answer timer, blocker warnings, and save/resume behaviour are unchanged.
+
 ## Tests
 
 Run **node tests.mjs** and **node hazards.tests.mjs** (Node 18+). GitHub Actions runs both tests, JavaScript syntax checks, and static entrypoint verification on pushes and pull requests.
@@ -31,7 +42,7 @@ The engine and hazard regression tests cover the **ten-move budget**, blocker sl
 The game is plain HTML, CSS, and native JavaScript modules, with no external runtime dependencies.
 
 - **engine.mjs:** deterministic game rules, sliding segments, blocker damage, dual spawning, power replacement, and question validation.
-- **app.mjs:** browser interaction, banking timer, persistent state, move-cost display and short tile animations. The HTML uses versioned script and stylesheet URLs to prevent a previously cached module from applying obsolete move rules after deployment.
+- **app.mjs:** browser interaction, banking timer, accessible help dialog, persistent state, move-cost display and short tile animations. The HTML uses versioned script and stylesheet URLs to prevent stale modules from keeping the old layout or obsolete move rules after deployment.
 - **styles.css:** responsive visual design, including reduced-motion support.
 
 Spawn probabilities are weighted at roughly **85% base tiles, 11% discovered squares, 3% discovered cubes, 1% higher discovered powers**, automatically reweighted when a category has not been discovered. Within the base tile pool, a newly unlocked base starts at **30% of the normal per-base weighting** and ramps to equal weight across 12 successful slides. The progression stops at six bases. Blockers still progress from one to five required **correctly banked adjacent merges** across ten-slide milestones. Their cadence and the per-tier hit requirements can be adjusted after playtesting.

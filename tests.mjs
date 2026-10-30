@@ -343,8 +343,36 @@ assert.match(uiSource,
 assert.match(uiSource, /\$\("movesLeft"\)\.textContent = state\.movesLeft/,
   "the counter in the UI must be updated after each render");
 assert.match(page, /id="movesLeft"/);
-assert.match(page, /app\.mjs\?v=banked-moves-v2/);
-assert.match(uiSource, /engine\.mjs\?v=banked-moves-v2/);
-assert.match(page, /correctly banked merges/);
+assert.match(page, /app\.mjs\?v=focused-ui-v3/);
+assert.match(uiSource, /engine\.mjs\?v=focused-ui-v3/);
+assert.match(page, /Correct merged-power banks/);
+
+// Presentation regression checks: learning content is optional and the
+// first-screen hierarchy is board + budget, not permanently expanded notes.
+const style = readFileSync("styles.css", "utf8");
+assert.match(page, /<dialog id="helpDialog"/);
+assert.match(page, /<section id="helpMaths"[^>]+hidden>/);
+assert.match(page, /<section id="helpHow"/);
+assert.match(page, /<details id="runDetails"/);
+assert.match(page, /<details id="collectionDetails"/);
+assert.doesNotMatch(page, /<details id="runDetails"[^>]+open/);
+assert.doesNotMatch(page, /<details id="collectionDetails"[^>]+open/);
+assert.match(page, /<summary>Need a maths reminder\?<\/summary>/);
+assert.match(page, /data-help="how"/);
+assert.match(page, /data-help="maths"/);
+assert.match(page, /id="bonusMeter"[^>]*max="2"/);
+assert.match(page, /id="endActions"[^>]*hidden/);
+assert.match(page, /styles\.css\?v=focused-ui-v3/);
+assert.match(style, /grid-template-areas: "board hud" "board secondary"/);
+assert.match(style, /grid-template-areas: "hud" "board" "secondary"/);
+assert.match(uiSource, /\$\("helpDialog"\)\.showModal\(\)/);
+assert.match(uiSource, /\$\("helpDialog"\)\.open \|\| pending !== null/,
+  "swipe/keyboard shortcuts must be disabled while learning help is open");
+assert.match(uiSource, /\$\("bonusMeter"\)\.value = state\.mergeCredit/);
+assert.match(uiSource, /\$\("endActions"\)\.hidden = !state\.over/);
+// No uncollapsed instructions or detailed learning panels remain
+// alongside the game board on initial load.
+assert.doesNotMatch(page, /<aside class="side">/);
+assert.doesNotMatch(page, /<section class="panel">/);
 
 console.log("All Index Shuffle engine tests passed.");

@@ -3,133 +3,204 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#10192f">
-  <title>Index Shuffle — Powers, with purpose</title>
-  <link rel="stylesheet" href="styles.css?v=banked-moves-v2">
+  <meta name="theme-color" content="#0c1428">
+  <meta name="description" content="Slide and merge powers, solve banking challenges and stay in the game.">
+  <title>Index Shuffle — Make every move count</title>
+  <link rel="stylesheet" href="styles.css?v=focused-ui-v3">
 </head>
 <body>
   <main class="shell">
     <header class="top">
-      <div>
-        <p class="eyebrow">THE EXPONENT ARCADE</p>
-        <h1>INDEX <span>SHUFFLE</span></h1>
-        <p class="sub">Slide. Multiply. Discover. Bank.</p>
+      <div class="brand" aria-label="Index Shuffle">
+        <div class="brand-mark" aria-hidden="true">x<sup>n</sup></div>
+        <div>
+          <h1>Index <span>Shuffle</span></h1>
+          <p class="brand-sub">A game of powers and smart moves</p>
+        </div>
       </div>
-      <button id="new" class="outline">↻ New game</button>
+      <nav class="header-actions" aria-label="Game options">
+        <button type="button" class="quiet-btn" data-help="how" aria-haspopup="dialog">How to play</button>
+        <button type="button" class="quiet-btn" data-help="maths" aria-haspopup="dialog">Maths help</button>
+        <button type="button" id="new" class="outline" aria-label="Start a new game">New game</button>
+      </nav>
     </header>
 
-    <section class="stats" aria-label="Game statistics">
-      <div id="movesCard" class="stat-budget">
-        <small>MOVES LEFT</small><strong id="movesLeft" aria-live="polite">10</strong>
-        <span id="mergeProgress" class="merge-progress">0 / 2 correctly banked merges</span>
-        <span id="slideCost" class="slide-cost">Next slide costs 1 move</span>
-      </div>
-      <div><small>SCORE</small><strong id="score">0</strong></div>
-      <div><small>BEST</small><strong id="best">0</strong></div>
-      <div><small>BANKED</small><strong id="count">0</strong></div>
-      <div><small>SLIDES</small><strong id="moves">0</strong></div>
-    </section>
-
-    <section class="play">
-      <div class="game">
+    <section class="play" aria-label="Index Shuffle game">
+      <section class="game" aria-label="Game board">
         <div class="board-head">
           <div>
-            <h2>Your board</h2>
-            <p id="status" aria-live="polite">Merge tiles with the same base.</p>
+            <p class="overline">THE BOARD</p>
+            <h2>Build powers. Bank wisely.</h2>
           </div>
-          <span id="stage">SURVIVAL MODE</span>
         </div>
-        <div id="board" class="board" role="grid" aria-label="Index Shuffle board with sliding powers and fixed blockers"></div>
-        <div class="controls" aria-label="Direction controls">
-          <button data-dir="left" aria-label="Slide left">←</button>
-          <button data-dir="up" aria-label="Slide up">↑</button>
-          <button data-dir="down" aria-label="Slide down">↓</button>
-          <button data-dir="right" aria-label="Slide right">→</button>
+        <div id="status" class="game-feedback" role="status" aria-live="polite">
+          Merge matching bases or bank a glowing power.
         </div>
-        <div class="base-progress" aria-label="Unlocked bases and upcoming milestone">
-          <span class="base-progress-label">BASES IN PLAY</span>
-          <div id="activeBases" class="base-chips"></div>
-          <span id="nextBase" class="next-base"></span>
+        <div id="board" class="board" role="grid"
+          aria-label="Four by four board of number powers and fixed blockers"></div>
+        <div class="controls-row">
+          <span class="control-caption">Slide with arrow keys, WASD or swipe</span>
+          <div class="controls" aria-label="Direction controls">
+            <button type="button" data-dir="left" aria-label="Slide left">←</button>
+            <button type="button" data-dir="up" aria-label="Slide up">↑</button>
+            <button type="button" data-dir="down" aria-label="Slide down">↓</button>
+            <button type="button" data-dir="right" aria-label="Slide right">→</button>
+          </div>
         </div>
-        <div class="pressure-strip" aria-label="Blocker progress">
-          <span class="pressure-symbol" aria-hidden="true">▦</span>
-          <span><strong>BLOCKERS</strong> <span id="blockerCount">0 / 2</span></span>
-          <span id="blockerNext" class="pressure-help">First: move 10 · tier 1</span>
-        </div>
-        <p class="tip">Use arrow keys, WASD or swipe. ✦ means bankable;
-          ⚡ means a correct bank will hit a nearby blocker; ⌛ means wait one slide;
-          ! marks the next blocker square; ▦ is a fixed blocker.</p>
-      </div>
+      </section>
 
-      <aside class="side">
-        <section class="panel">
-          <p class="eyebrow">YOUR STRATEGY</p>
-          <h2>Bank a power. Keep the pressure.</h2>
-          <p>Every distinct power can be banked <b>once per game</b>. Calculate its
-             value in 60 seconds to earn points.</p>
-          <div class="formula">a<sup>m</sup> × a<sup>n</sup> = a<sup>m+n</sup></div>
-          <p class="muted">Banking replaces the tile with a smaller unlocked power
-             of the same base, without clearing the square. The replacement,
-             wrong answers and timeouts all have a one-slide banking cooldown.</p>
-        </section>
-        <section class="panel">
-          <div class="between">
-            <h2>Power collection</h2>
-            <span class="count" id="collectionCount">0 found</span>
+      <section id="movesCard" class="hud" aria-label="Current game status">
+        <div class="hud-heading">
+          <span class="overline">YOUR RUN</span>
+          <span id="stage" class="run-state">Playing</span>
+        </div>
+        <div class="budget-line">
+          <div>
+            <p class="budget-label">Moves left</p>
+            <strong id="movesLeft" class="budget-value" aria-live="polite">10</strong>
+            <span class="budget-max">/ 10</span>
           </div>
-          <div id="collection" class="collection" aria-live="polite"></div>
-          <p class="muted">✓ banked &nbsp; · &nbsp; ◇ discovered</p>
-        </section>
-        <section class="panel">
-          <h2>How to survive</h2>
-          <p><b>Start with 10 moves.</b> Each successful slide costs
-             <b>1 move, plus 1 for each active blocker</b> already on the board:
-             with one blocker, a slide costs 2 moves; with two, 3 moves.
-             An incoming warning does not count until its blocker appears.</p>
-          <p>Only <b>correctly banking</b> a power created through merging
-             counts towards restoring moves. For every <b>two correctly banked
-             merged powers</b>, earn one move, up to a <b>maximum of 10</b>.
-             Merely merging tiles or banking a randomly spawned power earns
-             no moves. If moves left reaches <b>zero</b>, the game ends—even
-             if you could still bank a tile. Swipes that change nothing are free.</p>
-          <p>Each valid slide spawns a new tile. From move 40, every tenth
-             slide can add a <b>second tile</b> when space is available.</p>
-          <p>At move <b>9</b>, an empty square is <b>highlighted as a warning</b>.
-             On your next successful slide (move 10), that exact square
-             becomes a <b>tier 1 blocker</b>, requiring just one adjacent
-             merge to destroy. The marked square is temporarily reserved,
-             so tiles cannot slide through it or overwrite it.</p>
-          <p>A new warning is attempted every ten moves (19, 29, 39, …),
-             leading to blockers with 2, 3, 4 and then 5 hits (the maximum).
-             At most <b>two blockers</b> can be active at once. If no safe
-             square is available, that warning and blocker are skipped.</p>
-          <p>Blockers stay fixed and divide rows and columns. <b>Merging
-             alone does not damage a blocker.</b> Make a power by merging
-             matching bases, then <b>bank that merged power correctly
-             while it is directly beside a blocker</b> to deal one hit.
-             Diagonal squares do not count; a power spawned randomly must
-             first be merged before it can damage anything. Look for the
-             <b>⚡</b> symbol on powers that can damage a blocker when banked.</p>
-          <p>Breaking a blocker opens its square for future turns.
-             Incorrect or timed-out banking attempts never damage blockers.</p>
-          <p>New bases unlock after 15, 35 and 60 successful slides.
-             You also lose if no legal slides or banking actions remain.</p>
-        </section>
+          <div class="cost-panel">
+            <span>Next slide</span>
+            <strong id="slideCost">−1 move</strong>
+          </div>
+        </div>
+        <div class="bank-meter">
+          <div class="meter-top">
+            <span>Correct merged-power banks</span>
+            <strong id="mergeProgress">0 / 2</strong>
+          </div>
+          <progress id="bonusMeter" value="0" max="2" aria-label="Correctly banked merged powers toward one extra move"></progress>
+          <p class="meter-caption">Bank two merged powers correctly to earn +1 move.</p>
+        </div>
+        <div class="hud-score">
+          <span>Score</span><strong id="score">0</strong>
+        </div>
+        <div id="endActions" class="end-actions" hidden>
+          <strong>Run finished</strong>
+          <p>You can start a new game and try a different strategy.</p>
+          <button type="button" id="newFromEnd" class="primary">Play again</button>
+        </div>
+      </section>
+
+      <aside class="secondary" aria-label="Optional game details">
+        <details id="runDetails" class="details-card">
+          <summary>
+            <span class="summary-icon" aria-hidden="true">◫</span>
+            <span class="summary-copy"><strong>Run details</strong>
+              <small>Progress, blockers and personal best</small></span>
+            <span class="chevron" aria-hidden="true">⌄</span>
+          </summary>
+          <div class="detail-body">
+            <div class="detail-grid">
+              <div><span>Personal best</span><strong id="best">0</strong></div>
+              <div><span>Powers banked</span><strong id="count">0</strong></div>
+              <div><span>Slides made</span><strong id="moves">0</strong></div>
+              <div><span>Active blockers</span><strong id="blockerCount">0 / 2</strong></div>
+            </div>
+            <div class="detail-divider"></div>
+            <p class="detail-label">Bases in play</p>
+            <div id="activeBases" class="base-chips" aria-label="Unlocked bases"></div>
+            <p id="nextBase" class="detail-hint"></p>
+            <p id="blockerNext" class="detail-hint"></p>
+          </div>
+        </details>
+
+        <details id="collectionDetails" class="details-card">
+          <summary>
+            <span class="summary-icon" aria-hidden="true">◇</span>
+            <span class="summary-copy"><strong>Power collection</strong>
+              <small id="collectionCount">0 found</small></span>
+            <span class="chevron" aria-hidden="true">⌄</span>
+          </summary>
+          <div class="detail-body">
+            <div id="collection" class="collection" aria-live="polite"></div>
+            <p class="detail-hint">✓ Banked · ◇ Discovered</p>
+          </div>
+        </details>
       </aside>
     </section>
-    <footer>Made for mathematical thinking · No accounts or overall game timer.</footer>
   </main>
+
+  <dialog id="helpDialog" class="help-dialog" aria-labelledby="helpTitle">
+    <div class="help-header">
+      <div>
+        <p class="overline">REFERENCE</p>
+        <h2 id="helpTitle">How to play</h2>
+      </div>
+      <button type="button" id="helpClose" class="dialog-close" aria-label="Close help">×</button>
+    </div>
+
+    <section id="helpHow" class="help-content">
+      <div class="help-block">
+        <h3>1. Slide and combine</h3>
+        <p>Use the arrow keys, WASD, touch swipe or direction buttons.
+           Powers with the <strong>same base</strong> merge by adding their exponents.
+           A swipe that changes nothing does not cost a move.</p>
+        <div class="math-example">3² × 3³ = 3⁵</div>
+      </div>
+      <div class="help-block">
+        <h3>2. Bank a power</h3>
+        <p>Select a glowing <b>✦</b> tile and calculate its exact value in 60 seconds.
+           Each distinct power can be banked only once. Banking earns points and
+           leaves a smaller power behind. A wrong answer or timeout locks that
+           tile until another successful slide.</p>
+      </div>
+      <div class="help-block">
+        <h3>3. Protect your moves</h3>
+        <p>You start with <strong>10 moves</strong>. Each successful slide costs
+           1 move plus 1 for every active blocker. Bank two powers that were
+           actually created by merging to earn back 1 move, up to 10. At zero
+           moves the run ends.</p>
+      </div>
+      <div class="help-block">
+        <h3>4. Break blockers</h3>
+        <p>Yellow <b>!</b> squares warn where a fixed blocker will arrive on
+           the next slide. A blocker cannot move or merge. Correctly bank a
+           <b>⚡</b> merged power directly beside a blocker to damage it.
+           Different blocker tiers take different numbers of successful banks.</p>
+      </div>
+      <div class="symbol-guide" aria-label="Board symbol legend">
+        <span><b>✦</b> Bankable</span><span><b>⚡</b> Damages blocker if banked</span>
+        <span><b>⌛</b> Banking cooldown</span><span><b>!</b> Incoming blocker</span>
+        <span><b>▦</b> Fixed blocker</span>
+      </div>
+    </section>
+
+    <section id="helpMaths" class="help-content" hidden>
+      <div class="help-block">
+        <p class="overline">INDEX LAW</p>
+        <div class="math-example">a<sup>m</sup> × a<sup>n</sup> = a<sup>m+n</sup></div>
+        <h3>Keep the base. Add the exponents.</h3>
+        <p>This rule applies when <strong>the bases are identical</strong>.
+           For example, 2² multiplied by 2³ gives 2⁵, not 2⁶.</p>
+      </div>
+      <div class="help-block">
+        <h3>Evaluate a power to bank it</h3>
+        <p>The exponent tells you how many copies of the base to multiply.</p>
+        <div class="math-example">3⁴ = 3 × 3 × 3 × 3 = 81</div>
+        <p>Banking asks for the <strong>number value</strong>, not another
+           power expression. You have 60 seconds for each answer.</p>
+      </div>
+      <div class="help-block">
+        <h3>Watch out for this mistake</h3>
+        <p>Multiplying two powers is <strong>not</strong> the same as adding
+           their numerical values. The exponent rule gives:</p>
+        <div class="math-example">2² × 2³ = 2⁵ = 32</div>
+      </div>
+    </section>
+  </dialog>
 
   <div id="modal" class="overlay" hidden>
     <div class="dialog" role="dialog" aria-modal="true"
          aria-labelledby="promptTitle" aria-describedby="promptHelp">
-      <button class="close" id="close" aria-label="Close">×</button>
-      <p class="eyebrow">BANK THIS POWER</p>
+      <button type="button" class="close" id="close" aria-label="Close banking question">×</button>
+      <p class="overline">BANK THIS POWER</p>
       <h2 id="promptTitle"></h2>
-      <p id="promptHelp">You have 60 seconds to enter the exact value. One
-         incorrect answer or a timeout locks this tile until your next valid slide.</p>
+      <p id="promptHelp">You have 60 seconds to enter the exact value.</p>
       <div id="clock" class="clock">
-        <div class="between"><span>Time remaining</span><strong id="timeLeft" role="timer">1:00</strong></div>
+        <div class="between"><span>Time remaining</span>
+          <strong id="timeLeft" role="timer">1:00</strong></div>
         <div class="timer-track" aria-hidden="true"><div id="timeProgress"></div></div>
       </div>
       <form id="bankForm">
@@ -139,9 +210,14 @@
         <p id="feedback" aria-live="polite"></p>
         <button class="primary" type="submit">Bank power</button>
       </form>
-      <button id="cancel" class="textbtn">Keep this tile</button>
+      <details class="bank-hint">
+        <summary>Need a maths reminder?</summary>
+        <p>For a power such as 3⁴, multiply the base four times:
+           3 × 3 × 3 × 3. Only the exact final value can be banked.</p>
+      </details>
+      <button type="button" id="cancel" class="textbtn">Keep this tile</button>
     </div>
   </div>
-  <script type="module" src="app.mjs?v=banked-moves-v2"></script>
+  <script type="module" src="app.mjs?v=focused-ui-v3"></script>
 </body>
 </html>
