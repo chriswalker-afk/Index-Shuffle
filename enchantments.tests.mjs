@@ -223,4 +223,23 @@ assert.match(app, /bankLimitMs = remainingMs/);
 assert.match(app, /trigger: "open"/);
 assert.match(app, /lockPending\("cancel"\)/);
 
-console.log("Enchanted squares Passes 1 and 2 tests passed.");
+// Pass 3 board presentation stays independent from scoring and persists
+// no animation flags in the saved enchanted layer.
+const overlayUI = readFileSync("enchantment-ui.mjs", "utf8");
+const shopUI = readFileSync("shop-ui.mjs", "utf8");
+const css = readFileSync("styles.css", "utf8");
+assert.match(overlayUI, /previewType = null, candidates = \[\]/);
+assert.match(overlayUI, /enchantment-slot--preview/);
+assert.match(overlayUI, /enchantment-preview-icon/);
+assert.match(overlayUI, /board\.append\(overlay\)/);
+assert.match(app, /renderEnchantmentLayer\(board, enchants, \{/);
+assert.match(app, /enchantment-status-chip/);
+assert.match(app, /rune-activation-flash/);
+assert.match(app, /bankRuneBonus/);
+assert.match(app, /ENCHANTMENT_DEFINITIONS\[redeemedRuneType\]/);
+assert.match(shopUI, /RUNE_TRIGGER_LABEL/);
+assert.match(css, /\.enchantment-status-chip/);
+assert.match(css, /\.rune-activation-flash/);
+assert.match(css, /\.bank-rune-bonus/);
+assert.match(css, /\.enchantment-slot\[data-enchantment\]/);
+console.log("Enchanted squares Passes 1–3 tests passed.");
