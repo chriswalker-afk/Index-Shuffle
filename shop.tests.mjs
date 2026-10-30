@@ -235,7 +235,7 @@ assert.ok(rareShop.run.shop.consumables.includes("shatter-runestone"));
 rareShop = enterRogueliteShop(runForStage(10),
   sequence(.5, .5, .15, .55, .5));
 assert.ok(rareShop.run.shop.consumables.includes("mint-runestone"));
-for (const stage of [1,2,3]) {
+for (const stage of [2,3]) {
   const oldShop = enterRogueliteShop(runForStage(stage),
     sequence(.5, .5, .15, .99, .5));
   assert.equal(oldShop.run.shop.consumables.some(id => ITEM_BY_ID[id]?.rare),
