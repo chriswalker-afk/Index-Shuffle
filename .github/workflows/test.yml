@@ -19,6 +19,9 @@ jobs:
           node hazards.tests.mjs
           node roguelite.tests.mjs
           node enchantments.tests.mjs
+          node enchantments-balance.tests.mjs
+          node enchantments-hazard-audit.tests.mjs
+          node enchantments-integration.tests.mjs
           node shop.tests.mjs
           node effects.tests.mjs
           node bosses.tests.mjs
@@ -45,6 +48,9 @@ jobs:
           node --check enchantments.mjs
           node --check enchantment-ui.mjs
           node --check enchantments.tests.mjs
+          node --check enchantments-balance.tests.mjs
+          node --check enchantments-hazard-audit.tests.mjs
+          node --check enchantments-integration.tests.mjs
           node --check shop.mjs
           node --check shop-ui.mjs
           node --check shop.tests.mjs
@@ -86,6 +92,9 @@ jobs:
           test -f enchantments.mjs
           test -f enchantment-ui.mjs
           test -f enchantments.tests.mjs
+          test -f enchantments-balance.tests.mjs
+          test -f enchantments-hazard-audit.tests.mjs
+          test -f enchantments-integration.tests.mjs
           test -f shop.mjs
           test -f shop-ui.mjs
           test -f effects.mjs
