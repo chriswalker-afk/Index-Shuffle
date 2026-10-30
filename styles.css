@@ -2170,3 +2170,437 @@ details[open] > summary .chevron { transform: rotate(180deg); }
     animation: none !important; transition: none !important;
   }
 }
+
+
+/* ── Numberworld environments · Art Pass 4 ─────────────────────────────
+   Stage background is a quiet, labelled panorama outside the tile grid.
+   It is driven by the existing stageForRound() and never affects moves. */
+#gameScreen[data-stage="1"] { --realm-edge: #9cead1; --realm-glow: #2c706b; }
+#gameScreen[data-stage="2"] { --realm-edge: #b5cfe2; --realm-glow: #465f79; }
+#gameScreen[data-stage="3"] { --realm-edge: #efbb85; --realm-glow: #74504b; }
+#gameScreen[data-stage="4"] { --realm-edge: #d4b4ef; --realm-glow: #65496f; }
+.stage-scene {
+  position: relative; isolation: isolate; overflow: hidden;
+  display: flex; align-items: center; justify-content: space-between; gap: 13px;
+  min-height: 94px; margin: 0 0 15px;
+  padding: 16px 24px;
+  border: 1px solid var(--realm-edge, #7294a3);
+  border-radius: 17px;
+  background: #162338;
+  box-shadow: inset 0 1px 0 #ffffff34, 0 12px 29px #040a1c59;
+}
+.stage-scene::before {
+  content: ""; position: absolute; z-index: -1;
+  inset: 0; pointer-events: none;
+  background: linear-gradient(90deg, #0d1b30f2 0%, #101e33c8 33%, #14233826 94%);
+}
+.stage-scene-image {
+  position: absolute; inset: 0; z-index: -2;
+  width: 100%; height: 100%; object-fit: cover; object-position: center;
+  pointer-events: none; opacity: .93;
+}
+.stage-scene-copy {
+  display: flex; flex-direction: column; gap: 4px;
+  position: relative; z-index: 1; min-width: 0;
+}
+.stage-scene-copy > span {
+  color: var(--realm-edge, #9fe6d6);
+  font-size: 10px; letter-spacing: .13em; font-weight: 950;
+}
+.stage-scene-copy strong { color: #f7f3e7; font-size: clamp(18px,2.5vw,24px);
+  line-height: 1.18; letter-spacing: -.03em; }
+.stage-scene-copy small { color: #d2e3e6; font-size: 11px; line-height: 1.4; }
+.stage-scene-round {
+  flex: none; border: 1px solid #e2eee47f;
+  border-radius: 999px; padding: 7px 10px;
+  background: #111e31cf; color: #f5f4eb;
+  font-size: 10px; font-weight: 900; letter-spacing: .09em;
+  font-variant-numeric: tabular-nums;
+}
+#gameScreen[data-stage="1"] .game,
+#gameScreen[data-stage="2"] .game,
+#gameScreen[data-stage="3"] .game,
+#gameScreen[data-stage="4"] .game {
+  border-color: var(--realm-edge);
+  border-top-width: 3px;
+  background: linear-gradient(155deg, #16223a, #131f34);
+  box-shadow: 0 18px 40px #0308164d, inset 0 1px 0 #ffffff1a;
+}
+#gameScreen[data-stage="1"] .hud,
+#gameScreen[data-stage="2"] .hud,
+#gameScreen[data-stage="3"] .hud,
+#gameScreen[data-stage="4"] .hud {
+  border-top: 3px solid var(--realm-edge);
+}
+/* Do not recolour .board, its cells, banking prompts, move values or hazards. */
+#gameScreen[data-stage="1"] .playing-head strong,
+#gameScreen[data-stage="2"] .playing-head strong,
+#gameScreen[data-stage="3"] .playing-head strong,
+#gameScreen[data-stage="4"] .playing-head strong {
+  color: var(--realm-edge);
+}
+@media (max-width: 650px) {
+  .stage-scene { min-height: 80px; padding: 12px 14px; margin-bottom: 11px; border-radius: 12px; }
+  .stage-scene-copy strong { font-size: 17px; }
+  .stage-scene-copy > span { font-size: 9px; letter-spacing: .08em; }
+  .stage-scene-copy small { font-size: 10px; }
+  .stage-scene-round { font-size: 9px; padding: 6px 8px; }
+}
+@media (max-width: 380px) {
+  .stage-scene { gap: 8px; }
+  .stage-scene-round { max-width: 91px; text-align: center; line-height: 1.4; }
+}
+
+/* ── Title: an illustrated gateway, with original maths board in front ── */
+.title-hero {
+  position: relative; isolation: isolate; overflow: hidden;
+  border: 1px solid #a18e79;
+  background:
+    radial-gradient(circle at 96% 13%, #78618136, transparent 51%),
+    radial-gradient(circle at 5% 98%, #265e6150, transparent 47%),
+    linear-gradient(145deg, #222e45, #16233b 59%, #173440);
+  box-shadow: inset 0 1px 0 #fff0cc33, 0 25px 66px #0308177a;
+}
+.title-hero::before {
+  content: ""; pointer-events: none; z-index: -1;
+  position: absolute; inset: 0; opacity: .14;
+  background-image: radial-gradient(circle at center, #fff2c5 1.2px, transparent 2px);
+  background-size: 29px 29px;
+  mask-image: linear-gradient(90deg, transparent 10%, #000 100%);
+}
+.title-intro { position: relative; z-index: 2; }
+.title-kicker { color: #f0ce91; }
+.title-intro h2 span { color: #adf4dd; }
+.title-description { color: #d4e0e9; }
+.title-showcase { min-height: 342px; }
+.title-numberworld-art {
+  position: absolute; z-index: -1;
+  width: 128%; max-width: none; height: 126%;
+  object-fit: cover; object-position: center;
+  border-radius: 22px; opacity: .82;
+  filter: saturate(.86) drop-shadow(0 18px 28px #060e1d50);
+  pointer-events: none; user-select: none;
+}
+.title-showcase .showcase-glow { z-index: -1; }
+.title-showcase .showcase-board {
+  position: relative; z-index: 1;
+  transform: rotate(-5deg) translateY(12px);
+  border-color: #e9d2a5;
+  box-shadow: 0 26px 56px #050918c9, inset 0 2px 1px #9bcce05c;
+}
+.title-showcase > p {
+  position: relative; z-index: 2;
+  display: block; padding: 7px 12px;
+  border-radius: 999px;
+  background: #101e34d9; border: 1px solid #b6a4837c;
+  color: #ffe4ad; letter-spacing: .12em;
+}
+.title-primary {
+  background: linear-gradient(135deg, #b7f8e6, #78dfc8) !important;
+  border: 1px solid #b0ffe7 !important; color: #0c3540 !important;
+  box-shadow: inset 0 1px 0 #fff9, 0 8px 21px #6fd0ad44;
+}
+.title-primary:hover { background: #d2fff3 !important; }
+.title-secondary { border-color: #aa957d; background: #334055; }
+.title-secondary:hover { background: #465776; }
+.title-mode-teasers > div {
+  border-color: #6d7274;
+  background: linear-gradient(145deg, #24384c, #1b3044);
+  box-shadow: inset 0 1px 0 #ffffff17;
+}
+.title-mode-teasers > div:last-child {
+  border-color: #a68a70;
+  background: linear-gradient(145deg, #362e46, #1b3043);
+}
+.title-mode-teasers > div:last-child > span { color: #f6d69b; }
+.title-realm-journey {
+  margin-top: 24px; padding: 16px 0 0; border-top: 1px solid #4b5e77;
+}
+.title-realm-journey > header {
+  display: flex; justify-content: space-between;
+  align-items: end; flex-wrap: wrap; gap: 8px 15px; margin-bottom: 13px;
+}
+.title-realm-eyebrow {
+  display: block; color: #e9bf84; font-size: 9px;
+  letter-spacing: .15em; font-weight: 950; margin: 0 0 5px;
+}
+.title-realm-journey h3 {
+  margin: 0; font-size: clamp(16px,2.4vw,19px);
+  letter-spacing: -.02em; color: #fff1d8;
+}
+.title-realm-hint { font-size: 11px; color: #abbdcd; }
+.title-realm-grid { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 10px; }
+.title-realm-card {
+  position: relative; min-width: 0; overflow: hidden;
+  border: 1px solid #708493; border-top: 2px solid #9cead1;
+  border-radius: 12px; height: 116px;
+  background: #192b40; box-shadow: 0 7px 18px #040a1d45;
+}
+.title-realm--2 { border-top-color: #b5cfe2; }
+.title-realm--3 { border-top-color: #efbb85; }
+.title-realm--4 { border-top-color: #d4b4ef; }
+.title-realm-card img { position: absolute; inset: 0; width: 100%; height: 100%;
+  object-fit: cover; pointer-events: none; }
+.title-realm-card::after { content: ""; position: absolute; inset: 0;
+  background: linear-gradient(0deg, #101b2ff0, #101b2f78 43%, transparent 100%); }
+.title-realm-card > div { position: absolute; z-index: 1;
+  bottom: 9px; left: 10px; right: 8px; }
+.title-realm-card span { display: block; font-size: 9px; font-weight: 850;
+  letter-spacing: .04em; color: #cfdee6; margin-bottom: 3px; }
+.title-realm-card strong { color: #fff4dd; font-size: 13px;
+  font-weight: 850; line-height: 1.23; display: block; }
+@media (max-width: 820px) {
+  .title-realm-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .title-realm-card { height: 102px; }
+}
+@media (max-width: 760px) {
+  .title-showcase { min-height: 290px; }
+  .title-numberworld-art { width: 135%; height: 125%; }
+}
+@media (max-width: 580px) {
+  .title-showcase { min-height: 255px; }
+  .title-numberworld-art { width: 140%; height: 120%; }
+  .title-realm-journey { margin-top: 15px; }
+  .title-realm-card { height: 96px; }
+  .title-realm-card strong { font-size: 12px; }
+  .title-realm-card span { font-size: 8px; }
+  .title-realm-hint { font-size: 10px; }
+}
+
+/* ── Five original hazard emblems ──
+   Existing warning !, NEXT label, corner impact badge and written guide
+   remain in place; artwork does not intercept board gestures. */
+.hazard-slot .hazard-art-emblem {
+  position: absolute; z-index: 2; top: 2px; left: 2px;
+  width: clamp(25px, 4.9vw, 42px);
+  height: clamp(25px, 4.9vw, 42px);
+  display: block; pointer-events: none;
+  background-position: center; background-size: contain;
+  background-repeat: no-repeat; opacity: .95;
+  filter: drop-shadow(0 2px 3px #07101da8);
+}
+.hazard-slot:not(.hazard-cloudy) .hazard-symbol {
+  opacity: .09;
+  text-shadow: none;
+}
+.hazard-slot .hazard-corner-badge, .hazard-slot .hazard-cloud-timer {
+  z-index: 4;
+}
+.hazard-slot.hazard-cloudy .hazard-art-emblem {
+  top: 7%; left: 15%; width: 70%; height: 66%;
+  opacity: .8; filter: drop-shadow(0 1px 4px #2b41658c);
+}
+.hazard-slot.hazard-cloudy .hazard-symbol { opacity: .13; }
+.hazard-slot.hazard-cloudy .hazard-hidden-mark {
+  z-index: 3; transform: translateY(29%);
+}
+.hazard-slot.hazard-incoming .hazard-art-emblem {
+  top: 4px; left: auto; right: 4px;
+  width: clamp(24px, 4.4vw, 39px); height: clamp(24px, 4.4vw, 39px);
+  opacity: .87;
+}
+.hazard-slot.hazard-incoming .hazard-warning-symbol { z-index: 4; }
+.hazard-slot.hazard-incoming .hazard-warning-label { z-index: 4; }
+.hazard-example::before {
+  content: ""; position: absolute; z-index: 2; inset: 5px;
+  background-size: contain; background-position: center;
+  background-repeat: no-repeat;
+  filter: drop-shadow(0 2px 4px #080e1d90);
+  pointer-events: none;
+}
+.hazard-example b { opacity: .16; }
+.hazard-example i { z-index: 4; }
+.hazard-example small { z-index: 4; }
+.board-hazard-status[data-hazard] .board-hazard-icon {
+  background-size: 28px 28px; background-repeat: no-repeat;
+  background-position: center;
+}
+.board-hazard-status[data-hazard="cloudy"] .board-hazard-icon,
+.board-hazard-status[data-hazard="void"] .board-hazard-icon,
+.board-hazard-status[data-hazard="null"] .board-hazard-icon,
+.board-hazard-status[data-hazard="cracked"] .board-hazard-icon,
+.board-hazard-status[data-hazard="greedy"] .board-hazard-icon { font-size: 0; }
+.hazard-slot.hazard-cloudy .hazard-art-emblem,
+.hazard-slot.hazard-incoming[data-warning="cloudy"] .hazard-art-emblem,
+.hazard-example.hazard-cloudy::before,
+.board-hazard-status[data-hazard="cloudy"] .board-hazard-icon {
+  background-image: url("assets/art/hazard-cloudy.svg");
+}
+.hazard-slot.hazard-void .hazard-art-emblem,
+.hazard-slot.hazard-incoming[data-warning="void"] .hazard-art-emblem,
+.hazard-example.hazard-void::before,
+.board-hazard-status[data-hazard="void"] .board-hazard-icon {
+  background-image: url("assets/art/hazard-void.svg");
+}
+.hazard-slot.hazard-null .hazard-art-emblem,
+.hazard-slot.hazard-incoming[data-warning="null"] .hazard-art-emblem,
+.hazard-example.hazard-null::before,
+.board-hazard-status[data-hazard="null"] .board-hazard-icon {
+  background-image: url("assets/art/hazard-null.svg");
+}
+.hazard-slot.hazard-cracked .hazard-art-emblem,
+.hazard-slot.hazard-incoming[data-warning="cracked"] .hazard-art-emblem,
+.hazard-example.hazard-cracked::before,
+.board-hazard-status[data-hazard="cracked"] .board-hazard-icon {
+  background-image: url("assets/art/hazard-cracked.svg");
+}
+.hazard-slot.hazard-greedy .hazard-art-emblem,
+.hazard-slot.hazard-incoming[data-warning="greedy"] .hazard-art-emblem,
+.hazard-example.hazard-greedy::before,
+.board-hazard-status[data-hazard="greedy"] .board-hazard-icon {
+  background-image: url("assets/art/hazard-greedy.svg");
+}
+@media (max-width: 580px) {
+  .hazard-slot .hazard-art-emblem { width: 25px; height: 25px; top: 1px; left: 1px; }
+  .hazard-slot.hazard-cloudy .hazard-art-emblem {
+    top: 10%; left: 15%; width: 70%; height: 64%;
+  }
+  .hazard-slot.hazard-incoming .hazard-art-emblem {
+    width: 22px; height: 22px; top: 1px; right: 1px; left: auto;
+  }
+  .board-hazard-status[data-hazard] .board-hazard-icon { background-size: 26px 26px; }
+}
+
+/* ── The achievement cabinet: 16 collectible hand-illustrated medals ── */
+.achievements-dialog {
+  border-color: #a48e70;
+  background: radial-gradient(circle at 93% -10%, #73618936, transparent 48%),
+    linear-gradient(145deg, #253047, #17243a 50%, #192b41);
+  box-shadow: 0 34px 100px #030814e5, inset 0 1px 0 #ffe6b52c;
+}
+.achievements-head { align-items: center; }
+.achievement-cabinet-heading {
+  display: flex; gap: 15px; align-items: center; min-width: 0;
+}
+.achievement-cabinet-heading > div { min-width: 0; }
+.achievement-cabinet-art {
+  display: block; flex: none; width: 76px; height: 76px;
+  border-radius: 17px; border: 1px solid #a88c6c;
+  background: radial-gradient(circle,#ddbc8640,#394057);
+  box-shadow: 0 10px 20px #09111e83, inset 0 1px 0 #fff5d545;
+}
+.achievement-cabinet-heading .overline { color: #f1d49d; font-size: 10px; }
+.achievement-cabinet-heading h2 { margin: 0 0 5px; color: #fff1df; }
+.achievements-progress {
+  position: relative; overflow: hidden; border: 1px solid #ad9169;
+  background: linear-gradient(135deg,#373444,#25364a);
+  box-shadow: inset 0 2px 0 #ffedc62d; border-radius: 15px; padding: 15px 17px;
+}
+.achievements-progress::after {
+  content: "✦"; position: absolute; top: -35px; right: 10px;
+  color: #f2d2a32d; font-size: 125px; pointer-events: none;
+}
+.achievements-progress > div { position: relative; z-index: 1; }
+.achievements-progress strong { color: #ffebb4; font-size: 17px; }
+.achievements-progress small { color: #c5d3e1; }
+.achievements-progress progress { position: relative; z-index: 1;
+  accent-color: #efcc8a; height: 11px; }
+.achievements-grid { gap: 14px; }
+.achievement-card {
+  --medal-highlight: #ffe2a1; --medal-edge: #b68855;
+  position: relative; isolation: isolate; overflow: hidden;
+  min-height: 213px; gap: 9px; padding: 15px;
+  border: 1px solid #a68b65;
+  border-top: 3px solid var(--medal-edge);
+  border-radius: 16px;
+  background: radial-gradient(circle at 55% 0,#dbb27b30,transparent 57%),
+    linear-gradient(155deg,#374047,#262e3c);
+  box-shadow: inset 0 1px 0 #fff4d124, 0 12px 20px #040a1a5e;
+}
+.achievement-card::after {
+  content: ""; position: absolute; left: -10%; right: -10%; bottom: -8px;
+  height: 31px; border-top: 2px solid #927c6080;
+  background: linear-gradient(0deg,#131e3099,transparent);
+  transform: rotate(-3deg); pointer-events: none; z-index: -1;
+}
+.achievement-card[data-theme="gold"] {
+  --medal-highlight: #fff0b3; --medal-edge: #e6bd70;
+}
+.achievement-card[data-theme="banking"] {
+  --medal-highlight: #c0f9eb; --medal-edge: #80cbb5;
+}
+.achievement-card[data-theme="boss"] {
+  --medal-highlight: #f5c0c5; --medal-edge: #c78ea4;
+}
+.achievement-card[data-theme="craft"] {
+  --medal-highlight: #e2d0ff; --medal-edge: #ae96da;
+}
+.achievement-card[data-theme="survival"] {
+  --medal-highlight: #cfe5ff; --medal-edge: #8facd0;
+}
+.achievement-card-top { align-items: center; gap: 10px; }
+.achievement-medal {
+  position: relative; isolation: isolate;
+  display: grid; place-items: center; flex: 0 0 68px;
+  width: 68px; height: 68px; border-radius: 50%;
+  border: 4px double var(--medal-highlight);
+  color: #fce4b1;
+  background: radial-gradient(circle at 32% 20%,#fff1bd5e,transparent 45%),
+    linear-gradient(135deg,#766647,#384c54 68%);
+  box-shadow: inset 0 0 0 3px #1c2c3b, inset 0 1px 9px #fff2cb59,
+    0 6px 11px #050a1990;
+}
+.achievement-medal::after {
+  content: ""; position: absolute; left: 15%; right: 15%; bottom: -9px;
+  height: 13px; z-index: -1; border-radius: 0 0 4px 4px;
+  background: linear-gradient(90deg,var(--medal-edge),var(--medal-highlight),var(--medal-edge));
+  clip-path: polygon(0 0,100% 0,80% 100%,50% 65%,20% 100%);
+}
+.achievement-medal-icon { display: block; width: 86%; height: 86%; }
+.achievement-card h3 { color: #fff4e0; font-size: 14px; line-height: 1.32; }
+.achievement-card > p { color: #d6e0e5; font-size: 11px; line-height: 1.55; }
+.achievement-card-status { color: var(--medal-highlight);
+  background: #182638b6; border: 1px solid #ffffff2e;
+  border-radius: 6px; padding: 5px 7px; letter-spacing: .08em;
+  white-space: normal; text-align: right; }
+.achievement-card-date { color: #d9cfb2; margin-top: auto; }
+.achievement-card.locked {
+  border-color: #43556a; border-top-color: #45566c;
+  background: linear-gradient(145deg,#1d2b3c,#162337);
+  box-shadow: inset 0 1px 0 #ffffff08, 0 7px 18px #050a1447;
+}
+.achievement-card.locked::after { border-top-color: #4b5b6c; }
+.achievement-card.locked .achievement-medal {
+  border: 3px double #637489; color: #99a8b9;
+  background: radial-gradient(circle at 35% 20%,#5b6a7654,transparent 55%),
+    linear-gradient(140deg,#354557,#202d3f);
+  box-shadow: inset 0 0 0 4px #253143, 0 5px 11px #03081769;
+  filter: grayscale(1); font-size: 29px;
+}
+.achievement-card.locked .achievement-medal::after {
+  background: linear-gradient(90deg,#415166,#65758b,#415166);
+}
+.achievement-card.locked h3 { color: #d7e0eb; }
+.achievement-card.locked > p { color: #abbfd2; }
+.achievement-card.locked .achievement-card-status { color: #b0bdd0; }
+.achievement-card-progress { margin-top: auto; font-weight: 800; }
+.achievement-card-progress progress { accent-color: #a0bcd0; height: 8px; }
+.achievement-button-art { display: block; flex: none; object-fit: contain; }
+#achievementOpen .achievement-button-art { width: 31px; height: 31px; }
+#gameAchievements .achievement-button-art { width: 25px; height: 25px; }
+.achievement-open:has(.achievement-button-art) {
+  display: inline-flex; gap: 8px; align-items: center;
+}
+.title-utilities .achievement-open {
+  border: 1px solid #a88c65;
+  background: linear-gradient(135deg,#403947,#223d46);
+  box-shadow: inset 0 1px 0 #fff3bb2c, 0 8px 16px #040a1a4d;
+}
+.title-utilities .achievement-open:hover {
+  border-color: #f1ca88; background: #514651;
+}
+@media (max-width: 760px) {
+  .achievement-card { min-height: 197px; }
+}
+@media (max-width: 460px) {
+  .achievement-cabinet-heading { gap: 9px; }
+  .achievement-cabinet-art { width: 55px; height: 55px; border-radius: 11px; }
+  .achievements-head h2 { font-size: 23px; }
+  .achievement-card { min-height: 152px; padding: 13px; }
+  .achievement-medal { width: 60px; height: 60px; flex-basis: 60px; }
+  .achievement-card-status { font-size: 9px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .stage-scene-image, .title-numberworld-art, .achievement-medal,
+  .title-realm-card, .hazard-art-emblem { animation: none !important; transition: none !important; }
+}
