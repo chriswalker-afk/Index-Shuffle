@@ -99,7 +99,7 @@ export function restoreHazardLayer(saved, board = null) {
 // do not change the number-tile board, move counters or player score.
 export function canPlaceHazard(hazards, board, index, type) {
   if (!isCell(index) || !isTileBoard(board) ||
-      !HAZARD_DEFINITIONS[type] ||
+      !Object.hasOwn(HAZARD_DEFINITIONS, type) ||
       !Array.isArray(hazards) || hazards.length !== HAZARD_CELLS) return false;
   const current = restoreHazardLayer(hazards, board);
   if (current[index] || isObstacle(board[index]) ||
