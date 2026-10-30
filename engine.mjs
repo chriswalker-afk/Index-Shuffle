@@ -1,4 +1,28 @@
 export const SIZE = 4;
+export const INITIAL_MOVES_LEFT = 10;
+export const MERGES_PER_BONUS_MOVE = 2;
+
+// A successful slide spends one move. Every two mergers, including mergers
+// accumulated across previous slides, refund one move. Grant the refund
+// before checking whether the move budget reached zero.
+export function spendMove(movesLeft, mergeCredit, mergesMade) {
+  if (!Number.isSafeInteger(movesLeft) || movesLeft < 0 ||
+      !Number.isSafeInteger(mergeCredit) || mergeCredit < 0 ||
+      mergeCredit >= MERGES_PER_BONUS_MOVE ||
+      !Number.isSafeInteger(mergesMade) || mergesMade < 0) {
+    throw new RangeError("Invalid move budget or merge count");
+  }
+  if (movesLeft === 0) {
+    return { movesLeft: 0, mergeCredit, earned: 0 };
+  }
+  const combined = mergeCredit + mergesMade;
+  const earned = Math.floor(combined / MERGES_PER_BONUS_MOVE);
+  return {
+    movesLeft: movesLeft - 1 + earned,
+    mergeCredit: combined % MERGES_PER_BONUS_MOVE,
+    earned
+  };
+}
 export const EXTRA_SPAWN_START = 40;
 export const EXTRA_SPAWN_INTERVAL = 10;
 export const BLOCKER_START = 10;
@@ -139,6 +163,12 @@ export function canMove(board, banked, locked = new Set()) {
   // An empty square is not enough: blockers can isolate it so that no
   // tile can actually move. Check the four legal swipes instead.
   return ["up", "down", "left", "right"].some(direction => slide(board, direction).changed);
+}
+
+// The move budget is an independent loss condition: available banks or
+// merges cannot rescue a game once the balance has reached zero.
+export function gameEnded(board, banked, locked, movesLeft) {
+  return movesLeft <= 0 || !canMove(board, banked, locked);
 }
 
 // Banking never opens a free square. The same base remains, downgraded to a
