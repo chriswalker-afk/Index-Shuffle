@@ -178,6 +178,7 @@ export function newRogueliteRun(best = 0, rng = Math.random) {
       goldDryStreak: 0, lastRoundReward: null,
       scoredBanks: 0, twosBanked: 0, lastBankBase: null,
       protectionSlides: 0, blockerDelay: 0,
+      hazardWarning: null, hazardCooldown: 0,
       bosses: createBossSchedule(rng),
       inventory: { permanents: [null, null], consumables: [null, null] },
       shop: null
@@ -237,7 +238,8 @@ export function advanceRogueliteRound(state, rng = Math.random, rates = null) {
     ...run, round: nextRound, phase: "playing",
     roundBankCoins: 0, goldDryStreak: 0, lastRoundReward: null, shop: null,
     scoredBanks: 0, twosBanked: 0, lastBankBase: null,
-    protectionSlides: 0, blockerDelay: 0
+    protectionSlides: 0, blockerDelay: 0,
+    hazardWarning: null, hazardCooldown: 0
   };
   const nextBoard = startBossBoard(startingBoard(rng, run.totalSlides, rates),
     nextRun, rng);
