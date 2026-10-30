@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#0c1428">
   <meta name="description" content="Slide and merge powers, solve banking challenges and stay in the game.">
   <title>Index Shuffle — Make every move count</title>
-  <link rel="stylesheet" href="styles.css?v=frostlock-v1">
+  <link rel="stylesheet" href="styles.css?v=runestones-pass2">
 </head>
 <body>
   <main class="shell">
@@ -379,12 +379,15 @@
       <div class="help-block">
         <h3>2. Bank a power</h3>
         <p>Select a glowing <b>✦</b> tile and calculate its exact value in <span id="helpBankSeconds">60</span> seconds.
-           Every power can be banked only once per base–exponent combination
-           each round, <strong>including golden powers</strong>. In Roguelike,
+           Every power can normally be banked only once per base–exponent
+           combination each round, <strong>including golden powers</strong>.
+           The rare Echo Seal allows one exception on its marked square.
+           In Roguelike,
            gold allows banking exponent 1 directly, provided that exact power
            has not already been banked. Banking earns points
-           and leaves a non-golden smaller tile behind. A wrong answer or timeout
-           locks that tile until another successful slide.</p>
+           and leaves a non-golden smaller tile behind. A wrong answer, timeout
+           or cancelled question locks the tile until another successful slide;
+           cancelling never resets the answer timer for free.</p>
       </div>
       <div class="help-block">
         <h3>3. Protect your moves</h3>
@@ -419,9 +422,18 @@
           offers, with two inventory slots for each type. Purchased items are
           saved and their effects are active. Tap a single-use item during a round,
           then choose the highlighted square(s), or cancel without consuming it.
-          Rare Runestones can enchant a square for two activations this round.
-          Gilded Foundry creates gold; Power Prism doubles bank points.
-          At most two enchanted squares may be active.
+          Rare Runestones create positive effects on a selected board square,
+          lasting only this round. At most two may be active at once. The
+          <strong>Gilded Foundry</strong> creates gold on a merge or correct bank;
+          <strong>Power Prism</strong> doubles points for a charged power;
+          <strong>Echo Seal</strong> permits one correct repeat bank;
+          <strong>Twin Mint</strong> turns one merged power double gold;
+          <strong>Time Sanctuary</strong> grants 10 extra seconds on opening
+          a question (up to 60 seconds); and <strong>Shatter Crest</strong>
+          adds one blocker hit when a genuinely merged power is correctly
+          banked beside a blocker. The first two, Sanctuary and Shatter have
+          two charges; Echo and Twin Mint have one. Incorrect answers
+          never award points, coins or blocker damage.
           Permanent bonuses apply automatically. Each defeated boss reduces
           your banking-answer time by 10 seconds for subsequent rounds:
           60, then 50, then 40, then 30 seconds per question.
@@ -490,6 +502,7 @@
         <span><b>◉</b> Golden tile: bank once per base–exponent combination</span>
         <span><b>✓</b> Golden power already banked this round</span>
         <span><b>✧</b> Roguelike square hazards</span>
+        <span><b>◉ / ×2 / ↺ / +10 / ⚒</b> Enchanted squares</span>
         <span><b>!</b> Hazard incoming next slide (with hazard name)</span>
       </div>
     </section>
@@ -708,6 +721,6 @@
       <button type="button" id="cancel" class="textbtn">Keep this tile</button>
     </div>
   </dialog>
-  <script type="module" src="app.mjs?v=runestones-pass1"></script>
+  <script type="module" src="app.mjs?v=runestones-pass2"></script>
 </body>
 </html>
