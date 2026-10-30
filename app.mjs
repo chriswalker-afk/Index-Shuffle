@@ -171,12 +171,12 @@ function currentGameEnded() {
   const ended = gameEnded(state.board, banked, locked,
     state.movesLeft, currentMovementRules());
   if (!ended || state.movesLeft <= 0 || mode !== "roguelite") return ended;
-  // A held Hazard Eraser is a genuine rescue when removing a hazard
-  // restores a bank or slide. Do not end the run before it can be used.
-  return !(state.run.inventory?.consumables?.some(entry =>
+  // Preserve the previously audited Hazard Eraser rescue and expand the
+  // decision to every held item that really restores a bank or legal slide.
+  const hazardRescue = state.run.inventory?.consumables?.some(entry =>
     entry?.id === "hazard-eraser") && canRescueHazardLock(
-      state.board, state.hazards, banked, locked,
-      currentMovementRules()));
+      state.board, state.hazards, banked, locked, currentMovementRules());
+  return !(hazardRescue || rescuableConsumables(state).length > 0);
 }
 
 function persist() {
@@ -670,6 +670,12 @@ function render() {
         + base + "<sup>" + exp + "</sup> " + (banked.has(k) ? "✓" : "◇") + "</span>";
     }).join("")
     : '<p class="muted">Discover your first square by merging two matching bases.</p>';
+  const rescueItems = rogue && state.run.phase === "playing" && !state.over &&
+    state.movesLeft > 0 &&
+    !canMove(state.board, banked, locked, currentMovementRules())
+    ? rescuableConsumables(state) : [];
+  const rescueNames = [...new Set(rescueItems.map(entry =>
+    ITEM_BY_ID[entry.id]?.name).filter(Boolean))];
   $("status").textContent = selection
     ? "Choose a highlighted target for your " +
       ITEM_BY_ID[state.run.inventory.consumables[selection.slot].id].name +
@@ -682,6 +688,9 @@ function render() {
     ? "You completed all 12 rounds!"
     : state.movesLeft === 0
     ? "Out of moves. Start a new game to try again."
+    : rescueNames.length
+    ? "The board is blocked, but " + rescueNames.join(" or ") +
+      " can rescue this run. Use a highlighted inventory item."
     : state.over ? "No legal moves or banking options remain."
     : state.notice ||
       (state.movesLeft <= 3
@@ -1273,25 +1282,28 @@ function rememberMode(selected) {
 }
 
 function loadSavedGame(snapshot) {
-  state = snapshot;
-  Object.assign(state, restoreMoveBudget(state));
-  state.resultsFinalized = state.resultsFinalized === true;
-  state.resultsDismissed = state.resultsDismissed === true;
-  state.locked = Array.isArray(state.locked) ? state.locked : [];
-  state.mergeReady = Array.isArray(state.mergeReady) ? state.mergeReady : [];
-  state.discovered = Array.isArray(state.discovered) ? state.discovered : [];
-  state.banked = Array.isArray(state.banked) ? state.banked : [];
-  if (mode === "roguelite") {
-    state.run = restoreEffectState(restoreShopState(
-      restoreRogueliteRun(state.run, state.movesLeft)));
-    state.hazards = restoreHazardLayer(state.hazards, state.board);
-    state.enchantments = restoreEnchantmentLayer(state.enchantments, state.board, state.hazards);
-    state.run = restoreHazardPressure(state.run, state.board, state.hazards);
-    repairFrozenControl();
-    state.over = state.run.phase === "playing" ? currentGameEnded() : false;
-  } else {
-    state.stats = restoreRunStats(state.stats);
-    state.over = currentGameEnded();
+  const previous = state;
+  try {
+    state = sanitiseSavedGame(snapshot);
+    Object.assign(state, restoreMoveBudget(state));
+    if (mode === "roguelite") {
+      state.run = restoreEffectState(restoreShopState(
+        restoreRogueliteRun(state.run, state.movesLeft)));
+      state.hazards = restoreHazardLayer(state.hazards, state.board);
+      state.enchantments = restoreEnchantmentLayer(state.enchantments, state.board, state.hazards);
+      state.run = restoreHazardPressure(state.run, state.board, state.hazards);
+      repairFrozenControl();
+      state.over = state.run.phase === "playing" ? currentGameEnded() : false;
+    } else {
+      state.stats = restoreRunStats(state.stats);
+      state.over = currentGameEnded();
+    }
+    return true;
+  } catch {
+    // A bad one-mode snapshot must not destroy the other mode or crash.
+    state = previous;
+    saveStore.markCorrupt(saveKey(mode));
+    return false;
   }
 }
 
@@ -1322,9 +1334,15 @@ function resumeSavedGame(selected) {
   }
   if (screen === "game") persist();
   closeNavigationDialogs();
+  const previousMode = mode;
   mode = selected;
+  if (!loadSavedGame(snapshot)) {
+    mode = previousMode;
+    screen = "continue";
+    render();
+    return;
+  }
   rememberMode(mode);
-  loadSavedGame(snapshot);
   screen = "game";
   render();
   // A Roguelike shop resumes in its modal, including its existing stock.
