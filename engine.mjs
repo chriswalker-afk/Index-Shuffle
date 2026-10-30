@@ -1,10 +1,20 @@
 export const SIZE = 4;
 export const EXTRA_SPAWN_START = 40;
 export const EXTRA_SPAWN_INTERVAL = 10;
-export const BLOCKER_START = 55;
-export const BLOCKER_INTERVAL = 30;
-export const MAX_BLOCKERS = 1;
+export const BLOCKER_START = 10;
+export const BLOCKER_INTERVAL = 10;
+export const MAX_BLOCKERS = 2;
+// A pre-existing saved blocker has no tier and retains its old three-hit rule.
 export const BLOCKER_HITS = 3;
+export const MAX_BLOCKER_HITS = 5;
+
+// Move 10: one hit; 20: two; 30: three; 40: four;
+// 50 onward: five. Never make a blocker impossible to clear.
+export function blockerHitsForMove(moves) {
+  if (moves < BLOCKER_START) return 0;
+  return Math.min(MAX_BLOCKER_HITS,
+    1 + Math.floor((moves - BLOCKER_START) / BLOCKER_INTERVAL));
+}
 export const BASES = [2, 3, 5, 7, 11, 13];
 export const BASE_UNLOCKS = Object.freeze([
   { base: 7, moves: 15 },
@@ -27,9 +37,21 @@ function baseWeight(base, moves) {
 }
 
 export const tile = (base, exp = 1) => ({ base, exp });
-export const blocker = (hits = 0) => ({ kind: "blocker", hits });
+export const blocker = (hits = 0, strength = BLOCKER_HITS) =>
+  ({ kind: "blocker", hits, strength });
+export const warning = (strength = 1) => ({ kind: "warning", strength });
 export const isBlocker = t => Boolean(t && t.kind === "blocker");
-export const key = t => isBlocker(t) ? "blocker:" + t.hits : t.base + "-" + t.exp;
+export const isWarning = t => Boolean(t && t.kind === "warning");
+export const isObstacle = t => isBlocker(t) || isWarning(t);
+// Legacy saved blockers did not contain strength; keep their existing
+// three-merge durability rather than silently resetting current runs.
+export const blockerStrength = t =>
+  Number.isSafeInteger(t?.strength) && t.strength >= 1
+    ? t.strength : BLOCKER_HITS;
+export const key = t => isBlocker(t)
+  ? "blocker:" + blockerStrength(t) + ":" + t.hits
+  : isWarning(t) ? "warning:" + blockerStrength(t)
+  : t.base + "-" + t.exp;
 
 export function adjacentIndices(index) {
   const row = Math.floor(index / SIZE), col = index % SIZE;
@@ -65,13 +87,13 @@ export function slide(board, direction) {
     // A fixed blocker divides a row or column into independent sliding
     // segments. No tile may slide or merge through the blocker.
     for (let start = 0; start < SIZE;) {
-      if (isBlocker(board[ids[start]])) {
+      if (isObstacle(board[ids[start]])) {
         next[ids[start]] = { ...board[ids[start]] };
         start++;
         continue;
       }
       let end = start;
-      while (end < SIZE && !isBlocker(board[ids[end]])) end++;
+      while (end < SIZE && !isObstacle(board[ids[end]])) end++;
       const segment = ids.slice(start, end);
       const packed = segment.map(from => ({ from, value: board[from] }))
         .filter(item => item.value);
@@ -98,8 +120,8 @@ export function slide(board, direction) {
     }
   }
 
-  // A blocker takes one hit PER merger that lands orthogonally beside it,
-  // never from a diagonal merge or a tile merely sliding past.
+  // Each blocker keeps its own durability tier. One hit per merge that
+  // lands orthogonally beside it; diagonal merges and simple slides do nothing.
   const damaged = [], destroyed = [];
   for (let i = 0; i < board.length; i++) {
     if (!isBlocker(board[i])) continue;
@@ -107,11 +129,12 @@ export function slide(board, direction) {
     const hits = mergeDestinations.filter(dest => adjacent.includes(dest)).length;
     if (!hits) continue;
     const totalHits = board[i].hits + hits;
-    if (totalHits >= BLOCKER_HITS) {
+    const strength = blockerStrength(board[i]);
+    if (totalHits >= strength) {
       next[i] = null;
       destroyed.push(i);
     } else {
-      next[i] = blocker(totalHits);
+      next[i] = blocker(totalHits, strength);
       damaged.push(i);
     }
   }
@@ -123,7 +146,7 @@ export function slide(board, direction) {
 }
 
 export function isBankable(t, banked, index, locked = new Set()) {
-  return Boolean(t && !isBlocker(t) &&
+  return Boolean(t && !isObstacle(t) &&
     t.exp >= 2 && !banked.has(key(t)) && !locked.has(index));
 }
 
@@ -138,7 +161,7 @@ export function canMove(board, banked, locked = new Set()) {
 // randomly chosen smaller power that has actually been discovered this game.
 // An exponent of 1 is always eligible: base tiles are available from the start.
 export function bankReplacement(t, discovered, rng = Math.random) {
-  if (!t || isBlocker(t) || t.exp < 2) throw new RangeError("Banking requires a power");
+  if (!t || isObstacle(t) || t.exp < 2) throw new RangeError("Banking requires a power");
   const exponents = new Set([1]);
   for (const value of discovered) {
     const [base, exp] = value.split("-").map(Number);
@@ -192,11 +215,53 @@ function newlyOccupied(before, after) {
   return after.findIndex((t, i) => !before[i] && Boolean(t));
 }
 
-// This is a fixed, gentle cadence so games remain reproducible and the
-// balance is easy to adjust after classroom playtesting.
+// The warning is placed one successful slide BEFORE its blocker.
+// Its position is reserved, so the player knows exactly where it will appear.
+// Both are fixed movement barriers, but only a mature blocker takes damage.
+// All scheduled blockers MUST have been previewed, so a skipped preview
+// can never surprise the player by spawning a blocker later.
 export function turnSpawns(board, discovered, moves, rng = Math.random, avoid = new Set()) {
   let next = board.slice();
   const spawned = [];
+  let blockerAt = -1, warningAt = -1;
+
+  // A warning from the preceding move becomes a solid blocker precisely
+  // on the advertised ten-move milestone, retaining its planned tier.
+  if (moves >= BLOCKER_START &&
+      (moves - BLOCKER_START) % BLOCKER_INTERVAL === 0) {
+    next = next.map((value, index) => {
+      if (!isWarning(value)) return value;
+      blockerAt = index;
+      return blocker(0, blockerStrength(value));
+    });
+  }
+
+  // At moves 9, 19, 29, ... reserve an eligible square for the next
+  // successful slide, before number spawning can occupy that square.
+  const previewMove = BLOCKER_START - 1;
+  if (moves >= previewMove &&
+      (moves - previewMove) % BLOCKER_INTERVAL === 0 &&
+      next.filter(isObstacle).length < MAX_BLOCKERS) {
+    const candidates = next.map((value, index) => {
+      if (value || avoid.has(index)) return -1;
+      const neighbours = adjacentIndices(index);
+      if (neighbours.some(j => isObstacle(next[j]))) return -1;
+      if (!neighbours.some(j => next[j] && !isObstacle(next[j]))) return -1;
+      // Do not turn the reserved square into an immediate dead end.
+      // The player must retain at least one possible swipe after it is marked.
+      const probe = next.slice();
+      probe[index] = warning(blockerHitsForMove(moves + 1));
+      return ["left", "right", "up", "down"].some(dir => slide(probe, dir).changed)
+        ? index : -1;
+    }).filter(index => index >= 0);
+    if (candidates.length) {
+      const chosen = Math.min(candidates.length - 1,
+        Math.max(0, Math.floor(rng() * candidates.length)));
+      warningAt = candidates[chosen];
+      next[warningAt] = warning(blockerHitsForMove(moves + 1));
+    }
+  }
+
   const addNumber = () => {
     const before = next;
     next = spawn(next, discovered, rng, moves, avoid);
@@ -206,29 +271,9 @@ export function turnSpawns(board, discovered, moves, rng = Math.random, avoid = 
   addNumber();
   if (moves >= EXTRA_SPAWN_START && moves % EXTRA_SPAWN_INTERVAL === 0) addNumber();
 
-  let blockerAt = -1;
-  if (moves >= BLOCKER_START &&
-      (moves - BLOCKER_START) % BLOCKER_INTERVAL === 0 &&
-      next.filter(isBlocker).length < MAX_BLOCKERS) {
-    // Only put a blocker in a previously empty square that borders a
-    // movable number tile. A blocker never overwrites an existing tile.
-    const candidates = next.map((t, i) => {
-      if (t || avoid.has(i)) return -1;
-      const neighbors = adjacentIndices(i);
-      return neighbors.some(j => next[j] && !isBlocker(next[j])) ? i : -1;
-    }).filter(i => i >= 0);
-    if (candidates.length) {
-      const index = Math.min(candidates.length - 1,
-        Math.max(0, Math.floor(rng() * candidates.length)));
-      blockerAt = candidates[index];
-      next[blockerAt] = blocker();
-    }
-  }
   return {
-    board: next,
-    spawned,
-    extraSpawned: spawned.length >= 2,
-    blockerAt
+    board: next, spawned, extraSpawned: spawned.length >= 2,
+    blockerAt, warningAt
   };
 }
 

@@ -1,5 +1,6 @@
 import {
-  key, slide, turnSpawns, initial, canMove, isBankable, isBlocker, BLOCKER_HITS,
+  key, slide, turnSpawns, initial, canMove, isBankable, isBlocker, isWarning,
+  blockerStrength, blockerHitsForMove, BLOCKER_START, BLOCKER_INTERVAL, MAX_BLOCKERS,
   bankReplacement, checkAnswer, scoreFor, activeBases, BASE_UNLOCKS
 } from "./engine.mjs";
 
@@ -62,16 +63,26 @@ function render() {
 
   state.board.forEach((t, i) => {
     const button = document.createElement("button");
-    button.className = "cell" + (isBlocker(t) ? " block-tile"
+    button.className = "cell" + (isBlocker(t) ? " block-tile block-tier" + blockerStrength(t)
+      : isWarning(t) ? " warning-tile warning-tier" + blockerStrength(t)
       : t ? " tile base" + t.base : "");
     button.setAttribute("role", "gridcell");
     button.type = "button";
     if (isBlocker(t)) {
-      const remaining = BLOCKER_HITS - t.hits;
+      const strength = blockerStrength(t);
+      const remaining = Math.max(0, strength - t.hits);
       button.innerHTML = '<span class="block-symbol" aria-hidden="true">▦</span>'
-        + '<small class="block-health">' + remaining + ' left</small>';
-      button.title = "Fixed blocker: " + remaining
+        + '<small class="block-health">' + remaining + ' / ' + strength + '</small>';
+      button.title = "Tier " + strength + " fixed blocker: " + remaining
         + " adjacent " + (remaining === 1 ? "merge" : "merges") + " to break";
+      button.setAttribute("aria-label", button.title);
+      button.disabled = true;
+    } else if (isWarning(t)) {
+      const strength = blockerStrength(t);
+      button.innerHTML = '<span class="warning-symbol" aria-hidden="true">!</span>'
+        + '<small class="block-health">TIER ' + strength + ' NEXT</small>';
+      button.title = "Incoming tier " + strength + " blocker next successful slide. "
+        + "This reserved square cannot be crossed or occupied.";
       button.setAttribute("aria-label", button.title);
       button.disabled = true;
     } else if (t) {
@@ -94,7 +105,20 @@ function render() {
     }
     board.appendChild(button);
   });
-  $("blockerCount").textContent = state.board.filter(isBlocker).length + " / 1";
+  $("blockerCount").textContent =
+    state.board.filter(isBlocker).length + " / " + MAX_BLOCKERS;
+  const incoming = state.board.find(isWarning);
+  if (incoming) {
+    $("blockerNext").textContent = "Highlighted square → tier "
+      + blockerStrength(incoming) + " next slide";
+  } else {
+    const firstWarning = BLOCKER_START - 1;
+    const nextWarningMove = state.moves < firstWarning ? firstWarning
+      : firstWarning + (Math.floor((state.moves - firstWarning) / BLOCKER_INTERVAL) + 1)
+        * BLOCKER_INTERVAL;
+    $("blockerNext").textContent = "Next warning: move " + nextWarningMove
+      + " · tier " + blockerHitsForMove(nextWarningMove + 1);
+  }
 
   const all = [...new Set([...state.discovered, ...state.banked])].sort((a, b) => {
     const [x, y] = a.split("-").map(Number), [u, v] = b.split("-").map(Number);
@@ -125,7 +149,7 @@ function stopMotion() {
 
 // Animate original tiles towards their destinations. The next board, including
 // its new spawn, is revealed together when the 170 ms movement completes.
-function animateSlide(before, motions, mergedDestinations, spawned, damaged, destroyed, blockerAt) {
+function animateSlide(before, motions, mergedDestinations, spawned, damaged, destroyed, blockerAt, warningAt) {
   if (prefersReducedMotion() || typeof Element.prototype.animate !== "function") return;
   const board = $("board");
   const cells = [...board.children];
@@ -169,6 +193,7 @@ function animateSlide(before, motions, mergedDestinations, spawned, damaged, des
     for (const index of damaged) cells[index]?.classList.add("block-hit-flash");
     for (const index of destroyed) cells[index]?.classList.add("block-break-flash");
     if (blockerAt >= 0) cells[blockerAt]?.classList.add("block-appear");
+    if (warningAt >= 0) cells[warningAt]?.classList.add("warning-appear");
   });
 }
 
@@ -195,13 +220,22 @@ function move(direction) {
   if (unlockedNow.length) news.push("Unlocked base " + unlockedNow.join(", ") + "!");
   if (result.destroyed.length) news.push("Blocker broken — space freed!");
   else if (result.damaged.length) news.push("Merge near a blocker to damage it.");
-  if (spawned.blockerAt >= 0) news.push("Blocker appeared: 3 adjacent merges to break it.");
+  if (spawned.blockerAt >= 0) {
+    const strength = blockerStrength(state.board[spawned.blockerAt]);
+    news.push("Tier " + strength + " blocker arrived in the highlighted square!");
+  }
+  if (spawned.warningAt >= 0) {
+    const strength = blockerStrength(state.board[spawned.warningAt]);
+    news.push("Look out! The highlighted square becomes a tier " + strength
+      + " blocker after your next successful slide.");
+  }
   if (spawned.extraSpawned) news.push("Extra tile spawned!");
   state.notice = news.join(" ");
   state.over = !canMove(state.board, new Set(state.banked), new Set());
   render();
   animateSlide(before, result.motions, new Set(result.mergeDestinations),
-    spawned.spawned, result.damaged, result.destroyed, spawned.blockerAt);
+    spawned.spawned, result.damaged, result.destroyed,
+    spawned.blockerAt, spawned.warningAt);
 }
 
 function updateClock() {

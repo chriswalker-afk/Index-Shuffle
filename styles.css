@@ -71,10 +71,40 @@ button:focus-visible, input:focus-visible {
 .base13 { background: #b7c5ff; }
 .block-tile {
   flex-direction: column; gap: 2px;
-  border: 2px solid #9ca9be;
+  border: 2px solid var(--tier-color, #9ca9be);
   background: repeating-linear-gradient(135deg,
     #43536c 0, #43536c 8px, #3a4861 8px, #3a4861 16px);
   color: #f6f7fb; cursor: not-allowed;
+}
+.block-tier1 { --tier-color: #90e6c3; }
+.block-tier2 { --tier-color: #a5d3e8; }
+.block-tier3 { --tier-color: #f0d797; }
+.block-tier4 { --tier-color: #e9b18b; }
+.block-tier5 { --tier-color: #ee979d; }
+.warning-tile {
+  flex-direction: column;
+  gap: 4px;
+  border: 2px dashed #f3c36c;
+  background: repeating-linear-gradient(135deg,
+    #4a3a24 0, #4a3a24 8px, #41331f 8px, #41331f 16px);
+  color: #ffdfa1;
+  box-shadow: inset 0 0 0 2px #f3c36c26;
+  cursor: not-allowed;
+}
+.warning-symbol {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.35em; height: 1.35em;
+  border-radius: 50%;
+  background: #f3c36c;
+  color: #342515;
+  font-size: .62em;
+  font-weight: 950;
+}
+.warning-tile .block-health {
+  color: #f9d79a;
+  font-size: clamp(8px, 1.3vw, 11px);
 }
 .block-symbol { font-size: .88em; line-height: 1; }
 .block-health {
@@ -96,6 +126,11 @@ button:focus-visible, input:focus-visible {
 .bank-flash { animation: bank-pop .3s ease-out; }
 .block-hit-flash { animation: blocker-hit .4s ease-out; }
 .block-appear { animation: blocker-appear .25s ease-out; }
+.warning-appear { animation: warning-appear .3s ease-out; }
+@keyframes warning-appear {
+  0% { opacity: .5; transform: scale(.84); }
+  100% { opacity: 1; transform: scale(1); }
+}
 .block-break-flash::after {
   content: "✧";
   color: #a9f6dd; font-size: 28px; font-weight: 900;
