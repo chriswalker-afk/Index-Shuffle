@@ -27,6 +27,8 @@
     .gallery-legend .relic { background: #e8bb6f; }
     .gallery-legend .ward { background: #8ddfc8; }
     .gallery-legend .tool { background: #bdabea; }
+    .gallery-legend .rune { background: #f3d28d; }
+    .gallery-item--runestone { border-top-color: #f3d28d; background: linear-gradient(140deg, #393452, #203349); }
     .gallery-section { margin: 29px 0 40px; }
     .gallery-section header { margin-bottom: 15px; border-bottom: 1px solid #43536c;
       padding-bottom: 9px; display: flex; gap: 9px 15px;
@@ -60,16 +62,17 @@
       <a href="./">← Back to the game</a>
       <a href="art-preview.html">Character concepts</a>
     </nav>
-    <p class="gallery-kicker">The Curious Numberworld · Shop art · Pass 2</p>
+    <p class="gallery-kicker">The Curious Numberworld · Shop art · Pass 3</p>
     <h1>Every relic has a story.</h1>
     <p class="gallery-lede">All 37 original shop-item illustrations in one place.
       These are the same icons used in the live shop and equipped build.
-      Their colourful frames distinguish how items work, not their rarity.
+      The gold-framed Runestones are comparatively rare and enchant board squares.
       Purchases still happen only inside a Roguelike game.</p>
     <div class="gallery-legend" aria-label="Visual types">
       <span><i class="relic"></i> Permanent relic</span>
       <span><i class="ward"></i> Hazard defence</span>
       <span><i class="tool"></i> One-use tool</span>
+      <span><i class="rune"></i> Rare Runestone</span>
     </div>
     <section class="gallery-section" aria-labelledby="relicHeading">
       <header><h2 id="relicHeading">Lasting relics</h2><p>12 permanent upgrades</p></header>
@@ -80,8 +83,13 @@
       <div class="gallery-grid" id="wardGallery"></div>
     </section>
     <section class="gallery-section" aria-labelledby="toolHeading">
-      <header><h2 id="toolHeading">One-use tools</h2><p>17 single-use items</p></header>
+      <header><h2 id="toolHeading">One-use tools</h2><p>11 ordinary single-use items</p></header>
       <div class="gallery-grid" id="toolGallery"></div>
+    </section>
+    <section class="gallery-section" aria-labelledby="runeHeading">
+      <header><h2 id="runeHeading">Runestone enchantments</h2>
+        <p>6 rare one-use items · stages 2–4</p></header>
+      <div class="gallery-grid" id="runeGallery"></div>
     </section>
     <noscript><p>JavaScript is needed to display the item gallery.</p></noscript>
     <footer class="gallery-footer">The artwork is decorative. In-game cards always include
@@ -89,12 +97,13 @@
       existing inventory limits are unchanged.</footer>
   </main>
   <script type="module">
-    import { ITEM_CATALOG } from "./shop.mjs?v=runestones-pass2";
-    import { itemIconHref, itemArtKind } from "./shop-art.mjs?v=runestones-pass2";
+    import { ITEM_CATALOG } from "./shop.mjs?v=runestones-pass3";
+    import { itemIconHref, itemArtKind } from "./shop-art.mjs?v=runestones-pass3";
     const svgNS = "http://www.w3.org/2000/svg";
     const targets = { permanent: document.getElementById("relicGallery"),
       ward: document.getElementById("wardGallery"),
-      consumable: document.getElementById("toolGallery") };
+      consumable: document.getElementById("toolGallery"),
+      runestone: document.getElementById("runeGallery") };
     for (const item of ITEM_CATALOG) {
       const kind = itemArtKind(item);
       const card = document.createElement("article");
