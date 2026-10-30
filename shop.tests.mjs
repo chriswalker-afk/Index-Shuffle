@@ -232,7 +232,7 @@ assert.match(app, /advanceRogueliteRound\(state, Math\.random, goldChancesForRun
 assert.match(app, /renderRogueliteShop\(state, mode, applyShopAction\)/);
 assert.match(app, /shopDialog"\)\.addEventListener\("cancel", event => event\.preventDefault\(\)\)/);
 assert.match(app, /restoreShopState\(/);
-assert.match(app, /if \(\$\("shopDialog"\)\.open \|\| \$\("achievementsDialog"\)\.open/);
+assert.match(app, /if \(screen !== "game" \|\| \$\("shopDialog"\)\.open/);
 assert.match(app, /index-shuffle-v1/);
 assert.match(app, /index-shuffle-roguelite-v1/);
 assert.match(ui, /purchaseShopOffer\(value, type, slotIndex, i\)/);

@@ -81,7 +81,7 @@ export function renderFinalScreen(mode, state, profile) {
   const rogue = mode === "roguelite";
   dialog.classList.toggle("victory", summary.won);
   $("resultsKicker").textContent = summary.won ? "RUN COMPLETE"
-    : rogue ? "ROGUELITE • GAME OVER" : "CLASSIC • GAME OVER";
+    : rogue ? "ROGUELIKE • GAME OVER" : "CLASSIC • GAME OVER";
   $("resultsTitle").textContent = summary.won ? "Index Master!"
     : rogue ? "Your run has ended" : "Game over";
   $("resultsSubtitle").textContent = summary.won

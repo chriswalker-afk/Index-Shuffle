@@ -4,6 +4,28 @@
 
 ## Play
 
+**Title-screen flow:** The game now opens to a dedicated title screen rather than
+immediately loading the board. Choose **New Game** to see the equal-size
+**Classic** and **Roguelike** mode cards, then select one to start. If you
+already have an unfinished game, choose **Continue** to select the saved Classic
+or Roguelike run. The most recently played mode appears first; Continue is
+disabled when no unfinished saves exist. The title also gives access to
+achievements and game/maths instructions.
+
+**Saving and restarting:** Gameplay is saved locally under the existing,
+separate Classic (`index-shuffle-v1`) and Roguelike
+(`index-shuffle-roguelite-v1`) keys, so returning to the title does not delete
+either run. The shop includes **Return to title** as well, preserving its stock,
+gold and purchases; Continue returns directly to the saved shop. Starting a
+new game replaces only that mode's unfinished save and requires confirmation.
+All previously unlocked achievements remain. The displayed name is **Roguelike**
+while the existing internal `roguelite` save format remains unchanged.
+
+**Game over:** The final-score screen offers **Play again** (restart the same
+mode) and **Return to title**. Once dismissed, the results can still be viewed
+from the finished board. A finished/lost game is excluded from Continue; start
+a new one instead.
+
 [Launch Index Shuffle](https://chriswalker-afk.github.io/Index-Shuffle/) once the updated game is deployed to GitHub Pages. No login, backend, or build system is required.
 
 - **Start with 10 moves left (maximum 10).** Every successful slide costs **1 move plus 1 extra move for each active blocker** at the start of the slide: no blockers = 1 move, one blocker = 2, two blockers = 3. Warning squares don't count until the blocker appears. **Merging tiles does not automatically restore moves.** Only **correctly answering and banking two powers that were genuinely created by merging** earns one move, capped at 10. The UI shows remaining moves, 0/2 or 1/2 correct-bank progress and the next slide's cost. Banking a randomly spawned power earns score but not move credit; a spawn must be merged first to qualify. An unchanged swipe costs nothing.
@@ -64,9 +86,9 @@ Select **Roguelite** for a separate 12-round run. Correctly banking a power earn
 
 **Mode selection, final scores and achievements:**
 
-- The equal-size **Classic** and **Roguelite** cards describe their different goals at a glance: a continuous high-score challenge versus a 12-round run with bosses, gold and upgrades. Mode switches retain separate existing saves.
+- The equal-size **Classic** and **Roguelike** cards are shown after selecting **New Game** on the title screen, not above the live board. They explain the continuous high-score challenge versus the 12-round boss/shop run. Each mode's unfinished save is preserved until the player explicitly starts a replacement.
 - Every finished game automatically opens an accessible **Final Score** screen. Classic shows the final score, personal best, slides, successful banks, highest banked exponent and blockers destroyed. Roguelite shows the cumulative run score (not merely the last round), best run score, rounds reached and cleared, bosses defeated, successful banks, slides, gold earned, coins remaining, upgrade purchases and notable correct banks.
-- The final screen supports **Play again** and **Back to board**, and can be reopened using **View final score**. A close choice persists through page refresh instead of reopening the dialog repeatedly.
+- The final screen offers **Play again** or **Return to title**. Its optional close control lets players review the finished board and reopen **View final score**. Returning to the title never restarts the game accidentally.
 - Roguelite features **16 permanent achievements**, with progress indicators and a gallery accessed from the mode selector. Awards cover banking, golden tiles, double-gold mergers, high exponents, large score combinations, round clears, boss victories, shopping, equipping two permanents, efficient or close-call clears, blocker damage and single-use items. Unlock notifications appear as achievements are earned, and results list all awards earned during that run.
 - Achievements are stored under a **separate local storage key** so starting a new Roguelite run or switching to Classic does not wipe them. Per-run statistics survive round transitions and browser restarts. Existing saves are restored with safe defaults for stats that were not tracked by earlier releases. Awards are granted only on actual completed banking or gameplay actions, never by rereading a saved game.
 - The achievement gallery displays earned badges and readable goals with progress for locked badges, rather than presenting an unexplained row of awards.
@@ -102,6 +124,8 @@ The game is plain HTML, CSS, and native JavaScript modules, with no external run
 - **bosses.mjs:** boss scheduling, restrictions, score/target overrides, extra blockers, timed curses and migration for existing runs.
 - **milestones.mjs:** achievement catalogue, permanent progress tracking, per-run bank/shop/move stats and final-score summaries.
 - **results-ui.mjs:** accessible final score and achievement gallery dialogs with earned and locked medal states.
+- **navigation.mjs:** pure title-screen save eligibility and Continue summaries, preserving the legacy Roguelite save format.
+- **title-ui.mjs:** accessible title/New Game/Continue scene presentation and saved-run selection.
 - **app.mjs:** browser interaction, banking timer, accessible help dialog, persistent state, move-cost display and short tile animations. The HTML uses versioned script and stylesheet URLs to prevent stale modules from keeping the old layout or obsolete move rules after deployment.
 - **styles.css:** responsive visual design, including reduced-motion support.
 

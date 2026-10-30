@@ -261,12 +261,15 @@ const css = readFileSync("styles.css", "utf8");
 const app = readFileSync("app.mjs", "utf8");
 const ui = readFileSync("results-ui.mjs", "utf8");
 assert.match(html, /id="modeClassic" class="mode-option"/);
+assert.match(html, /id="titleScreen"/);
+assert.match(html, /id="newGameScreen"/);
+assert.match(html, /id="continueScreen"/);
 assert.match(html, /id="modeRoguelite" class="mode-option"/);
 assert.match(html, /One continuous game/);
-assert.match(html, /12 rounds, boss challenges/);
+assert.match(html, /Clear 12 rounds, face bosses/);
 assert.match(css, /\.mode-picker \{ display: grid; grid-template-columns: repeat\(2, minmax\(0, 1fr\)\)/);
 assert.match(css, /min-height: 106px; height: 100%/);
-assert.match(css, /\.mode-picker \.mode-option\[aria-pressed="true"\]/);
+assert.match(css, /\.choice-screen \.mode-picker \.mode-option \{/);
 for (const id of [
   "resultsDialog", "resultsFinalScore", "resultsStats", "resultsAwardsSection",
   "resultsPlayAgain", "resultsClose", "resultsBack", "viewResults",
@@ -284,10 +287,10 @@ assert.match(app, /awardRunEvent\(\{ type: "consumable" \}\)/);
 assert.match(app, /if \(kind === "purchase"\)/);
 assert.match(app, /recordSuccessfulSlide\(state\.run\.stats\)/);
 assert.match(app, /renderFinalScreen\(mode, state, achievementProfile\)/);
-assert.match(app, /renderAchievementCount\(achievementProfile, rogue\)/);
+assert.match(app, /renderNavigation\(screen, saved\("classic"\), saved\("roguelite"\)/);
 assert.match(app, /state\.resultsDismissed = true/);
 assert.match(app, /openAchievementGallery\(achievementProfile\)/);
-assert.match(app, /if \(\$\("shopDialog"\)\.open \|\| \$\("achievementsDialog"\)\.open/);
+assert.match(app, /if \(screen !== "game" \|\| \$\("shopDialog"\)\.open/);
 assert.match(ui, /dialog\.showModal\(\)/);
 assert.match(ui, /state\.resultsDismissed/);
 assert.match(ui, /progressForAchievement\(profile, achievement\)/);
