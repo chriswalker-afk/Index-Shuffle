@@ -228,7 +228,7 @@ for (const id of [
   assert.match(html, new RegExp('id="' + id + '"'), "Missing shop DOM: " + id);
 }
 assert.match(app, /enterRogueliteShop\(state\)/);
-assert.match(app, /advanceRogueliteRound\(state\)/);
+assert.match(app, /advanceRogueliteRound\(state, Math\.random, goldChancesForRun\(state\.run\)\)/);
 assert.match(app, /renderRogueliteShop\(state, mode, applyShopAction\)/);
 assert.match(app, /shopDialog"\)\.addEventListener\("cancel", event => event\.preventDefault\(\)\)/);
 assert.match(app, /restoreShopState\(/);
