@@ -246,7 +246,13 @@ export function turnSpawns(board, discovered, moves, rng = Math.random, avoid = 
       if (value || avoid.has(index)) return -1;
       const neighbours = adjacentIndices(index);
       if (neighbours.some(j => isObstacle(next[j]))) return -1;
-      return neighbours.some(j => next[j] && !isObstacle(next[j])) ? index : -1;
+      if (!neighbours.some(j => next[j] && !isObstacle(next[j]))) return -1;
+      // Do not turn the reserved square into an immediate dead end.
+      // The player must retain at least one possible swipe after it is marked.
+      const probe = next.slice();
+      probe[index] = warning(blockerHitsForMove(moves + 1));
+      return ["left", "right", "up", "down"].some(dir => slide(probe, dir).changed)
+        ? index : -1;
     }).filter(index => index >= 0);
     if (candidates.length) {
       const chosen = Math.min(candidates.length - 1,
