@@ -266,7 +266,7 @@ assert.match(html, /id="newGameScreen"/);
 assert.match(html, /id="continueScreen"/);
 assert.match(html, /id="modeRoguelite" class="mode-option"/);
 assert.match(html, /One continuous game/);
-assert.match(html, /12 rounds, boss challenges/);
+assert.match(html, /Clear 12 rounds, face bosses/);
 assert.match(css, /\.mode-picker \{ display: grid; grid-template-columns: repeat\(2, minmax\(0, 1fr\)\)/);
 assert.match(css, /min-height: 106px; height: 100%/);
 assert.match(css, /\.choice-screen \.mode-picker \.mode-option \{/);
