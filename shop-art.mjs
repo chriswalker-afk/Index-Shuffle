@@ -40,7 +40,7 @@ export const SHOP_ICON_IDS = Object.freeze([
   "sanctuary-runestone",
   "shatter-runestone"
 ]);
-export const ITEM_SPRITE_URL = "assets/art/item-sprites.svg?v=runestones-pass2";
+export const ITEM_SPRITE_URL = "assets/art/item-sprites.svg?v=runestones-pass3";
 const available = new Set(SHOP_ICON_IDS);
 
 // Unmapped items render a neutral numbered tile instead of a broken image.
@@ -53,5 +53,6 @@ export function itemIconHref(itemId) {
 // A visual distinction, not an invented rarity tier.
 export function itemArtKind(item) {
   return item?.hazardCounter ? "ward"
-    : item?.type === "consumables" ? "consumable" : "permanent";
+    : item?.rare === true ? "runestone"
+      : item?.type === "consumables" ? "consumable" : "permanent";
 }

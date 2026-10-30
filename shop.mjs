@@ -66,6 +66,33 @@ export const ITEM_BY_ID = Object.freeze(
   Object.fromEntries(ITEM_CATALOG.map(item => [item.id, item]))
 );
 
+// Distinguish two kinds of rarity: a chance for a Runestone to appear,
+// and a weighted choice among Runestones available at the next round.
+// Twin Mint is intentionally much rarer than the entry-level Runestones.
+export const RUNESTONE_SHOP_CHANCE = 0.22;
+export const RUNESTONE_WEIGHTS = Object.freeze({
+  "foundry-runestone": 3,
+  "prism-runestone": 3,
+  "echo-runestone": 2,
+  "mint-runestone": 1,
+  "sanctuary-runestone": 3,
+  "shatter-runestone": 2
+});
+export const RUNESTONE_ITEM_IDS = Object.freeze(
+  ITEM_CATALOG.filter(item => item.rare).map(item => item.id)
+);
+function pickWeightedRunestone(items, rng) {
+  const sum = items.reduce((total, item) =>
+    total + (RUNESTONE_WEIGHTS[item.id] || 0), 0);
+  if (!(sum > 0)) return null;
+  let roll = Math.max(0, Math.min(.999999999999, rng())) * sum;
+  for (const item of items) {
+    roll -= RUNESTONE_WEIGHTS[item.id];
+    if (roll < 0) return item.id;
+  }
+  return items[items.length - 1].id;
+}
+
 // The permanent discount applies only when it was already equipped before
 // this purchase. Refunds use the actual amount paid, not the catalogue price.
 export function shopItemPrice(run, itemOrId) {
@@ -105,19 +132,21 @@ function restoreSlots(entries, type) {
   return slots;
 }
 
-function drawOffers(type, inventory, rng, previous = [], nextRound = 1) {
+function drawOffers(type, inventory, rng, previous = [], nextRound = 1,
+  allowRunestone = true) {
   checkType(type);
   const owned = new Set(type === "permanents"
     ? inventory.permanents.filter(Boolean).map(entry => entry.id) : []);
   const last = new Set(previous.filter(Boolean));
-  // At most one rare Runestone enters a shop draw (roughly 22% of shops).
-  // Rerolls draw again; a nonrare pair remains unchanged for legacy runs.
-  const rareEnabled = type === "consumables" && nextRound >= 4 &&
-    (() => { const roll = rng(); return roll > 0 && roll < 0.22; })();
+  // Rerolls can reveal a Runestone only until the FIRST rare appearance
+  // during a shop visit. A bought/sold-out rare still counts as seen.
+  // Zero is reserved as a deterministic "ordinary shop" seed for older tests.
+  const rareEnabled = allowRunestone && type === "consumables" &&
+    nextRound >= 4 &&
+    (() => { const roll = rng(); return roll > 0 && roll < RUNESTONE_SHOP_CHANCE; })();
   const rareItems = ITEM_CATALOG.filter(item => item.rare &&
     item.unlockRound <= nextRound);
-  const selectedRare = rareEnabled ? rareItems[Math.min(rareItems.length - 1,
-    Math.floor(rng() * rareItems.length))]?.id : null;
+  const selectedRare = rareEnabled ? pickWeightedRunestone(rareItems, rng) : null;
   const valid = ITEM_CATALOG.filter(item =>
     item.type === type && !owned.has(item.id) &&
     (!item.rare || item.id === selectedRare) &&
@@ -143,12 +172,16 @@ function makeShop(inventory, rng, previous = null, nextRound = 1) {
   // Otherwise, rerolling two sold-out cards could immediately offer the
   // exact same items the player just bought.
   const priorIds = previous?.lastOffers || previous;
+  const alreadySeen = Boolean(previous?.runestoneSeen ||
+    priorIds?.consumables?.some(id => ITEM_BY_ID[id]?.rare));
   const permanents = drawOffers("permanents", inventory, rng,
     priorIds?.permanents, nextRound);
   const consumables = drawOffers("consumables", inventory, rng,
-    priorIds?.consumables, nextRound);
+    priorIds?.consumables, nextRound, !alreadySeen);
+  const runestoneSeen = alreadySeen ||
+    consumables.some(id => ITEM_BY_ID[id]?.rare);
   return {
-    permanents, consumables,
+    permanents, consumables, runestoneSeen,
     lastOffers: { permanents: [...permanents], consumables: [...consumables] },
     rerolls: previous ? previous.rerolls + 1 : 0,
     rerollCost: previous ? previous.rerolls + 2 : INITIAL_REROLL_COST,
@@ -159,7 +192,10 @@ function makeShop(inventory, rng, previous = null, nextRound = 1) {
 function validShop(shop, inventory, nextRound = 1) {
   if (!shop || !Number.isSafeInteger(shop.rerolls) || shop.rerolls < 0 ||
       shop.rerolls > 10000 || shop.rerollCost !== shop.rerolls + INITIAL_REROLL_COST ||
-      typeof shop.notice !== "string") return false;
+      typeof shop.notice !== "string" ||
+      (shop.runestoneSeen !== undefined && typeof shop.runestoneSeen !== "boolean") ||
+      (shop.runestoneSeen === false &&
+        shop.lastOffers?.consumables?.some(id => ITEM_BY_ID[id]?.rare))) return false;
   return SHOP_TYPES.every(type => {
     const offers = shop[type];
     const lastOffers = shop.lastOffers?.[type];
@@ -195,6 +231,8 @@ export function restoreShopState(run, rng = Math.random) {
         consumables: [...run.shop.consumables],
         lastOffers: { permanents: [...run.shop.lastOffers.permanents],
           consumables: [...run.shop.lastOffers.consumables] },
+        runestoneSeen: Boolean(run.shop.runestoneSeen ||
+          run.shop.lastOffers.consumables.some(id => ITEM_BY_ID[id]?.rare)),
         notice: run.shop.notice.slice(0, 200) }
       : makeShop(inventory, rng, null, run.round + 1);
   }

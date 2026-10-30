@@ -12,18 +12,18 @@ import { newRogueliteRun, targetForRound, stageForRound, isBossRound,
 } from "./roguelite.mjs?v=runestones-pass2";
 import {
   restoreShopState, enterRogueliteShop, rerollRogueliteShop
-} from "./shop.mjs?v=runestones-pass2";
+} from "./shop.mjs?v=runestones-pass3";
 import {
   renderRogueliteInventory, renderRogueliteShop
-} from "./shop-ui.mjs?v=runestones-pass2";
+} from "./shop-ui.mjs?v=runestones-pass3";
 import { bossPortraitFor } from "./art-catalog.mjs?v=frostlock-v1";
 import { bossSceneFor } from "./boss-scenes.mjs?v=frostlock-v1";
 import {
   restoreEffectState, bankItemBonuses, goldChancesForRun,
   hazardItemProtection, costOfNextSlide, canActivateConsumable, CONSUMABLE_TARGETS,
   consumableTargets, useConsumable
-} from "./effects.mjs?v=runestones-pass2";
-import { ITEM_BY_ID } from "./shop.mjs?v=runestones-pass2";
+} from "./effects.mjs?v=runestones-pass3";
+import { ITEM_BY_ID } from "./shop.mjs?v=runestones-pass3";
 import {
   bossForRound, bossTargetFor, bossPointsFor, bossMovementRules, bossId,
   bossAllowsMoveRestoration, applyThreeCurse,
@@ -46,10 +46,11 @@ import {
   restoreHazardPressure, progressHazardRound, resolveSlideHazards,
   HAZARD_DEFINITIONS, canRescueHazardLock
 } from "./hazards.mjs?v=runestones-pass2";
-import { ENCHANTMENT_DEFINITIONS, emptyEnchantmentLayer,
+import { ENCHANTMENT_ITEMS, ENCHANTMENT_DEFINITIONS,
+  emptyEnchantmentLayer,
   restoreEnchantmentLayer, activeEnchantmentCount, previewEnchantedBank,
   redeemEnchantedBank, resolveSlideEnchantments } from "./enchantments.mjs?v=runestones-pass2";
-import { renderEnchantmentLayer } from "./enchantment-ui.mjs?v=runestones-pass2";
+import { renderEnchantmentLayer } from "./enchantment-ui.mjs?v=runestones-pass3";
 import {
   renderHazardLayer, hazardTileDescription
 } from "./hazard-ui.mjs?v=hazard-counter-v1-art-pass4";
@@ -230,12 +231,20 @@ function render() {
   const currentStage = rogue ? stageForRound(state.run.round) : null;
   const enchants = rogue ? state.enchantments : emptyEnchantmentLayer();
   $("enchantmentStatus").hidden = !rogue || activeEnchantmentCount(enchants) === 0;
-  if (rogue) $("enchantmentStatus").textContent = "Enchanted squares: " +
-    enchants.map((entry, i) => entry ? ENCHANTMENT_DEFINITIONS[entry.type].name +
-      " (row " + (Math.floor(i / 4) + 1) + ", col " + (i % 4 + 1) +
-      "; " + entry.chargesLeft +
-      (entry.chargesLeft === 1 ? " charge)" : " charges)") : null)
-      .filter(Boolean).join(" · ");
+  const runeStatus = $("enchantmentStatusItems");
+  runeStatus.replaceChildren();
+  if (rogue) enchants.forEach((entry, i) => {
+    if (!entry) return;
+    const rune = ENCHANTMENT_DEFINITIONS[entry.type];
+    const chip = document.createElement("span");
+    chip.className = "enchantment-status-chip";
+    chip.dataset.enchantment = entry.type;
+    chip.title = rune.description;
+    chip.textContent = rune.icon + " " + rune.name + " · R" +
+      (Math.floor(i / 4) + 1) + "C" + (i % 4 + 1) + " · " +
+      entry.chargesLeft + "/" + rune.charges;
+    runeStatus.append(chip);
+  });
   const stageScene = currentStage ? stageArtFor(currentStage) : null;
   $("gameScreen").dataset.stage = stageScene ? String(currentStage) : "classic";
   $("stageScene").hidden = !stageScene;
@@ -427,8 +436,13 @@ function render() {
   if (selection) {
     const item = state.run.inventory.consumables[selection.slot];
     const name = item ? ITEM_BY_ID[item.id].name : "Item";
+    const runeType = item && ENCHANTMENT_ITEMS[item.id];
     $("itemPromptText").textContent = selection.targets.length
       ? name + ": select a second number tile to swap."
+      : runeType ? name + ": select a glowing square to enchant ("
+        + ENCHANTMENT_DEFINITIONS[runeType].charges + " " +
+        (ENCHANTMENT_DEFINITIONS[runeType].charges === 1 ? "charge" : "charges") +
+        "). Hazards, blockers and warned squares cannot be enchanted."
       : name + ": select a highlighted tile.";
   }
   const hazardItemNames = rogue && state.run.round >= 4
@@ -536,8 +550,11 @@ function render() {
       if (candidates.includes(i)) {
         button.disabled = false;
         button.classList.add("item-target");
-        button.title = "Select this tile for " +
-          ITEM_BY_ID[state.run.inventory.consumables[selection.slot].id].name;
+        const selectedItem = state.run.inventory.consumables[selection.slot];
+        button.title = ENCHANTMENT_ITEMS[selectedItem?.id]
+          ? "Place " + ITEM_BY_ID[selectedItem.id].name + " at row " +
+            (Math.floor(i / 4) + 1) + ", column " + (i % 4 + 1)
+          : "Select this tile for " + ITEM_BY_ID[selectedItem.id].name;
         button.setAttribute("aria-label", button.title);
         button.addEventListener("click", () => selectConsumableTarget(i));
       } else {
@@ -600,7 +617,12 @@ function render() {
       state.run.inventory.consumables[selection.slot]?.id === "hazard-eraser"
       ? candidates : [];
     renderHazardLayer(board, state.hazards, state.run.hazardWarning, eraseTargets);
-    renderEnchantmentLayer(board, enchants);
+    const selectedItem = selection
+      ? state.run.inventory.consumables[selection.slot] : null;
+    renderEnchantmentLayer(board, enchants, {
+      previewType: ENCHANTMENT_ITEMS[selectedItem?.id] || null,
+      candidates
+    });
   }
   $("blockerCount").textContent =
     state.board.filter(isBlocker).length + " / " + MAX_BLOCKERS;
@@ -673,7 +695,7 @@ function stopMotion() {
 // Animate original tiles towards their destinations. The next board, including
 // its new spawn, is revealed together when the 170 ms movement completes.
 function animateSlide(before, motions, mergedDestinations, spawned, damaged, destroyed,
-  blockerAt, warningAt, beforeHazards = null) {
+  blockerAt, warningAt, beforeHazards = null, enchantmentEvents = []) {
   if (prefersReducedMotion() || typeof Element.prototype.animate !== "function") return;
   const board = $("board");
   const cells = [...board.children];
@@ -723,6 +745,9 @@ function animateSlide(before, motions, mergedDestinations, spawned, damaged, des
     stopMotion();
     for (const index of mergedDestinations) {
       cells[index]?.classList.add("merge-flash");
+    }
+    for (const event of enchantmentEvents) {
+      cells[event.index]?.classList.add("rune-activation-flash");
     }
     for (const index of spawned) cells[index]?.classList.add("spawn-flash");
     for (const index of damaged) cells[index]?.classList.add("block-hit-flash");
@@ -835,7 +860,14 @@ function move(direction) {
   const news = [];
   if (mode === "roguelite") {
     for (const event of result.enchantmentEvents) {
-      news.push(ENCHANTMENT_DEFINITIONS[event.type].name + " empowered a merge!");
+      const rune = ENCHANTMENT_DEFINITIONS[event.type];
+      const remaining = state.enchantments[event.index]?.chargesLeft ?? 0;
+      const resultText = event.type === "twin-mint"
+        ? "double gold minted" : event.type === "power-prism"
+          ? "double-score mark added" : "gold added";
+      news.push(rune.name + " activated: " + resultText +
+        (remaining ? " (" + remaining + " charge" +
+          (remaining === 1 ? "" : "s") + " left)." : " (fully used)."));
     }
     for (const event of result.hazardEvents) {
       if (event.type === "void") news.push(
@@ -890,7 +922,8 @@ function move(direction) {
   render();
   animateSlide(before, result.motions, new Set(result.mergeDestinations),
     spawned.spawned, result.damaged, result.destroyed,
-    spawned.blockerAt, spawned.warningAt, beforeHazards);
+    spawned.blockerAt, spawned.warningAt, beforeHazards,
+    result.enchantmentEvents || []);
 }
 
 function updateClock() {
@@ -998,6 +1031,20 @@ function openBank(i) {
     (bankGold + (bonuses?.extraCoins ?? 0)) +
     " " + (bankGold + (bonuses?.extraCoins ?? 0) === 1 ? "coin" : "coins") +
     (bankGold === 1 ? ". Merge it first to earn a bigger reward." : ".");
+  const activeRune = mode === "roguelite" ? state.enchantments[i] : null;
+  const runeName = activeRune && ENCHANTMENT_DEFINITIONS[activeRune.type].name;
+  const runeEffect = enchanted?.spend === "gilded-foundry"
+    ? "Correct answer creates gold."
+    : enchanted?.spend === "power-prism"
+      ? "Correct answer doubles points."
+      : enchanted?.repeatBank ? "One correct repeat bank is permitted."
+        : enchanted?.extraBlockerHit ? "Correct bank adds one blocker hit."
+          : enchanted?.extraSeconds ? "+10 seconds granted for this question."
+            : t.prism === 1 ? "Power carries ×2 scoring from a previous merge."
+              : "";
+  $("bankRuneBonus").hidden = !runeEffect;
+  $("bankRuneBonus").textContent = runeEffect
+    ? "✦ " + (runeName || "Power Prism") + " · " + runeEffect : "";
   $("promptHelp").textContent = "You have " + bankLimit + " seconds. " + (canStrike
     ? "Correct answer: bank this power and damage the nearby blocker."
     : "Calculate its exact value to bank this power.") + goldHelp +
@@ -1084,6 +1131,7 @@ $("bankForm").addEventListener("submit", event => {
       })
     : { points: outcome.points, roundScore: state.score + outcome.points };
   state.score = points.roundScore;
+  let redeemedRuneType = null;
   if (mode === "roguelite") {
     state.run = points.run;
     const redeemed = redeemEnchantedBank(state.enchantments, i, enchanted,
@@ -1092,6 +1140,7 @@ $("bankForm").addEventListener("submit", event => {
         blockerApplied: outcome.creditedMerge &&
           (outcome.damaged.length + outcome.destroyed.length > 0) });
     state.enchantments = redeemed.enchantments;
+    if (redeemed.used) redeemedRuneType = enchanted.spend;
   }
   // Bank success may change which slides are possible. Switch the freeze
   // only while the boss is still active, always preserving a legal slide.
@@ -1102,6 +1151,14 @@ $("bankForm").addEventListener("submit", event => {
     + " points" + (bonuses && bonuses.notes.length
       ? " (" + bonuses.notes.join(", ") + ")" : "") +
     ". " + replacement.base + glyph(replacement.exp) + " stays on the board.";
+  if (redeemedRuneType) {
+    const remaining = state.enchantments[i]?.chargesLeft ?? 0;
+    state.notice += " ✦ " + ENCHANTMENT_DEFINITIONS[redeemedRuneType].name +
+      " activated" + (remaining ? " (" + remaining + " charge" +
+        (remaining === 1 ? "" : "s") + " left)." : " (fully used).");
+  } else if (t.prism === 1 && points.points > 0) {
+    state.notice += " ✦ Power Prism's double-score mark paid off!";
+  }
   if (mode === "roguelite" && points.bankGold) {
     state.notice += " +" + points.bankGold + " gold!";
   }
@@ -1153,6 +1210,9 @@ $("bankForm").addEventListener("submit", event => {
   focusAfterBank(i);
   if (!prefersReducedMotion()) {
     $("board").children[i]?.classList.add("bank-flash");
+    if (redeemedRuneType) {
+      $("board").children[i]?.classList.add("rune-activation-flash");
+    }
     for (const index of damaged) {
       $("board").children[index]?.classList.add("block-hit-flash");
     }

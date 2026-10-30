@@ -1,17 +1,34 @@
 // Accessible shop and equipped-item rendering. Price, sell/replace and
 // reroll effects remain in shop.mjs; this module changes presentation only.
 import {
-  ITEM_BY_ID, INVENTORY_SLOTS, shopItemPrice, purchaseShopOffer, sellPermanent, discardConsumable
-} from "./shop.mjs?v=runestones-pass2";
+  ITEM_BY_ID, INVENTORY_SLOTS, RUNESTONE_ITEM_IDS, RUNESTONE_SHOP_CHANCE,
+  shopItemPrice, purchaseShopOffer, sellPermanent, discardConsumable
+} from "./shop.mjs?v=runestones-pass3";
 import { targetForRound } from "./roguelite.mjs?v=runestones-pass2";
 import { bossForRound, bossTargetFor } from "./bosses.mjs?v=runestones-pass2";
 import { bossPortraitFor } from "./art-catalog.mjs?v=frostlock-v1";
-import { itemIconHref, itemArtKind } from "./shop-art.mjs?v=runestones-pass2";
+import { itemIconHref, itemArtKind } from "./shop-art.mjs?v=runestones-pass3";
+import { ENCHANTMENT_ITEMS, ENCHANTMENT_DEFINITIONS
+} from "./enchantments.mjs?v=runestones-pass2";
 
 const $ = id => document.getElementById(id);
 const SVG_NS = "http://www.w3.org/2000/svg";
 const itemName = entry => entry ? ITEM_BY_ID[entry.id]?.name || "Unknown item" : "Empty";
 const labelFor = type => type === "permanents" ? "Permanent" : "Single use";
+const RUNE_TRIGGER_LABEL = Object.freeze({
+  "foundry-runestone": "MERGE OR CORRECT BANK",
+  "prism-runestone": "MERGE OR CORRECT BANK",
+  "echo-runestone": "CORRECT REPEAT BANK",
+  "mint-runestone": "MERGE ONLY",
+  "sanctuary-runestone": "QUESTION OPENED",
+  "shatter-runestone": "CORRECT MERGED-POWER BANK"
+});
+const runeData = itemId => {
+  const type = ENCHANTMENT_ITEMS[itemId];
+  const definition = type && ENCHANTMENT_DEFINITIONS[type];
+  return definition ? { type, definition, trigger: RUNE_TRIGGER_LABEL[itemId] } : null;
+};
+
 
 function element(tag, className = "", content = "") {
   const node = document.createElement(tag);
@@ -65,7 +82,8 @@ export function renderRogueliteInventory(state, isRoguelite, onUse, canUse) {
         item.hazardCounter);
       const chip = element(usable ? "button" : "span",
         "equip-chip" + (entry ? " equipped equip-chip--illustrated" : "") +
-          (hazardCounter ? " hazard-counter-equipped" : ""));
+          (hazardCounter ? " hazard-counter-equipped" : "") +
+          (item?.rare ? " runestone-equipped" : ""));
       chip.title = item
         ? item.description
         : "Empty " + labelFor(type).toLowerCase() + " slot";
@@ -124,6 +142,15 @@ function offerCard(type, itemId, slotIndex, state, dispatch) {
   info.append(priceLabel);
   top.append(info);
   card.append(top, element("p", "shop-item-description", item.description));
+  if (item.rare) {
+    const rune = runeData(item.id);
+    const note = element("p", "shop-rune-effect");
+    note.append(element("span", "shop-rune-trigger", rune.trigger),
+      element("span", "shop-rune-charge", rune.definition.charges +
+        (rune.definition.charges === 1 ? " activation" : " activations") +
+        " · stays on a chosen square"));
+    card.append(note);
+  }
 
   const owned = state.run.inventory[type];
   const freeSlot = owned.findIndex(entry => !entry);
@@ -180,6 +207,34 @@ function inventoryCard(type, slot, state, dispatch) {
   return cell;
 }
 
+// An optional reference rather than six more purchase options: students see
+// when each Runestone unlocks, where it triggers, and how many uses it has.
+function renderRunestoneGuide(nextRound) {
+  const target = $("shopRunestoneGallery");
+  target.replaceChildren();
+  for (const id of RUNESTONE_ITEM_IDS) {
+    const item = ITEM_BY_ID[id];
+    const rune = runeData(id);
+    const unlocked = item.unlockRound <= nextRound;
+    const card = element("article", "shop-rune-guide-card" +
+      (unlocked ? "" : " is-locked"));
+    card.dataset.enchantment = rune.type;
+    const heading = element("div", "shop-rune-guide-top");
+    heading.append(itemArtwork(id, "runestone", "small"));
+    const words = element("div", "shop-rune-guide-copy");
+    words.append(element("strong", "", item.name),
+      element("span", "shop-rune-guide-unlock", unlocked
+        ? "Available from round " + item.unlockRound + " · " + item.price + " coins"
+        : "Unlocks in round " + item.unlockRound));
+    heading.append(words);
+    card.append(heading, element("p", "shop-rune-guide-trigger", rune.trigger +
+      " · " + rune.definition.charges +
+      (rune.definition.charges === 1 ? " charge" : " charges")),
+    element("p", "shop-rune-guide-description", item.description));
+    target.append(card);
+  }
+}
+
 const MERCHANT_LINES = Object.freeze([
   "A little preparation beats a lot of panic.",
   "Every power has potential. Some just need a little polish.",
@@ -200,9 +255,24 @@ export function renderRogueliteShop(state, mode, dispatch) {
   const boss = bossForRound(state.run, nextRound);
   $("shopRound").textContent = "After round " + round + " · Next: " +
     (boss ? "BOSS ROUND " : "round ") + nextRound + " of 12";
-  $("shopMerchantMessage").textContent = boss
-    ? "A tricky customer is next. Choose your tools carefully."
-    : MERCHANT_LINES[(round - 1) % MERCHANT_LINES.length];
+  const rareOffer = shop.consumables.find(id => ITEM_BY_ID[id]?.rare);
+  $("shopMerchantMessage").textContent = rareOffer
+    ? "An unusual Runestone has appeared! A little magic rewards good mathematics."
+    : boss ? "A tricky customer is next. Choose your tools carefully."
+      : MERCHANT_LINES[(round - 1) % MERCHANT_LINES.length];
+  $("shopRunestoneStatus").textContent = nextRound < 4
+    ? "Runestones unlock in round 4. See the field guide for future treasures."
+    : rareOffer
+      ? "✦ Rare Runestone in stock: " + ITEM_BY_ID[rareOffer].name +
+        ". One-use item; choose where to enchant the board."
+      : shop.runestoneSeen
+        ? "Runestone already revealed this shop visit. Rerolls now offer normal items."
+        : "Runestones are uncommon. Each fresh stock roll has about " +
+          Math.round(RUNESTONE_SHOP_CHANCE * 100) +
+          "% chance of revealing one, until one has appeared.";
+  $("shopRunestoneStatus").dataset.state = rareOffer ? "found"
+    : shop.runestoneSeen ? "seen" : "unseen";
+  renderRunestoneGuide(nextRound);
   $("shopBossPreview").hidden = !boss;
   $("shopBossPreview").dataset.boss = boss?.id ?? "";
   const portrait = boss ? bossPortraitFor(boss.id) : null;

@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#0c1428">
   <meta name="description" content="Slide and merge powers, solve banking challenges and stay in the game.">
   <title>Index Shuffle — Make every move count</title>
-  <link rel="stylesheet" href="styles.css?v=runestones-pass2">
+  <link rel="stylesheet" href="styles.css?v=runestones-pass3">
 </head>
 <body>
   <main class="shell">
@@ -199,7 +199,11 @@
           <button type="button" id="boardHazardHelp" data-help="rules" aria-label="View the hazard guide"
             title="View the hazard guide">?</button>
         </div>
-        <p id="enchantmentStatus" class="enchantment-status" hidden></p>
+        <section id="enchantmentStatus" class="enchantment-status" hidden
+          aria-label="Active enchanted squares" aria-live="polite">
+          <span class="enchantment-status-label">✦ ENCHANTED SQUARES</span>
+          <div id="enchantmentStatusItems" class="enchantment-status-items"></div>
+        </section>
         <p id="hazardAlert" class="hazard-alert" hidden role="status"
           aria-live="polite"></p>
         <div id="achievementToast" class="achievement-toast" hidden role="status" aria-live="polite">
@@ -656,6 +660,8 @@
         <strong>Permanent bonuses apply automatically.</strong>
         Use single-use items during rounds. You can leave without buying.
       </p>
+      <p id="shopRunestoneStatus" class="shop-runestone-status" role="status"
+        aria-live="polite"></p>
       <details class="shop-guide">
         <summary>Buying, replacing &amp; selling</summary>
         <p>You have two permanent and two single-use inventory slots.
@@ -663,6 +669,15 @@
           Selling a permanent returns half the amount you paid, rounded down.
           Discarded single-use items give no refund. Rerolls cost coins and get
           more expensive each time you reroll during this shop visit.</p>
+      </details>
+      <details id="shopRunestoneGuide" class="shop-runestone-guide">
+        <summary>✦ Runestone field guide — effects, charges &amp; unlocks</summary>
+        <p>Rare one-use items enchant a chosen board square for the current
+          round. They do not score anything when placed. Position matters:
+          most effects trigger only on a merge or correct bank there.
+          Each shop visit reveals at most one rare Runestone, even with rerolls.
+          At most two enchanted squares can be active on the board.</p>
+        <div id="shopRunestoneGallery" class="shop-runestone-gallery"></div>
       </details>
       <section id="shopBossPreview" class="shop-boss-preview" hidden
         aria-label="Next round boss preview">
@@ -700,6 +715,7 @@
       <p class="overline">BANK THIS POWER</p>
       <h2 id="promptTitle"></h2>
       <p id="promptHelp">You have 60 seconds to enter the exact value.</p>
+      <p id="bankRuneBonus" class="bank-rune-bonus" hidden></p>
       <div id="clock" class="clock">
         <div class="between"><span>Time remaining</span>
           <strong id="timeLeft" role="timer">1:00</strong></div>
@@ -721,6 +737,6 @@
       <button type="button" id="cancel" class="textbtn">Keep this tile</button>
     </div>
   </dialog>
-  <script type="module" src="app.mjs?v=runestones-pass2"></script>
+  <script type="module" src="app.mjs?v=runestones-pass3"></script>
 </body>
 </html>
