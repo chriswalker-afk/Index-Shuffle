@@ -311,7 +311,7 @@ const html = readFileSync("index.html", "utf8");
 const shopUI = readFileSync("shop-ui.mjs", "utf8");
 const css = readFileSync("styles.css", "utf8");
 assert.match(app, /blockerDamage: \(bonuses\?\.blockerHits \?\? 1\)/);
-assert.match(app, /scoreOverride: bonuses\.score/);
+assert.match(app, /scoreOverride: prismScore\.score/);
 assert.match(app, /extraCoins: bonuses\.extraCoins/);
 assert.match(app, /counters: bonuses\.counters/);
 assert.match(app, /if \(outcome\.status === "incorrect"\)/);
