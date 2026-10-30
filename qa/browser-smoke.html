@@ -136,6 +136,77 @@
           "Roguelike board-first layout holds at 320px");
         assert($("stageSceneImage").getAttribute("src")?.includes("stage-observatory.svg"),
           "current-stage art is loaded only for the actual stage");
+
+        // Resume a deterministic saved Frostlock encounter. This exercises
+        // the real UI and keyboard handler without any hidden game shortcut
+        // or changes to source mechanics.
+        $("headerTitle").click();
+        const key = "index-shuffle-roguelite-v1";
+        const saved = JSON.parse(win.localStorage.getItem(key));
+        assert(Boolean(saved?.run), "Roguelike save exists for Frostlock continuation");
+        saved.board = Array(16).fill(null);
+        saved.board[5] = { base: 2, exp: 1 };
+        saved.board[10] = { base: 3, exp: 1 };
+        saved.hazards = Array(16).fill(null);
+        saved.banked = []; saved.locked = []; saved.mergeReady = [];
+        saved.moves = 0; saved.movesLeft = 10; saved.score = 0;
+        saved.over = false;
+        saved.run.round = 6;
+        saved.run.phase = "playing";
+        saved.run.totalSlides = 0;
+        saved.run.hazardWarning = null;
+        saved.run.hazardCooldown = 0;
+        saved.run.bosses = { 3: "blockade", 6: "frostlock",
+          9: "scorekeeper", 12: "silent-seven" };
+        saved.run.frozenDirection = "left";
+        win.localStorage.setItem(key, JSON.stringify(saved));
+        $("titleContinue").click();
+        const resume = [...$("continueSlots").querySelectorAll("button")]
+          .find(b => b.getAttribute("aria-label")?.includes("Roguelike"));
+        assert(Boolean(resume), "Saved Frostlock run appears in Continue");
+        resume.click();
+        await tick();
+        assert($("bossName").textContent === "The Frostlock",
+          "saved Frostlock round restores its boss identity");
+        assert(!$("frostlockStatus").hidden &&
+          $("frostlockDirection").textContent.startsWith("LEFT"),
+          "current frozen direction appears beside controls");
+        const buttons = [...doc.querySelectorAll(".controls [data-dir]")];
+        assert(buttons.filter(b => b.disabled).length === 1 &&
+          buttons.find(b => b.dataset.dir === "left")?.disabled,
+          "exactly the LEFT arrow button is frozen initially");
+        const budgetBefore = $("movesLeft").textContent;
+        doc.dispatchEvent(new win.KeyboardEvent("keydown", {
+          key: "ArrowLeft", bubbles: true, cancelable: true
+        }));
+        assert($("movesLeft").textContent === budgetBefore &&
+          buttons.find(b => b.dataset.dir === "left")?.disabled,
+          "pressing the frozen arrow does not use moves or reroll");
+        doc.dispatchEvent(new win.KeyboardEvent("keydown", {
+          key: "ArrowRight", bubbles: true, cancelable: true
+        }));
+        await tick();
+        assert(Number($("movesLeft").textContent) < Number(budgetBefore),
+          "an unfrozen direction still moves and costs the usual move");
+        const after = JSON.parse(win.localStorage.getItem(key));
+        assert(after.run.frozenDirection !== "left",
+          "a successful move selects a different frozen direction");
+        assert(buttons.filter(b => b.disabled).length === 1 &&
+          buttons.find(b => b.dataset.dir === after.run.frozenDirection)?.disabled,
+          "exactly the newly frozen arrow is disabled");
+        assert($("frostlockDirection").textContent.length >= 4,
+          "new frozen direction is announced in the status area");
+        // The selection is persisted and does not change on resume.
+        $("headerTitle").click();
+        $("titleContinue").click();
+        const resumeAgain = [...$("continueSlots").querySelectorAll("button")]
+          .find(b => b.getAttribute("aria-label")?.includes("Roguelike"));
+        resumeAgain.click();
+        await tick();
+        const restored = [...doc.querySelectorAll(".controls [data-dir]")]
+          .find(b => b.disabled)?.dataset.dir;
+        assert(restored === after.run.frozenDirection,
+          "reloading a Frostlock run preserves its frozen control");
         finish("pass", logs.length + " interactive layout/semantics checks");
       } catch (error) {
         finish("fail", String(error && error.stack || error));
