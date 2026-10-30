@@ -2,9 +2,9 @@
 // mutations are delegated to pure reducers in shop.mjs.
 import {
   ITEM_BY_ID, INVENTORY_SLOTS, shopItemPrice, purchaseShopOffer, sellPermanent, discardConsumable
-} from "./shop.mjs?v=mode-results-v1";
-import { targetForRound } from "./roguelite.mjs?v=mode-results-v1";
-import { bossForRound, bossTargetFor } from "./bosses.mjs?v=mode-results-v1";
+} from "./shop.mjs?v=hazard-pass3-v1";
+import { targetForRound } from "./roguelite.mjs?v=hazard-pass3-v1";
+import { bossForRound, bossTargetFor } from "./bosses.mjs?v=hazard-pass3-v1";
 
 const $ = id => document.getElementById(id);
 const itemName = entry => entry ? ITEM_BY_ID[entry.id]?.name || "Unknown item" : "Empty";
