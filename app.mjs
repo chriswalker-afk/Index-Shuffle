@@ -39,7 +39,7 @@ import { renderNavigation } from "./title-ui.mjs?v=hazard-pass3-v1";
 import {
   restoreHazardLayer, hazardAt, activeHazardCount, MAX_ACTIVE_HAZARDS,
   restoreHazardPressure, progressHazardRound, resolveSlideHazards,
-  HAZARD_DEFINITIONS
+  HAZARD_DEFINITIONS, canRescueHazardLock
 } from "./hazards.mjs?v=hazard-pass3-v1";
 import {
   renderHazardLayer, hazardTileDescription
@@ -121,8 +121,16 @@ function currentMovementRules() {
     : null;
 }
 function currentGameEnded() {
-  return gameEnded(state.board, new Set(state.banked), new Set(state.locked),
+  const banked = new Set(state.banked), locked = new Set(state.locked);
+  const ended = gameEnded(state.board, banked, locked,
     state.movesLeft, currentMovementRules());
+  if (!ended || state.movesLeft <= 0 || mode !== "roguelite") return ended;
+  // A held Hazard Eraser is a genuine rescue when removing a hazard
+  // restores a bank or slide. Do not end the run before it can be used.
+  return !(state.run.inventory?.consumables?.some(entry =>
+    entry?.id === "hazard-eraser") && canRescueHazardLock(
+      state.board, state.hazards, banked, locked,
+      bossMovementRules(state.run)));
 }
 
 function persist() {
@@ -317,6 +325,7 @@ function render() {
       const gold = rogue ? goldTier(t) : 0;
       const available = isBankable(t, banked, i, locked,
         rogue ? state.hazards : null);
+      const alreadyBanked = banked.has(key(t));
       const blocked = (t.exp >= 2 || gold > 0) && locked.has(i) &&
         (gold > 0 || !banked.has(key(t)));
       const strike = available && mergeReady.has(i) &&
@@ -333,10 +342,12 @@ function render() {
         : blocked ? '<i aria-hidden="true">⌛</i>' : ""));
       const description = t.base + " to the power " + t.exp;
       const goldCoins = gold ? goldForBank(t, mergeReady.has(i)) : 0;
-      const goldHint = !gold ? "" :
+      const goldHint = !gold || alreadyBanked ? "" :
         ". Golden tile: a correct bank earns " + goldCoins +
         (goldCoins === 1 ? " coin. Merge first to earn more." : " coins.");
-      button.title = (blocked ? "Wait one slide before retrying " + description
+      button.title = (alreadyBanked
+        ? description + " was already banked this round. Gold does not allow it again."
+        : blocked ? "Wait one slide before retrying " + description
         : strike ? "Bank " + description + " correctly to damage adjacent blocker"
         : available ? "Bank " + description : description) + goldHint +
         (curseBadge ? ". Three Curse: " + t.curseLeft +
@@ -344,6 +355,7 @@ function render() {
       if (gold) {
         button.classList.add("gold-tile");
         if (gold === 2) button.classList.add("gold-double");
+        if (alreadyBanked) button.classList.add("already-banked");
       }
       button.setAttribute("aria-label", button.title);
       if (blocked) button.classList.add("locked");
@@ -374,11 +386,17 @@ function render() {
       const description = hazardTileDescription(squareHazard,
         Boolean(t && !isBlocker(t) && !isWarning(t)));
       if (squareHazard.type === "cloudy") {
-        // Never expose a concealed power through a title, accessible label,
-        // banking click, or bank indicator. Full movement rules follow in Pass 2.
-        button.title = description;
-        button.setAttribute("aria-label", description);
-        button.disabled = true;
+        // A cloud conceals its tile, but Hazard Eraser must remain a valid
+        // target. Never leak base, exponent or gold via title or appearance.
+        const erasing = selection && candidates.includes(i) &&
+          state.run.inventory.consumables[selection.slot]?.id === "hazard-eraser";
+        const label = erasing
+          ? "Remove Cloudy hazard at row " + (Math.floor(i / 4) + 1) +
+            ", column " + (i % 4 + 1) +
+            ". The covered tile will not change." : description;
+        button.title = label;
+        button.setAttribute("aria-label", label);
+        button.disabled = !erasing;
         button.classList.remove("bankable", "block-strike");
         button.replaceChildren();
       } else {
@@ -398,7 +416,12 @@ function render() {
   });
   // Stationary hazard overlay comes after the 16 tiles. It never intercepts
   // banking or slide gestures, and slide animation still uses cells 0..15.
-  if (rogue) renderHazardLayer(board, state.hazards, state.run.hazardWarning);
+  if (rogue) {
+    const eraseTargets = selection &&
+      state.run.inventory.consumables[selection.slot]?.id === "hazard-eraser"
+      ? candidates : [];
+    renderHazardLayer(board, state.hazards, state.run.hazardWarning, eraseTargets);
+  }
   $("blockerCount").textContent =
     state.board.filter(isBlocker).length + " / " + MAX_BLOCKERS;
   const incoming = state.board.find(isWarning);
@@ -591,6 +614,7 @@ function move(direction) {
     ? progressHazardRound(state.board, state.hazards, state.run, nextMove,
       { rng: Math.random, boss: isBossRound(state.run.round),
         banked: new Set(state.banked), locked: new Set(),
+        movesLeft: state.movesLeft,
         movementRules: bossMovementRules(state.run) })
     : null;
   if (hazardStep) {
