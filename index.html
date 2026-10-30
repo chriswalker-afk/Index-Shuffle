@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#0c1428">
   <meta name="description" content="Slide and merge powers, solve banking challenges and stay in the game.">
   <title>Index Shuffle — Make every move count</title>
-  <link rel="stylesheet" href="styles.css?v=hazard-layer-v1">
+  <link rel="stylesheet" href="styles.css?v=hazard-pass3-v1">
 </head>
 <body>
   <main class="shell">
@@ -137,6 +137,8 @@
         <div id="status" class="game-feedback" role="status" aria-live="polite">
           Merge matching bases or bank a glowing power.
         </div>
+        <p id="hazardAlert" class="hazard-alert" hidden role="status"
+          aria-live="polite"></p>
         <div id="achievementToast" class="achievement-toast" hidden role="status" aria-live="polite">
           <span aria-hidden="true">🏆</span>
           <span id="achievementToastText"></span>
@@ -252,6 +254,7 @@
             <div id="activeBases" class="base-chips" aria-label="Unlocked bases"></div>
             <p id="nextBase" class="detail-hint"></p>
             <p id="blockerNext" class="detail-hint"></p>
+            <p id="hazardNext" class="detail-hint"></p>
           </div>
         </details>
 
@@ -333,15 +336,22 @@
           Permanent bonuses apply automatically. Every third round brings a
           different boss rule, revealed in the preceding shop. Correctly bank
           powers to counter boss obstacles and survive the round.</p>
+        <p>From Stage 2 onward, up to two marked board squares may carry
+          hazards. Cloudy hides a tile and prevents banking while it is
+          covered; Void lowers an incoming exponent; Null blocks merging;
+          Cracked becomes Null after a merge; and Greedy strips gold along
+          a tile's path. A hazard warning appears one successful slide
+          before a hazard activates. Buy a one-use <strong>Hazard Eraser</strong>
+          in the shop to remove any active hazard without using a move.</p>
         <section class="hazard-field-guide" aria-labelledby="hazardGuideTitle">
           <div class="hazard-guide-header">
             <div>
               <h4 id="hazardGuideTitle">Square hazards</h4>
-              <p>Five hazards planned for later difficulty stages. These are
-                visual previews only: hazards do not spawn or affect movement
-                in this pass.</p>
+              <p>Hazards start in Stage 2 (round 4). A marked square warns
+                one successful slide before a hazard appears. Their effects
+                become stronger and more varied in later stages.</p>
             </div>
-            <span class="hazard-guide-status">PREVIEW</span>
+            <span class="hazard-guide-status">ACTIVE</span>
           </div>
           <div class="hazard-preview-grid">
             <div class="hazard-preview-card">
@@ -372,7 +382,8 @@
         <span><b>⌛</b> Banking cooldown</span><span><b>!</b> Incoming blocker</span>
         <span><b>▦</b> Fixed blocker</span>
         <span><b>◉</b> Golden tile: bank directly or merge for more coins</span>
-        <span><b>✧</b> Square hazards (planned for later passes)</span>
+        <span><b>✧</b> Roguelike square hazards</span>
+        <span><b>!</b> Hazard incoming next slide (with hazard name)</span>
       </div>
     </section>
 
@@ -522,6 +533,6 @@
       <button type="button" id="cancel" class="textbtn">Keep this tile</button>
     </div>
   </div>
-  <script type="module" src="app.mjs?v=hazard-layer-v1"></script>
+  <script type="module" src="app.mjs?v=hazard-pass3-v1"></script>
 </body>
 </html>
