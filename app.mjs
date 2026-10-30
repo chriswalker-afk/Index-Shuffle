@@ -533,16 +533,19 @@ function animateSlide(before, motions, mergedDestinations, spawned, damaged, des
     if (!t) continue;
     const from = rects[movement.from], to = rects[movement.to];
     const ghost = document.createElement("div");
-    ghost.className = "tile-ghost base" + t.base +
-      (mode === "roguelite" && goldTier(t) ? " gold-tile" +
-        (goldTier(t) === 2 ? " gold-double" : "") : "");
+    // Neither numbers nor colour/gold frames may leak from Cloudy tiles
+    // during movement. Render all covered origins as a neutral silhouette.
+    const hiddenAtStart = beforeHazards?.[movement.from]?.type === "cloudy";
+    ghost.className = hiddenAtStart ? "tile-ghost ghost-clouded"
+      : "tile-ghost base" + t.base +
+        (mode === "roguelite" && goldTier(t) ? " gold-tile" +
+          (goldTier(t) === 2 ? " gold-double" : "") : "");
     ghost.style.left = (from.left - boardRect.left) + "px";
     ghost.style.top = (from.top - boardRect.top) + "px";
     ghost.style.width = from.width + "px";
     ghost.style.height = from.height + "px";
     // Never leak the identity of a tile emerging from beneath Cloudy via
     // the animation ghost. Once it has left the cloud, the real tile appears.
-    const hiddenAtStart = beforeHazards?.[movement.from]?.type === "cloudy";
     ghost.innerHTML = hiddenAtStart ? '<span class="ghost-cloud-cover">☁ ?</span>'
       : tileContent(t, mode === "roguelite" && goldTier(t)
         ? '<small class="tile-gold-mark" aria-hidden="true">◉' +
