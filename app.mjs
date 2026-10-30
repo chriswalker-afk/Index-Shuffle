@@ -1269,7 +1269,10 @@ $("modal").addEventListener("cancel", event => {
 });
 function closeNavigationDialogs() {
   stopMotion();
-  closeBank();
+  // Leaving a timed question for the title/another mode is still a
+  // cancellation. Otherwise navigation would reset the timer for free.
+  if (pending !== null) lockPending("cancel");
+  else closeBank();
   pendingItem = null;
   recentAchievementIds = [];
   for (const id of ["shopDialog", "resultsDialog", "achievementsDialog", "bossIntroDialog"]) {
