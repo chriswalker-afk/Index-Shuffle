@@ -203,7 +203,10 @@ export function useConsumable(state, slot, selections = []) {
       break;
     case "gold-touch":
       board[index] = { ...board[index], gold: 1 };
-      notice = "Gold Touch turned a number tile golden. Merge and bank it for coins.";
+      // Gold applied after a merge cannot claim gold from that earlier merge.
+      // The tile must merge again before its golden bank can pay out.
+      ready = ready.filter(i => i !== index);
+      notice = "Gold Touch gilded a number tile. Merge it again, then bank for coins.";
       break;
     case "position-swap": {
       const other = selections[1];
