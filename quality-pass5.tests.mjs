@@ -21,7 +21,7 @@ assert.match(html, /<dialog id="modal" class="overlay" aria-labelledby="promptTi
 assert.doesNotMatch(html, /<div id="modal" class="overlay" hidden>/);
 assert.match(html, /id="answer"[\s\S]*?aria-describedby="promptHelp"/);
 assert.match(html, /styles\.css\?v=frostlock-v1/);
-assert.match(html, /app\.mjs\?v=frostlock-v1/);
+assert.match(html, /app\.mjs\?v=bank-timer-v1/);
 
 // Native modal handles focus containment; all exits cancel the existing timer.
 assert.match(app, /if \(!\$\("modal"\)\.open\) \$\("modal"\)\.showModal\(\)/);
