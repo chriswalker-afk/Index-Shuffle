@@ -4,27 +4,27 @@ import {
   mergeReadyAfterSlide, attemptBank, adjacentIndices, activeBases, BASE_UNLOCKS,
   INITIAL_MOVES_LEFT, MERGES_PER_BONUS_MOVE, BUDGET_RULES_VERSION,
   restoreMoveBudget, spendMove, slideCost, creditCorrectBank, gameEnded
-} from "./engine.mjs?v=gold-banking-v2";
+} from "./engine.mjs?v=mode-results-v1";
 import { newRogueliteRun, targetForRound, stageForRound, isBossRound,
   recordRogueliteBank, advanceRogueliteRound, validRogueliteRun,
   restoreRogueliteRun, markGoldSpawns, goldTier, goldForBank
-} from "./roguelite.mjs?v=gold-banking-v2";
+} from "./roguelite.mjs?v=mode-results-v1";
 import {
   restoreShopState, enterRogueliteShop, rerollRogueliteShop
-} from "./shop.mjs?v=gold-banking-v2";
+} from "./shop.mjs?v=mode-results-v1";
 import {
   renderRogueliteInventory, renderRogueliteShop
-} from "./shop-ui.mjs?v=gold-banking-v2";
+} from "./shop-ui.mjs?v=mode-results-v1";
 import {
   restoreEffectState, bankItemBonuses, goldChancesForRun,
   costOfNextSlide, canActivateConsumable, CONSUMABLE_TARGETS,
   consumableTargets, useConsumable
-} from "./effects.mjs?v=gold-banking-v2";
-import { ITEM_BY_ID } from "./shop.mjs?v=gold-banking-v2";
+} from "./effects.mjs?v=mode-results-v1";
+import { ITEM_BY_ID } from "./shop.mjs?v=mode-results-v1";
 import {
   bossForRound, bossTargetFor, bossPointsFor, bossMovementRules,
   bossAllowsMoveRestoration, applyThreeCurse
-} from "./bosses.mjs?v=gold-banking-v2";
+} from "./bosses.mjs?v=mode-results-v1";
 import {
   ACHIEVEMENTS, ACHIEVEMENT_BY_ID, emptyRunStats, restoreRunStats,
   restoreAchievementProfile, recordRunStats, recordSuccessfulSlide,
