@@ -293,6 +293,7 @@
               <span class="boss-victory-kicker"><span aria-hidden="true">✦</span> BOSS DEFEATED</span>
               <h3 id="bossVictoryName">Victory over the boss!</h3>
               <p id="bossVictoryLine"></p>
+              <p id="bossVictoryTimer" class="boss-victory-timer"></p>
             </div>
           </section>
           <strong id="roundClearHeading">Round complete!</strong>
@@ -376,7 +377,7 @@
       </div>
       <div class="help-block">
         <h3>2. Bank a power</h3>
-        <p>Select a glowing <b>✦</b> tile and calculate its exact value in 60 seconds.
+        <p>Select a glowing <b>✦</b> tile and calculate its exact value in <span id="helpBankSeconds">60</span> seconds.
            Every power can be banked only once per base–exponent combination
            each round, <strong>including golden powers</strong>. In Roguelike,
            gold allows banking exponent 1 directly, provided that exact power
@@ -417,7 +418,10 @@
           offers, with two inventory slots for each type. Purchased items are
           saved and their effects are active. Tap a single-use item during a round,
           then choose the highlighted square(s), or cancel without consuming it.
-          Permanent bonuses apply automatically. Every third round brings a
+          Permanent bonuses apply automatically. Each defeated boss reduces
+          your banking-answer time by 10 seconds for subsequent rounds:
+          60, then 50, then 40, then 30 seconds per question.
+          Every third round brings a
           different boss rule, revealed in the preceding shop. Correctly bank
           powers to counter boss obstacles and survive the round. Against
           <strong>The Frostlock</strong>, one direction is frozen at a time:
@@ -499,7 +503,7 @@
         <p>The exponent tells you how many copies of the base to multiply.</p>
         <div class="math-example">3⁴ = 3 × 3 × 3 × 3 = 81</div>
         <p>Banking asks for the <strong>number value</strong>, not another
-           power expression. A golden 3¹ is simply 3. You have 60 seconds
+           power expression. A golden 3¹ is simply 3. You have <span id="mathsBankSeconds">60</span> seconds
            for each answer.</p>
       </div>
       <div class="help-block">
@@ -700,6 +704,6 @@
       <button type="button" id="cancel" class="textbtn">Keep this tile</button>
     </div>
   </dialog>
-  <script type="module" src="app.mjs?v=frostlock-v1"></script>
+  <script type="module" src="app.mjs?v=bank-timer-v1"></script>
 </body>
 </html>
