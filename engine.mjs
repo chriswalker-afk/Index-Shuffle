@@ -2,6 +2,29 @@ export const SIZE = 4;
 export const INITIAL_MOVES_LEFT = 10;
 export const MAX_MOVES_LEFT = 10;
 export const MERGES_PER_BONUS_MOVE = 2;
+export const BUDGET_RULES_VERSION = 2;
+
+// Only preserve balances created under the correct-banking reward system.
+// The earlier version credited unbanked merges, so its saved counter
+// cannot be translated reliably. Give that run a new ten-move allowance.
+export function restoreMoveBudget(saved = {}) {
+  if (saved?.budgetRulesVersion !== BUDGET_RULES_VERSION) {
+    return {
+      movesLeft: INITIAL_MOVES_LEFT,
+      mergeCredit: 0,
+      budgetRulesVersion: BUDGET_RULES_VERSION
+    };
+  }
+  return {
+    movesLeft: Number.isSafeInteger(saved.movesLeft)
+      ? Math.max(0, Math.min(MAX_MOVES_LEFT, saved.movesLeft))
+      : INITIAL_MOVES_LEFT,
+    mergeCredit: Number.isSafeInteger(saved.mergeCredit) &&
+      saved.mergeCredit >= 0 && saved.mergeCredit < MERGES_PER_BONUS_MOVE
+      ? saved.mergeCredit : 0,
+    budgetRulesVersion: BUDGET_RULES_VERSION
+  };
+}
 
 // Slides ONLY subtract moves: 1 plus one for every blocker already on
 // the board. Warning tiles are not active blockers. No merge performed
