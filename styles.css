@@ -1448,3 +1448,81 @@ details[open] > summary .chevron { transform: rotate(180deg); }
   .hazard-warning-label { font-size: 7px; letter-spacing: -.2px; }
   .hazard-alert { font-size: 11px; }
 }
+
+/* Pass 4: readable hazard status, click-through Eraser targets and colour-safe
+   Cloudy animations. Keep overlays pointer-transparent on mobile/desktop. */
+.board-hazard-status {
+  display: flex; align-items: center; gap: 9px;
+  padding: 9px 11px; margin: 0 0 10px;
+  background: #1c3145; border: 1px solid #526d82; border-radius: 11px;
+  min-height: 47px; color: #edf5ff;
+}
+.board-hazard-status[hidden], .hazard-alert[hidden] { display: none; }
+.board-hazard-icon { display: grid; place-items: center;
+  width: 29px; height: 29px; border: 1px solid #aa9564;
+  color: #ffe3a9; border-radius: 8px; flex: 0 0 auto;
+  background: #453b36; font-size: 17px; }
+.board-hazard-info { display: flex; flex: 1; flex-direction: column;
+  min-width: 0; gap: 3px; }
+.board-hazard-info strong { color: #f8e4b5; font-size: 12px; }
+.board-hazard-info small { font-size: 11px; line-height: 1.5; color: #bccfdf; }
+#boardHazardHelp { display: grid; place-items: center; flex: 0 0 29px;
+  width: 29px; height: 29px; border-radius: 8px;
+  border: 1px solid #5d7c99; color: #dff4eb; background: #274455;
+  font-size: 14px; font-weight: 900; }
+#boardHazardHelp:hover, #boardHazardHelp:focus-visible {
+  background: #3b5b72; outline-color: #a2e8d6;
+}
+.hazard-alert[data-hazard="cloudy"] { border-color: #d2e0ef; }
+.hazard-alert[data-hazard="void"] { border-color: #af9af0; }
+.hazard-alert[data-hazard="null"] { border-color: #ed959a; }
+.hazard-alert[data-hazard="cracked"] { border-color: #e8bb7b; }
+.hazard-alert[data-hazard="greedy"] { border-color: #e5c96c; }
+.hazard-slot.hazard-incoming {
+  border-width: 3px; outline: 2px dashed #fff0c3;
+  outline-offset: -7px;
+}
+.hazard-slot.hazard-erase-target {
+  outline: 3px solid #9df6d6;
+  outline-offset: -4px;
+  box-shadow: inset 0 0 0 3px #295c5d7d, 0 0 17px #90ffe29e;
+}
+.hazard-erase-label {
+  position: absolute; top: 3px; right: 3px; z-index: 5;
+  font-size: 9px; font-weight: 950; letter-spacing: .4px;
+  background: #163f40; color: #c0ffe8; border: 1px solid #a0f4db;
+  border-radius: 5px; padding: 3px 4px; line-height: 1;
+}
+.cell.gold-tile.already-banked {
+  filter: saturate(.65); border-color: #a79060;
+  box-shadow: inset 0 1px 4px #463c2790, 0 2px 6px #0002;
+}
+.cell.gold-tile.already-banked::after {
+  content: "✓";
+  position: absolute; top: 3px; right: 4px; z-index: 4;
+  width: 19px; height: 19px; border-radius: 99px;
+  background: #243d43; border: 1px solid #e6d8a5;
+  color: #fff6da; display: grid; place-items: center;
+  font-size: 12px; font-weight: 900;
+  pointer-events: none;
+}
+.tile-ghost.ghost-clouded {
+  background: linear-gradient(145deg, #a2b6c9, #506985 55%, #3a536f);
+  border: 2px solid #d5e4ef; color: #f7fcff;
+  box-shadow: inset 0 2px 9px #e9f3ff60, 0 2px 10px #0004;
+}
+@media (max-width: 580px) {
+  .board-hazard-status { padding: 8px 9px; gap: 7px; }
+  .board-hazard-info strong { font-size: 11px; }
+  .board-hazard-info small { font-size: 10px; }
+  .hazard-erase-label { font-size: 8px; padding: 2px 3px; }
+  .hazard-warning-label { font-size: 9px; padding: 3px 1px; }
+  .hazard-slot.hazard-incoming { outline-offset: -5px; }
+  .cell.gold-tile.already-banked::after {
+    width: 16px; height: 16px; font-size: 10px; top: 2px; right: 2px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hazard-slot.hazard-incoming,
+  .hazard-slot.hazard-erase-target { animation: none; transition: none; }
+}
