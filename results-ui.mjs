@@ -92,7 +92,7 @@ export function renderFinalScreen(mode, state, profile) {
   $("resultsScoreLabel").textContent = rogue ? "TOTAL RUN SCORE" : "FINAL SCORE";
   $("resultsFinalScore").textContent = pretty(summary.score);
   $("resultsBestScore").textContent = rogue
-    ? "Best completed run score: " + pretty(summary.best)
+    ? "Best run score: " + pretty(summary.best)
     : "Personal best: " + pretty(summary.best);
 
   const statistics = rogue ? [
