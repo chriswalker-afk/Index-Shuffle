@@ -120,27 +120,11 @@ export function slide(board, direction) {
     }
   }
 
-  // Each blocker keeps its own durability tier. One hit per merge that
-  // lands orthogonally beside it; diagonal merges and simple slides do nothing.
-  const damaged = [], destroyed = [];
-  for (let i = 0; i < board.length; i++) {
-    if (!isBlocker(board[i])) continue;
-    const adjacent = adjacentIndices(i);
-    const hits = mergeDestinations.filter(dest => adjacent.includes(dest)).length;
-    if (!hits) continue;
-    const totalHits = board[i].hits + hits;
-    const strength = blockerStrength(board[i]);
-    if (totalHits >= strength) {
-      next[i] = null;
-      destroyed.push(i);
-    } else {
-      next[i] = blocker(totalHits, strength);
-      damaged.push(i);
-    }
-  }
-
+  // Sliding and merging NEVER damage blockers. Damage is awarded only by
+  // attemptBank() after the student gives a correct banking answer.
   return {
-    board: next, merges, motions, mergeDestinations, damaged, destroyed,
+    board: next, merges, motions, mergeDestinations,
+    damaged: [], destroyed: [],
     changed: next.some((t, i) => keyOrNull(t) !== keyOrNull(board[i]))
   };
 }
@@ -288,4 +272,54 @@ export function scoreFor(t) { return t.exp * 10 + (t.exp - 1) * 5; }
 export function checkAnswer(t, input) {
   try { return /^\d+$/.test(input.trim()) && BigInt(input.trim()) === answerFor(t); }
   catch { return false; }
+}
+
+// A power becomes "merge-ready" whenever it is produced by combining
+// two tiles. The provenance follows the resulting tile as it slides and
+// survives further merges. Randomly spawned powers are NOT merge-ready.
+export function mergeReadyAfterSlide(previous = [], motions = []) {
+  const wasReady = new Set(previous);
+  const ready = new Set();
+  for (const movement of motions) {
+    if (movement.merged || wasReady.has(movement.from)) ready.add(movement.to);
+  }
+  return [...ready].sort((a, b) => a - b);
+}
+
+// A successful mathematical bank is the ONLY event that can damage a
+// blocker. It must be a power that genuinely came from a merge and is
+// currently orthogonally next to that blocker. A spawned higher power
+// may be banked for points, but it cannot damage blockers until merged.
+// Incorrect answers, cancelled attempts and ordinary slides do no damage.
+export function attemptBank(board, index, answer,
+  { discovered = new Set(), banked = new Set(),
+    locked = new Set(), mergeReady = new Set() } = {},
+  rng = Math.random) {
+  const t = board[index];
+  if (!isBankable(t, banked, index, locked)) return { status: "unavailable" };
+  if (!checkAnswer(t, answer)) return { status: "incorrect" };
+
+  const replacement = bankReplacement(t, discovered, rng);
+  const next = board.slice();
+  next[index] = replacement;
+  const damaged = [], destroyed = [];
+  if (mergeReady.has(index)) {
+    for (const target of adjacentIndices(index)) {
+      if (!isBlocker(next[target])) continue;
+      const strength = blockerStrength(next[target]);
+      const hits = next[target].hits + 1;
+      if (hits >= strength) {
+        next[target] = null;
+        destroyed.push(target);
+      } else {
+        next[target] = blocker(hits, strength);
+        damaged.push(target);
+      }
+    }
+  }
+  return {
+    status: "success", board: next, replacement,
+    powerKey: key(t), points: scoreFor(t),
+    damaged, destroyed
+  };
 }
