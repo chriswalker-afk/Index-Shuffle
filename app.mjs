@@ -4,44 +4,46 @@ import {
   mergeReadyAfterSlide, attemptBank, adjacentIndices, activeBases, BASE_UNLOCKS,
   INITIAL_MOVES_LEFT, MERGES_PER_BONUS_MOVE, BUDGET_RULES_VERSION,
   restoreMoveBudget, spendMove, slideCost, creditCorrectBank, gameEnded
-} from "./engine.mjs?v=mode-results-v1";
+} from "./engine.mjs?v=hazard-pass3-v1";
 import { newRogueliteRun, targetForRound, stageForRound, isBossRound,
   recordRogueliteBank, advanceRogueliteRound, validRogueliteRun,
   restoreRogueliteRun, markGoldSpawns, goldTier, goldForBank
-} from "./roguelite.mjs?v=mode-results-v1";
+} from "./roguelite.mjs?v=hazard-pass3-v1";
 import {
   restoreShopState, enterRogueliteShop, rerollRogueliteShop
-} from "./shop.mjs?v=mode-results-v1";
+} from "./shop.mjs?v=hazard-pass3-v1";
 import {
   renderRogueliteInventory, renderRogueliteShop
-} from "./shop-ui.mjs?v=mode-results-v1";
+} from "./shop-ui.mjs?v=hazard-pass3-v1";
 import {
   restoreEffectState, bankItemBonuses, goldChancesForRun,
   costOfNextSlide, canActivateConsumable, CONSUMABLE_TARGETS,
   consumableTargets, useConsumable
-} from "./effects.mjs?v=mode-results-v1";
-import { ITEM_BY_ID } from "./shop.mjs?v=mode-results-v1";
+} from "./effects.mjs?v=hazard-pass3-v1";
+import { ITEM_BY_ID } from "./shop.mjs?v=hazard-pass3-v1";
 import {
   bossForRound, bossTargetFor, bossPointsFor, bossMovementRules,
   bossAllowsMoveRestoration, applyThreeCurse
-} from "./bosses.mjs?v=mode-results-v1";
+} from "./bosses.mjs?v=hazard-pass3-v1";
 import {
   ACHIEVEMENTS, ACHIEVEMENT_BY_ID, emptyRunStats, restoreRunStats,
   restoreAchievementProfile, recordRunStats, recordSuccessfulSlide,
   addEarnedToRunStats, recordAchievementEvent, countUnlocked,
   progressForAchievement, isFinishedRun, finalScoreSummary
-} from "./milestones.mjs?v=mode-results-v1";
+} from "./milestones.mjs?v=hazard-pass3-v1";
 import {
   openAchievementGallery, renderFinalScreen
-} from "./results-ui.mjs?v=title-flow-v1";
-import { MODE_LABELS, resumableSave } from "./navigation.mjs?v=title-flow-v1";
-import { renderNavigation } from "./title-ui.mjs?v=title-flow-v1";
+} from "./results-ui.mjs?v=hazard-pass3-v1";
+import { MODE_LABELS, resumableSave } from "./navigation.mjs?v=hazard-pass3-v1";
+import { renderNavigation } from "./title-ui.mjs?v=hazard-pass3-v1";
 import {
-  restoreHazardLayer, hazardAt, activeHazardCount, MAX_ACTIVE_HAZARDS
-} from "./hazards.mjs?v=hazard-layer-v1";
+  restoreHazardLayer, hazardAt, activeHazardCount, MAX_ACTIVE_HAZARDS,
+  restoreHazardPressure, progressHazardRound, resolveSlideHazards,
+  HAZARD_DEFINITIONS
+} from "./hazards.mjs?v=hazard-pass3-v1";
 import {
   renderHazardLayer, hazardTileDescription
-} from "./hazard-ui.mjs?v=hazard-layer-v1";
+} from "./hazard-ui.mjs?v=hazard-pass3-v1";
 
 const $ = id => document.getElementById(id);
 const glyph = n => String(n).replace(/\d/g, d => "⁰¹²³⁴⁵⁶⁷⁸⁹"[+d]);
@@ -94,6 +96,7 @@ if (!state || !Array.isArray(state.board) || state.board.length !== 16) {
       state.run = restoreEffectState(restoreShopState(
         restoreRogueliteRun(state.run, state.movesLeft)));
       state.hazards = restoreHazardLayer(state.hazards, state.board);
+      state.run = restoreHazardPressure(state.run, state.board, state.hazards);
     } else {
       state.stats = restoreRunStats(state.stats);
     }
@@ -112,9 +115,14 @@ let pendingItem = null;
 // explicit navigation decisions; loading the title never writes a fake save.
 let screen = "title";
 
+function currentMovementRules() {
+  return mode === "roguelite"
+    ? { ...(bossMovementRules(state.run) || {}), hazards: state.hazards }
+    : null;
+}
 function currentGameEnded() {
   return gameEnded(state.board, new Set(state.banked), new Set(state.locked),
-    state.movesLeft, mode === "roguelite" ? bossMovementRules(state.run) : null);
+    state.movesLeft, currentMovementRules());
 }
 
 function persist() {
@@ -166,9 +174,23 @@ function render() {
   $("currentModeName").textContent = MODE_LABELS[mode];
   $("gameAchievements").hidden = !rogue;
   $("hazardSummary").hidden = !rogue;
+  $("hazardNext").hidden = !rogue;
   if (rogue) {
     $("hazardCount").textContent = activeHazardCount(state.hazards) +
       " / " + MAX_ACTIVE_HAZARDS;
+    const warning = state.run.hazardWarning;
+    $("hazardNext").textContent = warning
+      ? HAZARD_DEFINITIONS[warning.type].name +
+        " square incoming on the next successful slide!"
+      : state.run.round <= 3
+        ? "Square hazards begin in Stage 2."
+        : "New hazards may be warned one successful slide in advance.";
+    $("hazardAlert").hidden = !warning;
+    $("hazardAlert").textContent = warning
+      ? "⚠ " + HAZARD_DEFINITIONS[warning.type].name +
+        " hazard: marked square activates after your next slide." : "";
+  } else {
+    $("hazardAlert").hidden = true;
   }
   finalizeGameIfNeeded();
   $("achievementToast").hidden = !rogue || !recentAchievementIds.length;
@@ -293,7 +315,8 @@ function render() {
       button.disabled = true;
     } else if (t) {
       const gold = rogue ? goldTier(t) : 0;
-      const available = isBankable(t, banked, i, locked);
+      const available = isBankable(t, banked, i, locked,
+        rogue ? state.hazards : null);
       const blocked = (t.exp >= 2 || gold > 0) && locked.has(i) &&
         (gold > 0 || !banked.has(key(t)));
       const strike = available && mergeReady.has(i) &&
@@ -363,11 +386,19 @@ function render() {
         button.setAttribute("aria-label", button.title);
       }
     }
+    if (rogue && state.run.hazardWarning?.index === i) {
+      const type = HAZARD_DEFINITIONS[state.run.hazardWarning.type]?.name;
+      if (type) {
+        button.title = (button.title ? button.title + ". " : "") +
+          "Incoming " + type + " square after the next slide.";
+        button.setAttribute("aria-label", button.title);
+      }
+    }
     board.appendChild(button);
   });
   // Stationary hazard overlay comes after the 16 tiles. It never intercepts
   // banking or slide gestures, and slide animation still uses cells 0..15.
-  if (rogue) renderHazardLayer(board, state.hazards);
+  if (rogue) renderHazardLayer(board, state.hazards, state.run.hazardWarning);
   $("blockerCount").textContent =
     state.board.filter(isBlocker).length + " / " + MAX_BLOCKERS;
   const incoming = state.board.find(isWarning);
@@ -438,7 +469,8 @@ function stopMotion() {
 
 // Animate original tiles towards their destinations. The next board, including
 // its new spawn, is revealed together when the 170 ms movement completes.
-function animateSlide(before, motions, mergedDestinations, spawned, damaged, destroyed, blockerAt, warningAt) {
+function animateSlide(before, motions, mergedDestinations, spawned, damaged, destroyed,
+  blockerAt, warningAt, beforeHazards = null) {
   if (prefersReducedMotion() || typeof Element.prototype.animate !== "function") return;
   const board = $("board");
   const cells = [...board.children];
@@ -464,9 +496,13 @@ function animateSlide(before, motions, mergedDestinations, spawned, damaged, des
     ghost.style.top = (from.top - boardRect.top) + "px";
     ghost.style.width = from.width + "px";
     ghost.style.height = from.height + "px";
-    ghost.innerHTML = tileContent(t, mode === "roguelite" && goldTier(t)
-      ? '<small class="tile-gold-mark" aria-hidden="true">◉' +
-        (goldTier(t) === 2 ? '×2' : '') + '</small>' : "");
+    // Never leak the identity of a tile emerging from beneath Cloudy via
+    // the animation ghost. Once it has left the cloud, the real tile appears.
+    const hiddenAtStart = beforeHazards?.[movement.from]?.type === "cloudy";
+    ghost.innerHTML = hiddenAtStart ? '<span class="ghost-cloud-cover">☁ ?</span>'
+      : tileContent(t, mode === "roguelite" && goldTier(t)
+        ? '<small class="tile-gold-mark" aria-hidden="true">◉' +
+          (goldTier(t) === 2 ? '×2' : '') + '</small>' : "");
     layer.appendChild(ghost);
     const animation = ghost.animate([
       { transform: "translate3d(0, 0, 0)" },
@@ -493,9 +529,13 @@ function animateSlide(before, motions, mergedDestinations, spawned, damaged, des
 function move(direction) {
   if (screen !== "game" || pendingItem !== null || state.over || pending !== null || animating || (mode === "roguelite" && state.run.phase !== "playing")) return;
   const before = state.board.slice();
-  const result = slide(before, direction,
-    mode === "roguelite" ? bossMovementRules(state.run) : null);
+  const beforeHazards = mode === "roguelite" ? state.hazards.slice() : null;
+  let result = slide(before, direction, currentMovementRules());
   if (!result.changed) return;
+  if (mode === "roguelite") {
+    result = resolveSlideHazards(result, state.hazards);
+    state.hazards = result.hazards;
+  }
   recentAchievementIds = [];
   for (const t of result.merges) {
     if (t.exp >= 2 && !state.discovered.includes(key(t))) state.discovered.push(key(t));
@@ -515,7 +555,7 @@ function move(direction) {
   state.mergeReady = mergeReadyAfterSlide(state.mergeReady, result.motions);
   const curse = mode === "roguelite"
     ? applyThreeCurse(result.board, result.mergeDestinations,
-      state.run, new Set(state.banked))
+      state.run, new Set(state.banked), state.hazards)
     : { board: result.board, expired: [], spared: [] };
   if (curse.expired.length) {
     const expired = new Set(curse.expired);
@@ -524,17 +564,38 @@ function move(direction) {
   if (mode === "roguelite") state.run.totalSlides += 1;
   const hazardMoves = mode === "roguelite"
     ? Math.max(0, nextMove - state.run.blockerDelay) : nextMove;
+  // Blocker warnings must never be placed beneath a square hazard.
+  // A pending hazard is also kept free for its one-slide preview.
+  const hazardAvoid = new Set(mode === "roguelite"
+    ? state.hazards.map((entry, i) => entry ? i : -1).filter(i => i >= 0)
+    : []);
+  if (mode === "roguelite" && state.run.hazardWarning) {
+    hazardAvoid.add(state.run.hazardWarning.index);
+  }
   const spawned = turnSpawns(curse.board, new Set(state.discovered),
-    hazardMoves, Math.random, new Set(),
+    hazardMoves, Math.random, hazardAvoid,
     mode === "roguelite" ? state.run.totalSlides : nextMove,
-    mode === "roguelite" ? bossMovementRules(state.run) : null);
+    currentMovementRules());
   if (mode === "roguelite") {
     const gold = markGoldSpawns(spawned.board, spawned.spawned,
       state.run.goldDryStreak, Math.random, true, goldChancesForRun(state.run));
     state.board = gold.board;
     state.run.goldDryStreak = gold.dryStreak;
+    // A Three Curse may have turned a previously hazardous number into
+    // a blocker; no board hazard is allowed to remain under that obstacle.
+    state.hazards = restoreHazardLayer(state.hazards, state.board);
   } else {
     state.board = spawned.board;
+  }
+  const hazardStep = mode === "roguelite"
+    ? progressHazardRound(state.board, state.hazards, state.run, nextMove,
+      { rng: Math.random, boss: isBossRound(state.run.round),
+        banked: new Set(state.banked), locked: new Set(),
+        movementRules: bossMovementRules(state.run) })
+    : null;
+  if (hazardStep) {
+    state.hazards = hazardStep.hazards;
+    state.run = hazardStep.run;
   }
   const progression = mode === "roguelite" ? state.run.totalSlides : nextMove;
   const previousProgression = mode === "roguelite" ? progression - 1 : state.moves;
@@ -549,6 +610,28 @@ function move(direction) {
   // A successful slide clears the incorrect-attempt and banking cooldowns.
   state.locked = [];
   const news = [];
+  if (mode === "roguelite") {
+    for (const event of result.hazardEvents) {
+      if (event.type === "void") news.push(
+        "Void reduced a power from exponent " + event.before +
+        " to " + event.after + ".");
+      if (event.type === "cracked") news.push(
+        "Cracked became Null after that merge.");
+      if (event.type === "cloud-cleared") news.push("A Cloudy square cleared.");
+      if (event.type === "greedy") news.push(
+        "Greedy stole gold from " + event.count +
+        (event.count === 1 ? " tile." : " tiles."));
+    }
+    for (const event of hazardStep.events) {
+      const name = HAZARD_DEFINITIONS[event.type].name;
+      if (event.kind === "warning") news.unshift(
+        "Watch out! " + name + " will appear on the marked square next slide.");
+      if (event.kind === "appeared") news.unshift(
+        name + " hazard appeared on the warned square!");
+      if (event.kind === "dispelled") news.push(
+        "An incoming " + name + " hazard dissipated safely.");
+    }
+  }
   if (curse.expired.length) news.push(curse.expired.length +
     " cursed base-3 power" + (curse.expired.length === 1 ? " became a blocker!" :
       "s became blockers!"));
@@ -571,7 +654,7 @@ function move(direction) {
   render();
   animateSlide(before, result.motions, new Set(result.mergeDestinations),
     spawned.spawned, result.damaged, result.destroyed,
-    spawned.blockerAt, spawned.warningAt);
+    spawned.blockerAt, spawned.warningAt, beforeHazards);
 }
 
 function updateClock() {
@@ -607,7 +690,8 @@ function closeBank() {
 function openBank(i) {
   if (screen !== "game" || pendingItem !== null || state.over || animating || pending !== null || (mode === "roguelite" && state.run.phase !== "playing")) return;
   const t = state.board[i];
-  if (!isBankable(t, new Set(state.banked), i, new Set(state.locked))) return;
+  if (!isBankable(t, new Set(state.banked), i, new Set(state.locked),
+      mode === "roguelite" ? state.hazards : null)) return;
   pending = { i, t };
   remainingMs = BANK_SECONDS * 1000;
   $("promptTitle").textContent = t.base + glyph(t.exp) + " = ?";
@@ -666,7 +750,8 @@ $("bankForm").addEventListener("submit", event => {
     banked: new Set(state.banked),
     locked: new Set(state.locked),
     mergeReady: new Set(state.mergeReady),
-    blockerDamage: bonuses?.blockerHits ?? 1
+    blockerDamage: bonuses?.blockerHits ?? 1,
+    hazards: mode === "roguelite" ? state.hazards : null
   });
   if (outcome.status === "incorrect") {
     lockPending("wrong");
@@ -795,6 +880,7 @@ function loadSavedGame(snapshot) {
     state.run = restoreEffectState(restoreShopState(
       restoreRogueliteRun(state.run, state.movesLeft)));
     state.hazards = restoreHazardLayer(state.hazards, state.board);
+    state.run = restoreHazardPressure(state.run, state.board, state.hazards);
     state.over = state.run.phase === "playing" ? currentGameEnded() : false;
   } else {
     state.stats = restoreRunStats(state.stats);

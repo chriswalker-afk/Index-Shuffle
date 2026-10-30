@@ -140,6 +140,19 @@ export function slide(board, direction, rules = null) {
   const merges = [];
   const motions = [];
   const mergeDestinations = [];
+  let greedyStolen = 0;
+  // The hazard layer is optional. Classic and earlier callers run unchanged.
+  const hazards = rules?.hazards;
+  const hazardType = index => hazards?.[index]?.type ?? null;
+  const stride = direction === "left" ? -1 : direction === "right" ? 1
+    : direction === "up" ? -SIZE : SIZE;
+  const passesGreedy = (from, to) => {
+    if (from === to || !hazards) return false;
+    for (let index = from; index !== to + stride; index += stride) {
+      if (hazardType(index) === "greedy") return true;
+    }
+    return false;
+  };
 
   for (let line = 0; line < SIZE; line++) {
     const ids = Array.from({ length: SIZE }, (_, i) =>
@@ -168,14 +181,20 @@ export function slide(board, direction, rules = null) {
         const a = packed[i], b = packed[i + 1];
         const to = segment[out.length];
         if (b && a.value.base === b.value.base &&
-            !rules?.noMergeBases?.includes(a.value.base)) {
+            !rules?.noMergeBases?.includes(a.value.base) &&
+            hazardType(to) !== "null") {
           const merged = tile(a.value.base, a.value.exp + b.value.exp);
           // Gold is tile metadata in Roguelite. It moves with a tile and
           // survives merging; two golden inputs produce a double-gold tile.
           // Classic tiles have no gold metadata, so Classic is unchanged.
           const goldA = [1, 2].includes(a.value.gold) ? a.value.gold : 0;
           const goldB = [1, 2].includes(b.value.gold) ? b.value.gold : 0;
-          const gold = Math.min(2, goldA + goldB);
+          const stolenA = goldA > 0 && passesGreedy(a.from, to);
+          const stolenB = goldB > 0 && passesGreedy(b.from, to);
+          if (stolenA) greedyStolen++;
+          if (stolenB) greedyStolen++;
+          const gold = Math.min(2, (stolenA ? 0 : goldA) +
+            (stolenB ? 0 : goldB));
           if (gold) merged.gold = gold;
           out.push(merged);
           merges.push(merged);
@@ -184,7 +203,12 @@ export function slide(board, direction, rules = null) {
           motions.push({ from: b.from, to, merged: true });
           i++;
         } else {
-          out.push({ ...a.value });
+          const moved = { ...a.value };
+          if (moved.gold && passesGreedy(a.from, to)) {
+            delete moved.gold;
+            greedyStolen++;
+          }
+          out.push(moved);
           motions.push({ from: a.from, to, merged: false });
         }
       }
@@ -197,7 +221,7 @@ export function slide(board, direction, rules = null) {
   // attemptBank() after the student gives a correct banking answer.
   return {
     board: next, merges, motions, mergeDestinations,
-    damaged: [], destroyed: [],
+    greedyStolen, damaged: [], destroyed: [],
     changed: next.some((t, i) => keyOrNull(t) !== keyOrNull(board[i]))
   };
 }
@@ -206,15 +230,18 @@ export function slide(board, direction, rules = null) {
 // powers, a new golden copy of a previously banked base/exponent remains
 // worth banking: the gold status is a new, one-time opportunity. The
 // replacement always loses gold, so it cannot be banked again for free.
-export function isBankable(t, banked, index, locked = new Set()) {
-  if (!t || isObstacle(t) || locked.has(index)) return false;
+export function isBankable(t, banked, index, locked = new Set(),
+  hazards = null) {
+  if (!t || isObstacle(t) || locked.has(index) ||
+      hazards?.[index]?.type === "cloudy") return false;
   const golden = t.gold === 1 || t.gold === 2;
   return Number.isSafeInteger(t.exp) && (t.exp >= 2 || (golden && t.exp === 1)) &&
     (golden || !banked.has(key(t)));
 }
 
 export function canMove(board, banked, locked = new Set(), rules = null) {
-  if (board.some((t, i) => isBankable(t, banked, i, locked))) return true;
+  if (board.some((t, i) => isBankable(t, banked, i, locked,
+    rules?.hazards))) return true;
   // An empty square is not enough: blockers can isolate it so that no
   // tile can actually move. Check the four legal swipes instead.
   return ["up", "down", "left", "right"].some(direction =>
@@ -388,13 +415,16 @@ export function mergeReadyAfterSlide(previous = [], motions = []) {
 // Incorrect answers, cancelled attempts and ordinary slides do no damage.
 export function attemptBank(board, index, answer,
   { discovered = new Set(), banked = new Set(),
-    locked = new Set(), mergeReady = new Set(), blockerDamage = 1 } = {},
+    locked = new Set(), mergeReady = new Set(), blockerDamage = 1,
+    hazards = null } = {},
   rng = Math.random) {
   if (!Number.isSafeInteger(blockerDamage) || blockerDamage < 1 || blockerDamage > 2) {
     throw new RangeError("Blocker banking damage must be one or two hits");
   }
   const t = board[index];
-  if (!isBankable(t, banked, index, locked)) return { status: "unavailable" };
+  if (!isBankable(t, banked, index, locked, hazards)) {
+    return { status: "unavailable" };
+  }
   if (!checkAnswer(t, answer)) return { status: "incorrect" };
 
   const replacement = bankReplacement(t, discovered, rng);

@@ -1,6 +1,6 @@
 // Roguelite shop and two-slot inventory system. Gameplay effects are applied in effects.mjs.
 // Pure reducers make purchases, resale, replacement and rerolls testable.
-import { validRogueliteRun } from "./roguelite.mjs?v=mode-results-v1";
+import { validRogueliteRun } from "./roguelite.mjs?v=hazard-pass3-v1";
 
 export const INVENTORY_SLOTS = 2;
 export const SHOP_OFFERS_PER_TYPE = 2;
@@ -22,6 +22,7 @@ export const ITEM_CATALOG = Object.freeze([
   { id: "lucky-spawn", name: "Lucky Spawn", type: "permanents", price: 8, description: "New tiles have a higher chance of being golden." },
   { id: "bulk-discount", name: "Bulk Discount", type: "permanents", price: 7, description: "All future shop items cost one coin less (minimum one)." },
   { id: "block-breaker", name: "Block Breaker", type: "consumables", price: 2, description: "Remove one active blocker." },
+  { id: "hazard-eraser", name: "Hazard Eraser", type: "consumables", price: 3, description: "Remove one active Cloudy, Void, Null, Cracked or Greedy square without changing its tile." },
   { id: "power-surge", name: "Power Surge", type: "consumables", price: 3, description: "Raise the exponent of one power by 1." },
   { id: "second-wind", name: "Second Wind", type: "consumables", price: 3, description: "Restore 2 moves, up to the maximum." },
   { id: "alchemist", name: "Alchemist", type: "consumables", price: 2, description: "Change one base-3 number tile into base 5." },

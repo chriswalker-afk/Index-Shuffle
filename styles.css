@@ -1405,3 +1405,46 @@ details[open] > summary .chevron { transform: rotate(180deg); }
 @media (prefers-reduced-motion: reduce) {
   .hazard-layer, .hazard-slot { transition: none; animation: none; }
 }
+
+/* Active square hazards and their one-successful-slide telegraph. Warnings
+   never capture touches/clicks and don't increase blocker slide costs. */
+.hazard-alert {
+  margin: 0 0 11px; padding: 10px 13px;
+  background: linear-gradient(120deg, #46352b, #302d3b);
+  border: 1px solid #e5b879; border-radius: 10px;
+  color: #ffebc9; font-weight: 850; font-size: 12px;
+  line-height: 1.5;
+}
+.hazard-slot.hazard-incoming {
+  border: 2px dashed #ffe4a5;
+  background: repeating-linear-gradient(135deg,
+    #8c6a3055 0, #8c6a3055 8px, #392d445e 8px, #392d445e 16px);
+  box-shadow: inset 0 0 0 2px #ffd98f44, 0 0 14px #ffc5714d;
+}
+.hazard-warning-symbol {
+  position: absolute; display: grid; place-items: center;
+  top: 4px; left: 5px; width: 24px; height: 24px;
+  border: 2px solid #ffe6b5; border-radius: 999px;
+  background: #4c3928; color: #fff3d4; font-size: 17px;
+  font-weight: 950; line-height: 1;
+}
+.hazard-warning-label {
+  position: absolute; bottom: 3px; left: 3px; right: 3px;
+  text-align: center; text-transform: uppercase;
+  font-size: clamp(7px, 1.05vw, 10px); font-weight: 950;
+  line-height: 1.15; padding: 3px 1px; border-radius: 4px;
+  background: #3a2b32eb; color: #ffebc4;
+  letter-spacing: .2px;
+}
+.ghost-cloud-cover {
+  background: linear-gradient(145deg, #92a7bc, #4c6885);
+  color: #fff; border: 1px solid #dce6f0;
+  display: grid; place-items: center; width: 100%; height: 100%;
+  border-radius: inherit; font-size: 22px; text-shadow: 0 1px 4px #294157;
+}
+@media (max-width: 580px) {
+  .hazard-warning-symbol { top: 2px; left: 2px; width: 19px;
+    height: 19px; font-size: 13px; }
+  .hazard-warning-label { font-size: 7px; letter-spacing: -.2px; }
+  .hazard-alert { font-size: 11px; }
+}

@@ -3,7 +3,7 @@
 import {
   blocker, isBlocker, isObstacle, isWarning, canMove,
   MAX_BLOCKERS, adjacentIndices
-} from "./engine.mjs?v=mode-results-v1";
+} from "./engine.mjs?v=hazard-pass3-v1";
 
 export const BOSS_ROUNDS = Object.freeze([3, 6, 9, 12]);
 export const BOSS_CATALOG = Object.freeze([
@@ -122,7 +122,7 @@ export function startBossBoard(board, run, rng = Math.random) {
 // If expiry would exceed the 2-blocker cap or strand the player, the
 // curse fizzles out instead of causing an unwinnable board.
 export function applyThreeCurse(board, mergeDestinations, run,
-  banked = new Set()) {
+  banked = new Set(), hazards = null) {
   if (!Array.isArray(board) || board.length !== 16 ||
       !Array.isArray(mergeDestinations)) {
     throw new RangeError("Invalid cursed board");
@@ -134,7 +134,10 @@ export function applyThreeCurse(board, mergeDestinations, run,
   const next = board.map((t, i) => {
     if (!t || isObstacle(t)) return t;
     if (t.base !== 3) return t;
-    if (fresh.has(i)) return { ...t, curseLeft: 3 };
+    // Void can reduce a freshly merged 3 power to exponent 1. Do not
+    // curse a power that can no longer be banked (unless it remains gold).
+    if (fresh.has(i)) return (t.exp >= 2 || t.gold)
+      ? { ...t, curseLeft: 3 } : t;
     if (Number.isInteger(t.curseLeft) && t.curseLeft > 0) {
       return { ...t, curseLeft: t.curseLeft - 1 };
     }
@@ -147,7 +150,8 @@ export function applyThreeCurse(board, mergeDestinations, run,
     const probe = next.slice();
     probe[i] = blocker(0, 1);
     const occupied = next.filter(x => isBlocker(x) || isWarning(x)).length;
-    if (occupied < MAX_BLOCKERS && canMove(probe, banked, new Set(), bossMovementRules(run))) {
+    if (occupied < MAX_BLOCKERS && canMove(probe, banked, new Set(),
+      { ...(bossMovementRules(run) || {}), hazards })) {
       next[i] = probe[i];
       expired.push(i);
     } else {
