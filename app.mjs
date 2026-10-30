@@ -591,6 +591,54 @@ function startNewGame() {
   state = mode === "roguelite" ? newRogueliteRun(best) : fresh(best);
   render();
 }
+// Single-use items never score or advance the board. A targeted item
+// waits for one or two deliberate board clicks; Escape cancels safely.
+function cancelConsumable() {
+  pendingItem = null;
+  render();
+}
+$("itemCancel").addEventListener("click", cancelConsumable);
+
+function activateConsumable(slot, targets) {
+  try {
+    const next = useConsumable(state, slot, targets);
+    state = next;
+    pendingItem = null;
+    state.over = gameEnded(state.board, new Set(state.banked),
+      new Set(state.locked), state.movesLeft);
+  } catch (error) {
+    pendingItem = null;
+    state.notice = error instanceof Error ? error.message : "Unable to use that item.";
+  }
+  render();
+}
+
+function beginConsumable(slot) {
+  if (mode !== "roguelite" || pending !== null || animating ||
+      pendingItem !== null || !canActivateConsumable(state, slot)) return;
+  const item = state.run.inventory.consumables[slot];
+  const required = CONSUMABLE_TARGETS[item.id];
+  if (required === 0) {
+    activateConsumable(slot, []);
+  } else {
+    pendingItem = { slot, targets: [] };
+    render();
+  }
+}
+
+function selectConsumableTarget(index) {
+  if (mode !== "roguelite" || !pendingItem) return;
+  const { slot, targets } = pendingItem;
+  if (!consumableTargets(state, slot, targets).includes(index)) return;
+  const selected = [...targets, index];
+  const item = state.run.inventory.consumables[slot];
+  if (selected.length >= CONSUMABLE_TARGETS[item.id]) {
+    activateConsumable(slot, selected);
+  } else {
+    pendingItem = { slot, targets: selected };
+    render();
+  }
+}
 $("new").addEventListener("click", startNewGame);
 $("newFromEnd").addEventListener("click", startNewGame);
 $("nextRound").addEventListener("click", () => {
