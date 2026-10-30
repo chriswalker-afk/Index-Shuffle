@@ -46,6 +46,10 @@ import {
   restoreHazardPressure, progressHazardRound, resolveSlideHazards,
   HAZARD_DEFINITIONS, canRescueHazardLock
 } from "./hazards.mjs?v=hazard-counter-v1";
+import { ENCHANTMENT_DEFINITIONS, emptyEnchantmentLayer,
+  restoreEnchantmentLayer, activeEnchantmentCount, previewEnchantedBank,
+  redeemEnchantedBank, resolveSlideEnchantments } from "./enchantments.mjs?v=runestones-pass1";
+import { renderEnchantmentLayer } from "./enchantment-ui.mjs?v=runestones-pass1";
 import {
   renderHazardLayer, hazardTileDescription
 } from "./hazard-ui.mjs?v=hazard-counter-v1-art-pass4";
@@ -103,6 +107,7 @@ if (!state || !Array.isArray(state.board) || state.board.length !== 16) {
       state.run = restoreEffectState(restoreShopState(
         restoreRogueliteRun(state.run, state.movesLeft)));
       state.hazards = restoreHazardLayer(state.hazards, state.board);
+      state.enchantments = restoreEnchantmentLayer(state.enchantments, state.board, state.hazards);
       state.run = restoreHazardPressure(state.run, state.board, state.hazards);
       repairFrozenControl();
     } else {
@@ -221,6 +226,12 @@ function render() {
   // A stage scene is purely visual: stageForRound remains the canonical
   // source. No scene identifier is written into a save or gameplay state.
   const currentStage = rogue ? stageForRound(state.run.round) : null;
+  const enchants = rogue ? state.enchantments : emptyEnchantmentLayer();
+  $("enchantmentStatus").hidden = !rogue || activeEnchantmentCount(enchants) === 0;
+  if (rogue) $("enchantmentStatus").textContent = "Enchanted squares: " +
+    enchants.map((entry, i) => entry ? ENCHANTMENT_DEFINITIONS[entry.type].name +
+      " (row " + (Math.floor(i / 4) + 1) + ", col " + (i % 4 + 1) +
+      "; " + entry.chargesLeft + " charges)" : null).filter(Boolean).join(" · ");
   const stageScene = currentStage ? stageArtFor(currentStage) : null;
   $("gameScreen").dataset.stage = stageScene ? String(currentStage) : "classic";
   $("stageScene").hidden = !stageScene;
@@ -439,6 +450,7 @@ function render() {
 
   state.board.forEach((t, i) => {
     const squareHazard = rogue ? hazardAt(state.hazards, i) : null;
+    const squareEnchantment = rogue ? enchants[i] : null;
     const button = document.createElement("button");
     button.className = "cell" + (isBlocker(t) ? " block-tile block-tier" + blockerStrength(t)
       : isWarning(t) ? " warning-tile warning-tier" + blockerStrength(t)
@@ -485,6 +497,7 @@ function render() {
         : blocked ? '<i aria-hidden="true">⌛</i>' : ""));
       const description = t.base + " to the power " + t.exp;
       const goldCoins = gold ? goldForBank(t, mergeReady.has(i)) : 0;
+      if (t.prism === 1) button.classList.add("prism-charged");
       const goldHint = !gold || alreadyBanked ? "" :
         ". Golden tile: a correct bank earns " + goldCoins +
         (goldCoins === 1 ? " coin. Merge first to earn more." : " coins.");
@@ -547,6 +560,12 @@ function render() {
         button.setAttribute("aria-label", button.title);
       }
     }
+    if (squareEnchantment) {
+      button.title = (button.title ? button.title + ". " : "") +
+        ENCHANTMENT_DEFINITIONS[squareEnchantment.type].name +
+        ": " + squareEnchantment.chargesLeft + " charges left.";
+      button.setAttribute("aria-label", button.title);
+    }
     if (rogue && state.run.hazardWarning?.index === i) {
       const type = HAZARD_DEFINITIONS[state.run.hazardWarning.type]?.name;
       if (type) {
@@ -572,6 +591,7 @@ function render() {
       state.run.inventory.consumables[selection.slot]?.id === "hazard-eraser"
       ? candidates : [];
     renderHazardLayer(board, state.hazards, state.run.hazardWarning, eraseTargets);
+    renderEnchantmentLayer(board, enchants);
   }
   $("blockerCount").textContent =
     state.board.filter(isBlocker).length + " / " + MAX_BLOCKERS;
@@ -720,6 +740,8 @@ function move(direction) {
     result = resolveSlideHazards(result, state.hazards,
       hazardItemProtection(state.run));
     state.hazards = result.hazards;
+    result = resolveSlideEnchantments(result, state.enchantments);
+    state.enchantments = result.enchantments;
   }
   recentAchievementIds = [];
   for (const t of result.merges) {
@@ -778,7 +800,8 @@ function move(direction) {
         banked: new Set(state.banked), locked: new Set(),
         movesLeft: state.movesLeft,
         movementRules: currentMovementRules(),
-        protection: hazardItemProtection(state.run) })
+        protection: hazardItemProtection(state.run),
+        enchantments: state.enchantments })
     : null;
   if (hazardStep) {
     state.hazards = hazardStep.hazards;
@@ -798,6 +821,9 @@ function move(direction) {
   state.locked = [];
   const news = [];
   if (mode === "roguelite") {
+    for (const event of result.enchantmentEvents) {
+      news.push(ENCHANTMENT_DEFINITIONS[event.type].name + " empowered a merge!");
+    }
     for (const event of result.hazardEvents) {
       if (event.type === "void") news.push(
         "Void reduced a power from exponent " + event.before +
@@ -922,14 +948,17 @@ function openBank(i) {
   $("feedback").textContent = "";
   $("answer").value = "";
   document.querySelector(".bank-hint").open = false;
+  const enchanted = mode === "roguelite" ?
+    previewEnchantedBank(state.enchantments, i, t) : null;
+  const effectivePower = enchanted?.power || t;
   const canStrike = state.mergeReady.includes(i) &&
     adjacentIndices(i).some(j => isBlocker(state.board[j]));
-  const bankGold = mode === "roguelite" ? goldForBank(t, state.mergeReady.includes(i)) : 0;
+  const bankGold = mode === "roguelite" ? goldForBank(effectivePower, state.mergeReady.includes(i)) : 0;
   const bonuses = mode === "roguelite"
-    ? bankItemBonuses(state.run, t, state.mergeReady.includes(i)) : null;
+    ? bankItemBonuses(state.run, effectivePower, state.mergeReady.includes(i)) : null;
   const previewScore = bonuses
-    ? bossPointsFor(state.run, t, bonuses.score) : null;
-  const goldHelp = mode !== "roguelite" || !goldTier(t) ? "" :
+    ? bossPointsFor(state.run, t, bonuses.score * (enchanted.prism ? 2 : 1)) : null;
+  const goldHelp = mode !== "roguelite" || !goldTier(effectivePower) ? "" :
     " Banking this golden tile correctly earns " +
     (bankGold + (bonuses?.extraCoins ?? 0)) +
     " " + (bankGold + (bonuses?.extraCoins ?? 0) === 1 ? "coin" : "coins") +
@@ -968,8 +997,11 @@ $("bankForm").addEventListener("submit", event => {
   if (!pending) return;
   const { i, t } = pending;
   if (!state.board[i] || key(state.board[i]) !== key(t)) return;
+  const enchanted = mode === "roguelite" ?
+    previewEnchantedBank(state.enchantments, i, t) : null;
+  const effectivePower = enchanted?.power || t;
   const bonuses = mode === "roguelite"
-    ? bankItemBonuses(state.run, t, state.mergeReady.includes(i)) : null;
+    ? bankItemBonuses(state.run, effectivePower, state.mergeReady.includes(i)) : null;
   const outcome = attemptBank(state.board, i, $("answer").value, {
     discovered: new Set(state.discovered),
     banked: new Set(state.banked),
@@ -1002,12 +1034,19 @@ $("bankForm").addEventListener("submit", event => {
   const points = mode === "roguelite"
     ? recordRogueliteBank(state.run, state.score, t, {
         merged: outcome.creditedMerge, movesLeft: state.movesLeft,
-        scoreOverride: bonuses.score, extraCoins: bonuses.extraCoins,
+        scoreOverride: bonuses.score * (enchanted.prism ? 2 : 1),
+        extraCoins: bonuses.extraCoins + (goldForBank(effectivePower, outcome.creditedMerge) -
+          goldForBank(t, outcome.creditedMerge)),
         counters: bonuses.counters
       })
     : { points: outcome.points, roundScore: state.score + outcome.points };
   state.score = points.roundScore;
-  if (mode === "roguelite") state.run = points.run;
+  if (mode === "roguelite") {
+    state.run = points.run;
+    const redeemed = redeemEnchantedBank(state.enchantments, i, enchanted,
+      { prismApplied: enchanted.prism, pointsAwarded: points.points });
+    state.enchantments = redeemed.enchantments;
+  }
   // Bank success may change which slides are possible. Switch the freeze
   // only while the boss is still active, always preserving a legal slide.
   const newFreeze = rollFrostlockAfterAction();
@@ -1114,6 +1153,7 @@ function loadSavedGame(snapshot) {
     state.run = restoreEffectState(restoreShopState(
       restoreRogueliteRun(state.run, state.movesLeft)));
     state.hazards = restoreHazardLayer(state.hazards, state.board);
+    state.enchantments = restoreEnchantmentLayer(state.enchantments, state.board, state.hazards);
     state.run = restoreHazardPressure(state.run, state.board, state.hazards);
     repairFrozenControl();
     state.over = state.run.phase === "playing" ? currentGameEnded() : false;
