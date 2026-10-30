@@ -232,12 +232,13 @@ assert.equal(used.moves, 0);
 assert.equal(restoreEffectState(used.run).blockerDelay, 2);
 
 st = setup({ consumables: ["clear-space"],
-  board: grid([0, tile(2)], [2, tile(3)]) });
+  board: grid([0, tile(2)], [1, blocker(0, 1)],
+    [4, blocker(0, 1)], [6, tile(3)]) });
 assert.deepEqual(consumableTargets(st, 0), [0],
   "Cannot clear the last movable square and force an instant dead end");
 used = useConsumable(st, 0, [0]);
 assert.equal(used.board[0], null);
-assert.deepEqual(used.board[2], tile(3));
+assert.deepEqual(used.board[6], tile(3));
 assert.equal(used.score, 0);
 assert.equal(used.run.coins, 0);
 
