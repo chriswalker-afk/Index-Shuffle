@@ -1,11 +1,11 @@
 // Roguelite progression and economy. Classic keeps its original scoring and rules.
 import {
   initial, INITIAL_MOVES_LEFT, MAX_MOVES_LEFT, BUDGET_RULES_VERSION
-} from "./engine.mjs?v=gold-banking-v2";
+} from "./engine.mjs?v=mode-results-v1";
 import {
   createBossSchedule, restoreBossSchedule, bossPointsFor,
   bossTargetFor, startBossBoard
-} from "./bosses.mjs?v=gold-banking-v2";
+} from "./bosses.mjs?v=mode-results-v1";
 import { emptyRunStats, restoreRunStats } from "./milestones.mjs?v=mode-results-v1";
 
 export const ROUND_TARGETS = Object.freeze([
