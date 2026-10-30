@@ -3,7 +3,7 @@
 // stay at their original board coordinates as numbered tiles slide.
 import {
   HAZARD_CELLS, HAZARD_DEFINITIONS, hazardAt, activeHazardCount
-} from "./hazards.mjs?v=hazard-layer-v1";
+} from "./hazards.mjs?v=hazard-pass3-v1";
 
 export function renderHazardLayer(boardElement, hazards, warning = null) {
   if (!boardElement || typeof boardElement.appendChild !== "function") {
