@@ -4,7 +4,8 @@ import {
 } from "./engine.mjs?v=hazard-counter-v1";
 import {
   createBossSchedule, restoreBossSchedule, bossPointsFor,
-  bossTargetFor, startBossBoard, nextFrozenDirection, validFrozenDirection
+  bossTargetFor, startBossBoard, nextFrozenDirection, validFrozenDirection,
+  BOSS_ROUNDS
 } from "./bosses.mjs?v=frostlock-v1";
 import { emptyRunStats, restoreRunStats } from "./milestones.mjs?v=hazard-counter-v1";
 import { emptyHazardLayer } from "./hazards.mjs?v=hazard-counter-v1";
@@ -16,6 +17,9 @@ export const TOTAL_ROUNDS = ROUND_TARGETS.length;
 export const GOLD_SPAWN_CHANCE = 0.12;
 export const GOLD_PITY_SLIDES = 5;
 export const MAX_SPARE_MOVE_COINS = 5;
+export const INITIAL_BANK_SECONDS = 60;
+export const BANK_SECONDS_PER_BOSS = 10;
+export const MIN_BANK_SECONDS = 20;
 
 export function targetForRound(round) {
   if (!Number.isInteger(round) || round < 1 || round > TOTAL_ROUNDS) {
@@ -32,6 +36,16 @@ export function isBossRound(round) {
 export function stageForRound(round) {
   targetForRound(round);
   return Math.ceil(round / 3);
+}
+
+// Banking time only falls after a boss has been beaten. Deriving this from
+// the current round keeps existing saves and resumed runs in sync, without
+// storing another countdown or allowing timer reductions in Classic.
+export function bankSecondsForRound(round) {
+  targetForRound(round);
+  const bossesDefeated = BOSS_ROUNDS.filter(bossRound => bossRound < round).length;
+  return Math.max(MIN_BANK_SECONDS,
+    INITIAL_BANK_SECONDS - bossesDefeated * BANK_SECONDS_PER_BOSS);
 }
 
 // Gold is carried by number tiles, not by a separate obstacle. Two golden
