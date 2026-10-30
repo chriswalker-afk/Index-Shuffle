@@ -214,7 +214,7 @@ try {
   assert.equal(overlay.children[15].dataset.hazard, "greedy");
   assert.equal(overlay.children[0].children[1].textContent, "?");
   assert.equal(overlay.children[0].children[2].textContent, "2");
-  assert.equal(overlay.children[15].children[1].textContent, "◉");
+  assert.equal(overlay.children[15].children[1].textContent, "−◉");
   assert.ok(fakeBoard.children.slice(0, 16).every(c => c.tag === "button"));
   renderHazardLayer(fakeBoard, emptyHazardLayer());
   assert.equal(fakeBoard.children.length, 16,
