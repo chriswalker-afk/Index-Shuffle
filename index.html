@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#0c1428">
   <meta name="description" content="Slide and merge powers, solve banking challenges and stay in the game.">
   <title>Index Shuffle — Make every move count</title>
-  <link rel="stylesheet" href="styles.css?v=focused-ui-v3">
+  <link rel="stylesheet" href="styles.css?v=roguelite-pass1-v1">
 </head>
 <body>
   <main class="shell">
@@ -25,6 +25,10 @@
       </nav>
     </header>
 
+    <nav class="mode-picker" aria-label="Game mode">
+      <button type="button" id="modeClassic" aria-pressed="true">Classic</button>
+      <button type="button" id="modeRoguelite" aria-pressed="false">Roguelite · 12 rounds</button>
+    </nav>
     <section class="play" aria-label="Index Shuffle game">
       <section class="game" aria-label="Game board">
         <div class="board-head">
@@ -54,6 +58,12 @@
           <span class="overline">YOUR RUN</span>
           <span id="stage" class="run-state">Playing</span>
         </div>
+        <div id="rogueProgress" class="rogue-progress" hidden>
+          <p class="overline" id="rogueRound">Stage 1 · Round 1/12</p>
+          <div class="rogue-score-row"><span>Round target</span><strong id="rogueScore">0 / 4</strong></div>
+          <progress id="roundScoreProgress" value="0" max="4" aria-label="Score towards round target"></progress>
+          <p class="rogue-total">Run score: <strong id="rogueTotal">0</strong></p>
+        </div>
         <div class="budget-line">
           <div>
             <p class="budget-label">Moves left</p>
@@ -75,6 +85,11 @@
         </div>
         <div class="hud-score">
           <span>Score</span><strong id="score">0</strong>
+        </div>
+        <div id="roundClearPanel" class="round-clear-panel" hidden>
+          <strong>Round complete!</strong>
+          <p id="roundClearMessage"></p>
+          <button type="button" id="nextRound" class="primary">Next round</button>
         </div>
         <div id="endActions" class="end-actions" hidden>
           <strong>Run finished</strong>
@@ -218,6 +233,6 @@
       <button type="button" id="cancel" class="textbtn">Keep this tile</button>
     </div>
   </div>
-  <script type="module" src="app.mjs?v=focused-ui-v3"></script>
+  <script type="module" src="app.mjs?v=roguelite-pass1-v1"></script>
 </body>
 </html>

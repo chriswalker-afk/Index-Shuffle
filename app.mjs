@@ -4,7 +4,10 @@ import {
   mergeReadyAfterSlide, attemptBank, adjacentIndices, activeBases, BASE_UNLOCKS,
   INITIAL_MOVES_LEFT, MERGES_PER_BONUS_MOVE, BUDGET_RULES_VERSION,
   restoreMoveBudget, spendMove, slideCost, creditCorrectBank, gameEnded
-} from "./engine.mjs?v=focused-ui-v3";
+} from "./engine.mjs?v=roguelite-pass1-v1";
+import { newRogueliteRun, targetForRound, stageForRound, isBossRound,
+  recordRogueliteBank, advanceRogueliteRound, validRogueliteRun
+} from "./roguelite.mjs?v=roguelite-pass1-v1";
 
 const $ = id => document.getElementById(id);
 const glyph = n => String(n).replace(/\d/g, d => "⁰¹²³⁴⁵⁶⁷⁸⁹"[+d]);
@@ -18,13 +21,17 @@ function fresh(best = 0) {
     mergeCredit: 0, budgetRulesVersion: BUDGET_RULES_VERSION,
     over: false, notice: "" };
 }
-function saved() {
-  try { return JSON.parse(localStorage.getItem("index-shuffle-v1")); }
+const CLASSIC_SAVE = "index-shuffle-v1";
+const ROGUE_SAVE = "index-shuffle-roguelite-v1";
+const MODE_SAVE = "index-shuffle-selected-mode-v1";
+function saved(mode = "classic") {
+  try { return JSON.parse(localStorage.getItem(mode === "roguelite" ? ROGUE_SAVE : CLASSIC_SAVE)); }
   catch { return null; }
 }
-let state = saved();
+let mode = localStorage.getItem(MODE_SAVE) === "roguelite" ? "roguelite" : "classic";
+let state = saved(mode);
 if (!state || !Array.isArray(state.board) || state.board.length !== 16) {
-  state = fresh();
+  state = mode === "roguelite" ? newRogueliteRun() : fresh();
 } else {
   // Previous games did not track temporary banking lockouts.
   state.locked = Array.isArray(state.locked) ? state.locked : [];
@@ -36,7 +43,9 @@ if (!state || !Array.isArray(state.board) || state.board.length !== 16) {
   // Upgrade older games once without losing their board or score.
   Object.assign(state, restoreMoveBudget(state));
   state.notice = "";
-  state.over = gameEnded(state.board, new Set(state.banked),
+  if (mode === "roguelite" && !validRogueliteRun(state.run)) state = newRogueliteRun();
+  else if (mode === "roguelite" && state.run.phase !== "playing") state.over = false;
+  else state.over = gameEnded(state.board, new Set(state.banked),
     new Set(state.locked), state.movesLeft);
 }
 let pending = null;
@@ -47,7 +56,7 @@ let animating = false;
 let animationToken = 0;
 
 function persist() {
-  try { localStorage.setItem("index-shuffle-v1", JSON.stringify(state)); }
+  try { localStorage.setItem(mode === "roguelite" ? ROGUE_SAVE : CLASSIC_SAVE, JSON.stringify(state)); }
   catch { /* Storage may be unavailable in private mode. */ }
 }
 
@@ -55,6 +64,26 @@ function tileContent(t, badge = "") {
   return "<span>" + t.base + (t.exp === 1 ? "" : "<sup>" + t.exp + "</sup>") + "</span>" + badge;
 }
 function render() {
+  const rogue = mode === "roguelite";
+  $("modeClassic").setAttribute("aria-pressed", String(!rogue));
+  $("modeRoguelite").setAttribute("aria-pressed", String(rogue));
+  $("rogueProgress").hidden = !rogue;
+  $("roundClearPanel").hidden = !rogue || state.run.phase !== "round-clear";
+  $("nextRound").textContent = rogue && state.run.phase === "round-clear"
+    ? "Continue to round " + (state.run.round + 1) : "Next round";
+  $("endActions").querySelector("strong").textContent = rogue && state.run.phase === "victory"
+    ? "Run completed!" : "Run finished";
+  if (rogue) {
+    $("rogueRound").textContent = "Stage " + stageForRound(state.run.round) +
+      " · Round " + state.run.round + "/12" + (isBossRound(state.run.round) ? " · Boss milestone" : "");
+    const target = targetForRound(state.run.round);
+    $("rogueScore").textContent = state.score + " / " + target;
+    $("roundScoreProgress").value = Math.min(state.score, target);
+    $("roundScoreProgress").max = target;
+    $("rogueTotal").textContent = state.run.totalScore;
+    $("roundClearMessage").textContent = "You banked " + state.score + " points. " +
+      "The shop and boss effects arrive in later passes.";
+  }
   const banked = new Set(state.banked);
   const locked = new Set(state.locked);
   const mergeReady = new Set(state.mergeReady);
@@ -75,10 +104,10 @@ function render() {
   $("movesCard").classList.toggle("low-moves", state.movesLeft > 0 &&
     state.movesLeft <= 3);
   $("movesCard").classList.toggle("empty-moves", state.movesLeft === 0);
-  const active = activeBases(state.moves);
+  const active = activeBases(rogue ? state.run.totalSlides : state.moves);
   $("activeBases").innerHTML = active.map(base =>
     '<span class="base-chip base' + base + '">' + base + '</span>').join("");
-  const upcoming = BASE_UNLOCKS.find(step => state.moves < step.moves);
+  const upcoming = BASE_UNLOCKS.find(step => (rogue ? state.run.totalSlides : state.moves) < step.moves);
   $("nextBase").textContent = upcoming
     ? "Next: " + upcoming.base + " at move " + upcoming.moves
     : "All six bases unlocked";
@@ -161,7 +190,11 @@ function render() {
         + base + "<sup>" + exp + "</sup> " + (banked.has(k) ? "✓" : "◇") + "</span>";
     }).join("")
     : '<p class="muted">Discover your first square by merging two matching bases.</p>';
-  $("status").textContent = state.movesLeft === 0
+  $("status").textContent = rogue && state.run.phase === "round-clear"
+    ? "Round cleared! Continue to the next round."
+    : rogue && state.run.phase === "victory"
+    ? "You completed all 12 rounds!"
+    : state.movesLeft === 0
     ? "Out of moves. Start a new game to try again."
     : state.over ? "No legal moves or banking options remain."
     : state.notice ||
@@ -169,8 +202,9 @@ function render() {
         ? "Low on moves: bank merged powers correctly to recover."
         : "Swipe to merge, or select a glowing power to bank.");
   $("status").classList.toggle("is-over", state.over);
-  $("stage").textContent = state.over ? "Game over" : "Playing";
-  $("endActions").hidden = !state.over;
+  $("stage").textContent = rogue && state.run.phase === "round-clear" ? "Round cleared"
+    : rogue && state.run.phase === "victory" ? "Victory" : state.over ? "Game over" : "Playing";
+  $("endActions").hidden = !state.over && !(rogue && state.run.phase === "victory");
   persist();
 }
 
@@ -232,7 +266,7 @@ function animateSlide(before, motions, mergedDestinations, spawned, damaged, des
 }
 
 function move(direction) {
-  if (state.over || pending !== null || animating) return;
+  if (state.over || pending !== null || animating || (mode === "roguelite" && state.run.phase !== "playing")) return;
   const before = state.board.slice();
   const result = slide(before, direction);
   if (!result.changed) return;
@@ -250,11 +284,14 @@ function move(direction) {
   // Keep merge provenance attached to its tile as it slides, and mark
   // newly merged powers. Spawned powers never inherit that provenance.
   state.mergeReady = mergeReadyAfterSlide(state.mergeReady, result.motions);
+  if (mode === "roguelite") state.run.totalSlides += 1;
   const spawned = turnSpawns(result.board, new Set(state.discovered),
-    nextMove, Math.random);
+    nextMove, Math.random, new Set(), mode === "roguelite" ? state.run.totalSlides : nextMove);
   state.board = spawned.board;
-  const unlockedNow = activeBases(nextMove)
-    .filter(base => !activeBases(state.moves).includes(base));
+  const progression = mode === "roguelite" ? state.run.totalSlides : nextMove;
+  const previousProgression = mode === "roguelite" ? progression - 1 : state.moves;
+  const unlockedNow = activeBases(progression)
+    .filter(base => !activeBases(previousProgression).includes(base));
   state.moves = nextMove;
   // A successful slide clears the incorrect-attempt and banking cooldowns.
   state.locked = [];
@@ -312,7 +349,7 @@ function closeBank() {
   $("modal").hidden = true;
 }
 function openBank(i) {
-  if (state.over || animating || pending !== null) return;
+  if (state.over || animating || pending !== null || (mode === "roguelite" && state.run.phase !== "playing")) return;
   const t = state.board[i];
   if (!isBankable(t, new Set(state.banked), i, new Set(state.locked))) return;
   pending = { i, t };
@@ -378,10 +415,14 @@ $("bankForm").addEventListener("submit", event => {
     outcome.creditedMerge);
   state.movesLeft = award.movesLeft;
   state.mergeCredit = award.mergeCredit;
-  state.score += outcome.points;
+  const points = mode === "roguelite"
+    ? recordRogueliteBank(state.run, state.score, t)
+    : { points: outcome.points, roundScore: state.score + outcome.points };
+  state.score = points.roundScore;
+  if (mode === "roguelite") state.run = points.run;
   state.best = Math.max(state.best, state.score);
   const { replacement, damaged, destroyed } = outcome;
-  state.notice = "Banked " + t.base + glyph(t.exp) + " · +" + outcome.points
+  state.notice = "Banked " + t.base + glyph(t.exp) + " · +" + points.points
     + " points. " + replacement.base + glyph(replacement.exp)
     + " stays on the board.";
   if (outcome.creditedMerge) {
@@ -399,7 +440,8 @@ $("bankForm").addEventListener("submit", event => {
   } else if (damaged.length) {
     state.notice += " Blocker damaged by your correct bank!";
   }
-  state.over = gameEnded(state.board, new Set(state.banked),
+  state.over = mode === "roguelite" && state.run.phase !== "playing" ? false :
+    gameEnded(state.board, new Set(state.banked),
     new Set(state.locked), state.movesLeft);
   render();
   if (!prefersReducedMotion()) {
@@ -423,11 +465,42 @@ function startNewGame() {
   const best = state.best;
   stopMotion();
   closeBank();
-  state = fresh(best);
+  state = mode === "roguelite" ? newRogueliteRun(best) : fresh(best);
   render();
 }
 $("new").addEventListener("click", startNewGame);
 $("newFromEnd").addEventListener("click", startNewGame);
+$("nextRound").addEventListener("click", () => {
+  if (mode !== "roguelite" || state.run.phase !== "round-clear") return;
+  stopMotion();
+  state = advanceRogueliteRound(state);
+  render();
+});
+function switchMode(selected) {
+  if (selected === mode || pending !== null) return;
+  if (mode === "roguelite" && state.run.phase === "playing" && !state.over ||
+      mode === "classic" && !state.over) {
+    // Switching does not overwrite or discard either saved game.
+  }
+  stopMotion();
+  persist();
+  mode = selected;
+  localStorage.setItem(MODE_SAVE, mode);
+  const restored = saved(mode);
+  state = restored && Array.isArray(restored.board) && restored.board.length === 16 &&
+    (mode === "classic" || validRogueliteRun(restored.run))
+    ? restored : mode === "roguelite" ? newRogueliteRun() : fresh();
+  Object.assign(state, restoreMoveBudget(state));
+  state.locked = Array.isArray(state.locked) ? state.locked : [];
+  state.mergeReady = Array.isArray(state.mergeReady) ? state.mergeReady : [];
+  state.discovered = Array.isArray(state.discovered) ? state.discovered : [];
+  state.banked = Array.isArray(state.banked) ? state.banked : [];
+  state.over = mode === "roguelite" && state.run.phase !== "playing" ? false
+    : gameEnded(state.board, new Set(state.banked), new Set(state.locked), state.movesLeft);
+  render();
+}
+$("modeClassic").addEventListener("click", () => switchMode("classic"));
+$("modeRoguelite").addEventListener("click", () => switchMode("roguelite"));
 
 // Learning and full instructions are optional. Switching between the
 // two entry points uses one accessible native dialog and never edits

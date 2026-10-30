@@ -275,7 +275,7 @@ function newlyOccupied(before, after) {
 // Both are fixed movement barriers, but only a mature blocker takes damage.
 // All scheduled blockers MUST have been previewed, so a skipped preview
 // can never surprise the player by spawning a blocker later.
-export function turnSpawns(board, discovered, moves, rng = Math.random, avoid = new Set()) {
+export function turnSpawns(board, discovered, moves, rng = Math.random, avoid = new Set(), spawnProgressMoves = moves) {
   let next = board.slice();
   const spawned = [];
   let blockerAt = -1, warningAt = -1;
@@ -319,7 +319,7 @@ export function turnSpawns(board, discovered, moves, rng = Math.random, avoid = 
 
   const addNumber = () => {
     const before = next;
-    next = spawn(next, discovered, rng, moves, avoid);
+    next = spawn(next, discovered, rng, spawnProgressMoves, avoid);
     const index = newlyOccupied(before, next);
     if (index >= 0) spawned.push(index);
   };
@@ -332,9 +332,9 @@ export function turnSpawns(board, discovered, moves, rng = Math.random, avoid = 
   };
 }
 
-export function initial(rng = Math.random) {
+export function initial(rng = Math.random, spawnProgressMoves = 0) {
   let board = Array(SIZE * SIZE).fill(null);
-  for (let i = 0; i < 3; i++) board = spawn(board, new Set(), rng);
+  for (let i = 0; i < 3; i++) board = spawn(board, new Set(), rng, spawnProgressMoves);
   return board;
 }
 

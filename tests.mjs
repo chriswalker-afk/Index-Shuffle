@@ -343,8 +343,8 @@ assert.match(uiSource,
 assert.match(uiSource, /\$\("movesLeft"\)\.textContent = state\.movesLeft/,
   "the counter in the UI must be updated after each render");
 assert.match(page, /id="movesLeft"/);
-assert.match(page, /app\.mjs\?v=focused-ui-v3/);
-assert.match(uiSource, /engine\.mjs\?v=focused-ui-v3/);
+assert.match(page, /app\.mjs\?v=roguelite-pass1-v1/);
+assert.match(uiSource, /engine\.mjs\?v=roguelite-pass1-v1/);
 assert.match(page, /Correct merged-power banks/);
 
 // Presentation regression checks: learning content is optional and the
@@ -362,7 +362,7 @@ assert.match(page, /data-help="how"/);
 assert.match(page, /data-help="maths"/);
 assert.match(page, /id="bonusMeter"[^>]*max="2"/);
 assert.match(page, /id="endActions"[^>]*hidden/);
-assert.match(page, /styles\.css\?v=focused-ui-v3/);
+assert.match(page, /styles\.css\?v=roguelite-pass1-v1/);
 assert.match(style, /grid-template-areas: "board hud" "board secondary"/);
 assert.match(style, /grid-template-areas: "hud" "board" "secondary"/);
 assert.match(uiSource, /\$\("helpDialog"\)\.showModal\(\)/);

@@ -592,3 +592,23 @@ details[open] > summary .chevron { transform: rotate(180deg); }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition: none !important; animation: none !important; scroll-behavior: auto !important; }
 }
+
+/* Roguelite pass one: minimal mode and progression UI. */
+.mode-picker { display: flex; gap: 7px; margin: -4px 0 18px; flex-wrap: wrap; }
+.mode-picker button { border: 1px solid #465c7b; border-radius: 11px; padding: 11px 16px;
+  color: #c5d4e9; background: #1b2942; font-size: 13px; font-weight: 800; }
+.mode-picker button[aria-pressed="true"] { border-color: #6fdac7; color: #112e36; background: #8be6d5; }
+.rogue-progress { margin-top: 14px; padding: 13px; border: 1px solid #4b6879;
+  background: #13293a; border-radius: 13px; }
+.rogue-score-row { display: flex; justify-content: space-between; align-items: baseline;
+  gap: 12px; font-size: 13px; color: #cee1e7; }
+.rogue-score-row strong { color: #bbffe7; font-size: 23px; font-variant-numeric: tabular-nums; }
+#roundScoreProgress { width: 100%; height: 10px; accent-color: #8be6d5; margin: 9px 0 4px; }
+.rogue-total { color: #afc7d0; font-size: 11px; margin: 4px 0 0; }
+.round-clear-panel { margin-top: 16px; border-top: 1px solid #6bc3ad55; padding-top: 16px; }
+.round-clear-panel > strong { display: block; color: #b9ffe5; }
+.round-clear-panel p { color: #c0d6dc; font-size: 12px; line-height: 1.5; }
+@media (max-width: 580px) {
+  .mode-picker { margin-bottom: 13px; }
+  .mode-picker button { flex: 1; font-size: 12px; padding: 11px 8px; }
+}
