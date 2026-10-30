@@ -52,6 +52,10 @@
           "title screen is visible and app module has initialized");
         assert($("titleNew") && !($("titleNew").disabled),
           "new game button is available");
+        assert(win.localStorage.getItem("index-shuffle-v1") === null &&
+          win.localStorage.getItem("index-shuffle-roguelite-v1") === null,
+          "visiting the title alone does not create a phantom game save");
+        assert($("saveWarning").hidden, "save warning is hidden when storage works");
         assert($("modal") instanceof win.HTMLDialogElement,
           "banking uses a native dialog element");
         assert(!$("modal").open, "banking dialog starts closed");
@@ -207,6 +211,63 @@
           .find(b => b.disabled)?.dataset.dir;
         assert(restored === after.run.frozenDirection,
           "reloading a Frostlock run preserves its frozen control");
+
+        // A failed durable save must be visibly disclosed and kept in memory
+        // so Continue remains usable in the same tab. No real game progress
+        // or virtual currency is invented by this fallback.
+        const originalWrite = win.Storage.prototype.setItem;
+        try {
+          win.Storage.prototype.setItem = function () {
+            throw new Error("simulated QuotaExceededError");
+          };
+          $("headerTitle").click();
+          assert(!$("saveWarning").hidden &&
+            $("saveWarning").textContent.includes("not being saved"),
+            "unavailable browser storage produces an accessible warning");
+          $("titleContinue").click();
+          const recover = [...$("continueSlots").querySelectorAll("button")]
+            .find(b => b.getAttribute("aria-label")?.includes("Roguelike"));
+          assert(Boolean(recover),
+            "an in-tab backup permits Continue after a storage failure");
+          recover.click();
+          await tick();
+          assert($("bossName").textContent === "The Frostlock",
+            "memory fallback restores the existing saved boss encounter");
+        } finally {
+          win.Storage.prototype.setItem = originalWrite;
+        }
+        $("headerTitle").click();
+        assert($("saveWarning").hidden,
+          "warning clears after game and achievements save successfully again");
+
+        // Verify that the actual document Escape shortcut cannot bypass
+        // the time penalty on a banking question.
+        const bankSave = JSON.parse(win.localStorage.getItem(key));
+        bankSave.board = Array(16).fill(null);
+        bankSave.board[0] = { base: 2, exp: 2 };
+        bankSave.board[1] = { base: 3, exp: 1 };
+        bankSave.banked = []; bankSave.locked = []; bankSave.mergeReady = [];
+        bankSave.hazards = Array(16).fill(null);
+        bankSave.enchantments = Array(16).fill(null);
+        bankSave.movesLeft = 7; bankSave.over = false;
+        bankSave.run.round = 4; bankSave.run.phase = "playing";
+        bankSave.run.frozenDirection = null;
+        bankSave.run.hazardWarning = null;
+        win.localStorage.setItem(key, JSON.stringify(bankSave));
+        $("titleContinue").click();
+        const bankResume = [...$("continueSlots").querySelectorAll("button")]
+          .find(button => button.getAttribute("aria-label")?.includes("Roguelike"));
+        assert(Boolean(bankResume), "deterministic banking save can be continued");
+        bankResume.click();
+        await tick();
+        $("board").children[0].click();
+        assert($("modal").open, "bankable question opens for Escape regression");
+        doc.dispatchEvent(new win.KeyboardEvent("keydown", {
+          key: "Escape", bubbles: true, cancelable: true
+        }));
+        assert(!$("modal").open, "Escape closes the banking question");
+        assert(JSON.parse(win.localStorage.getItem(key)).locked.includes(0),
+          "Escape cancels and persists the one-slide banking lock");
         finish("pass", logs.length + " interactive layout/semantics checks");
       } catch (error) {
         finish("fail", String(error && error.stack || error));

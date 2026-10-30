@@ -38,7 +38,10 @@ import {
 import {
   openAchievementGallery, renderFinalScreen
 } from "./results-ui.mjs?v=frostlock-v1";
-import { MODE_LABELS, resumableSave } from "./navigation.mjs?v=frostlock-v1";
+import { MODE_LABELS, resumableSave } from "./navigation.mjs?v=release-5a";
+import { rescuableConsumables } from "./rescue.mjs?v=release-5a";
+import { createSafeStore } from "./save-safety.mjs?v=release-5a";
+import { validSavedBoard, sanitiseSavedGame } from "./save-validation.mjs?v=release-5a";
 import { renderNavigation } from "./title-ui.mjs?v=frostlock-v1";
 import { stageArtFor } from "./stage-art.mjs?v=hazard-counter-v1-art-pass4";
 import {
@@ -74,36 +77,32 @@ const CLASSIC_SAVE = "index-shuffle-v1";
 const ROGUE_SAVE = "index-shuffle-roguelite-v1";
 const MODE_SAVE = "index-shuffle-selected-mode-v1";
 const ACHIEVEMENT_SAVE = "index-shuffle-roguelite-achievements-v1";
+const saveStore = createSafeStore(() => window.localStorage);
+const saveKey = selected => selected === "roguelite" ? ROGUE_SAVE : CLASSIC_SAVE;
 function savedAchievements() {
-  try { return restoreAchievementProfile(JSON.parse(
-    localStorage.getItem(ACHIEVEMENT_SAVE))); }
-  catch { return restoreAchievementProfile(null); }
+  try { return restoreAchievementProfile(saveStore.readJSON(ACHIEVEMENT_SAVE)); }
+  catch {
+    saveStore.markCorrupt(ACHIEVEMENT_SAVE);
+    return restoreAchievementProfile(null);
+  }
 }
 let achievementProfile = savedAchievements();
 let recentAchievementIds = [];
 function saved(mode = "classic") {
-  try { return JSON.parse(localStorage.getItem(mode === "roguelite" ? ROGUE_SAVE : CLASSIC_SAVE)); }
-  catch { return null; }
+  return saveStore.readJSON(saveKey(mode));
 }
-let mode = localStorage.getItem(MODE_SAVE) === "roguelite" ? "roguelite" : "classic";
+let mode = saveStore.readText(MODE_SAVE) === "roguelite" ? "roguelite" : "classic";
 let state = saved(mode);
-if (!state || !Array.isArray(state.board) || state.board.length !== 16) {
+// Never create a phantom save while the title first loads. A damaged saved
+// board is isolated rather than crashing startup or overwriting valid slots.
+if (!state || !validSavedBoard(state.board) ||
+    (mode === "roguelite" && !validRogueliteRun(state.run))) {
+  if (state) saveStore.markCorrupt(saveKey(mode));
   state = mode === "roguelite" ? newRogueliteRun() : fresh();
 } else {
-  // Previous games did not track temporary banking lockouts.
-  state.resultsFinalized = state.resultsFinalized === true;
-  state.resultsDismissed = state.resultsDismissed === true;
-  state.locked = Array.isArray(state.locked) ? state.locked : [];
-  state.discovered = Array.isArray(state.discovered) ? state.discovered : [];
-  state.banked = Array.isArray(state.banked) ? state.banked : [];
-  // Earlier saves never recorded which tiles came from genuine merges.
-  // They remain playable; new merges earn bank-triggered blocker hits.
-  state.mergeReady = Array.isArray(state.mergeReady) ? state.mergeReady : [];
-  // Upgrade older games once without losing their board or score.
-  Object.assign(state, restoreMoveBudget(state));
-  state.notice = "";
-  if (mode === "roguelite" && !validRogueliteRun(state.run)) state = newRogueliteRun();
-  else {
+  try {
+    state = sanitiseSavedGame(state);
+    Object.assign(state, restoreMoveBudget(state));
     if (mode === "roguelite") {
       state.run = restoreEffectState(restoreShopState(
         restoreRogueliteRun(state.run, state.movesLeft)));
@@ -116,6 +115,9 @@ if (!state || !Array.isArray(state.board) || state.board.length !== 16) {
     }
     state.over = mode === "roguelite" && state.run.phase !== "playing" ? false
       : currentGameEnded();
+  } catch {
+    saveStore.markCorrupt(saveKey(mode));
+    state = mode === "roguelite" ? newRogueliteRun() : fresh();
   }
 }
 let pending = null;
@@ -169,20 +171,32 @@ function currentGameEnded() {
   const ended = gameEnded(state.board, banked, locked,
     state.movesLeft, currentMovementRules());
   if (!ended || state.movesLeft <= 0 || mode !== "roguelite") return ended;
-  // A held Hazard Eraser is a genuine rescue when removing a hazard
-  // restores a bank or slide. Do not end the run before it can be used.
-  return !(state.run.inventory?.consumables?.some(entry =>
+  // Preserve the previously audited Hazard Eraser rescue and expand the
+  // decision to every held item that really restores a bank or legal slide.
+  const hazardRescue = state.run.inventory?.consumables?.some(entry =>
     entry?.id === "hazard-eraser") && canRescueHazardLock(
-      state.board, state.hazards, banked, locked,
-      currentMovementRules()));
+      state.board, state.hazards, banked, locked, currentMovementRules());
+  return !(hazardRescue || rescuableConsumables(state).length > 0);
 }
 
 function persist() {
-  try {
-    localStorage.setItem(mode === "roguelite" ? ROGUE_SAVE : CLASSIC_SAVE,
-      JSON.stringify(state));
-    localStorage.setItem(ACHIEVEMENT_SAVE, JSON.stringify(achievementProfile));
-  } catch { /* Storage may be unavailable in private mode. */ }
+  // Store both snapshots together. Even if durable storage fails, the tab
+  // keeps an in-memory backup so Return to title/Continue still works here.
+  return saveStore.writeJSON([
+    [saveKey(mode), state],
+    [ACHIEVEMENT_SAVE, achievementProfile]
+  ], { recover: true });
+}
+
+function renderSaveWarning() {
+  const warning = $("saveWarning");
+  const issue = saveStore.status();
+  warning.hidden = issue === null;
+  warning.textContent = issue === "corrupt"
+    ? "Some saved progress could not be read. That save is unavailable; other games have been kept."
+    : issue === "unavailable"
+      ? "Progress is not being saved to this device. You can keep playing in this tab, but refreshing or closing it may lose this session. Check browser storage or private browsing settings."
+      : "";
 }
 
 function awardRunEvent(event) {
@@ -656,6 +670,12 @@ function render() {
         + base + "<sup>" + exp + "</sup> " + (banked.has(k) ? "✓" : "◇") + "</span>";
     }).join("")
     : '<p class="muted">Discover your first square by merging two matching bases.</p>';
+  const rescueItems = rogue && state.run.phase === "playing" && !state.over &&
+    state.movesLeft > 0 &&
+    !canMove(state.board, banked, locked, currentMovementRules())
+    ? rescuableConsumables(state) : [];
+  const rescueNames = [...new Set(rescueItems.map(entry =>
+    ITEM_BY_ID[entry.id]?.name).filter(Boolean))];
   $("status").textContent = selection
     ? "Choose a highlighted target for your " +
       ITEM_BY_ID[state.run.inventory.consumables[selection.slot].id].name +
@@ -668,6 +688,9 @@ function render() {
     ? "You completed all 12 rounds!"
     : state.movesLeft === 0
     ? "Out of moves. Start a new game to try again."
+    : rescueNames.length
+    ? "The board is blocked, but " + rescueNames.join(" or ") +
+      " can rescue this run. Use a highlighted inventory item."
     : state.over ? "No legal moves or banking options remain."
     : state.notice ||
       (state.movesLeft <= 3
@@ -682,7 +705,9 @@ function render() {
     canActivateConsumable(state, slot));
   renderRogueliteShop(state, mode, applyShopAction);
   renderFinalScreen(mode, state, achievementProfile);
-  persist();
+  // The title screen must not create/overwrite a game save on first load.
+  if (screen === "game") persist();
+  renderSaveWarning();
 }
 
 function stopMotion() {
@@ -1244,7 +1269,10 @@ $("modal").addEventListener("cancel", event => {
 });
 function closeNavigationDialogs() {
   stopMotion();
-  closeBank();
+  // Leaving a timed question for the title/another mode is still a
+  // cancellation. Otherwise navigation would reset the timer for free.
+  if (pending !== null) lockPending("cancel");
+  else closeBank();
   pendingItem = null;
   recentAchievementIds = [];
   for (const id of ["shopDialog", "resultsDialog", "achievementsDialog", "bossIntroDialog"]) {
@@ -1253,30 +1281,32 @@ function closeNavigationDialogs() {
 }
 
 function rememberMode(selected) {
-  try { localStorage.setItem(MODE_SAVE, selected); }
-  catch { /* Game still works when browser storage is disabled. */ }
+  saveStore.writeEntries([[MODE_SAVE, selected]]);
 }
 
 function loadSavedGame(snapshot) {
-  state = snapshot;
-  Object.assign(state, restoreMoveBudget(state));
-  state.resultsFinalized = state.resultsFinalized === true;
-  state.resultsDismissed = state.resultsDismissed === true;
-  state.locked = Array.isArray(state.locked) ? state.locked : [];
-  state.mergeReady = Array.isArray(state.mergeReady) ? state.mergeReady : [];
-  state.discovered = Array.isArray(state.discovered) ? state.discovered : [];
-  state.banked = Array.isArray(state.banked) ? state.banked : [];
-  if (mode === "roguelite") {
-    state.run = restoreEffectState(restoreShopState(
-      restoreRogueliteRun(state.run, state.movesLeft)));
-    state.hazards = restoreHazardLayer(state.hazards, state.board);
-    state.enchantments = restoreEnchantmentLayer(state.enchantments, state.board, state.hazards);
-    state.run = restoreHazardPressure(state.run, state.board, state.hazards);
-    repairFrozenControl();
-    state.over = state.run.phase === "playing" ? currentGameEnded() : false;
-  } else {
-    state.stats = restoreRunStats(state.stats);
-    state.over = currentGameEnded();
+  const previous = state;
+  try {
+    state = sanitiseSavedGame(snapshot);
+    Object.assign(state, restoreMoveBudget(state));
+    if (mode === "roguelite") {
+      state.run = restoreEffectState(restoreShopState(
+        restoreRogueliteRun(state.run, state.movesLeft)));
+      state.hazards = restoreHazardLayer(state.hazards, state.board);
+      state.enchantments = restoreEnchantmentLayer(state.enchantments, state.board, state.hazards);
+      state.run = restoreHazardPressure(state.run, state.board, state.hazards);
+      repairFrozenControl();
+      state.over = state.run.phase === "playing" ? currentGameEnded() : false;
+    } else {
+      state.stats = restoreRunStats(state.stats);
+      state.over = currentGameEnded();
+    }
+    return true;
+  } catch {
+    // A bad one-mode snapshot must not destroy the other mode or crash.
+    state = previous;
+    saveStore.markCorrupt(saveKey(mode));
+    return false;
   }
 }
 
@@ -1307,9 +1337,15 @@ function resumeSavedGame(selected) {
   }
   if (screen === "game") persist();
   closeNavigationDialogs();
+  const previousMode = mode;
   mode = selected;
+  if (!loadSavedGame(snapshot)) {
+    mode = previousMode;
+    screen = "continue";
+    render();
+    return;
+  }
   rememberMode(mode);
-  loadSavedGame(snapshot);
   screen = "game";
   render();
   // A Roguelike shop resumes in its modal, including its existing stock.
@@ -1514,7 +1550,7 @@ const keys = {
 document.addEventListener("keydown", event => {
   if (event.key === "Escape" && pending !== null) {
     event.preventDefault();
-    closeBank();
+    lockPending("cancel");
     return;
   }
   // Let arrow keys scroll the modal shop instead of swallowing them as slides.

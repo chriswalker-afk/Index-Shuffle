@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#0c1428">
   <meta name="description" content="Slide and merge powers, solve banking challenges and stay in the game.">
   <title>Index Shuffle — Make every move count</title>
-  <link rel="stylesheet" href="styles.css?v=runestones-pass3">
+  <link rel="stylesheet" href="styles.css?v=release-5a">
 </head>
 <body>
   <main class="shell">
@@ -24,6 +24,7 @@
         <button type="button" id="headerTitle" class="outline" hidden>Return to title</button>
       </nav>
     </header>
+    <p id="saveWarning" class="save-warning" role="alert" hidden></p>
 
     <section id="titleScreen" class="landing-screen title-screen" aria-labelledby="titleHeading">
       <div class="title-hero">
@@ -455,8 +456,11 @@
           a tile's path. A hazard warning appears one successful slide
           before a hazard activates. Buy a one-use <strong>Hazard Eraser</strong>
           in the shop to remove any active hazard without using a move,
-          including a Cloudy square hiding a tile. Hazard Eraser can also
-          rescue a board that has no other legal actions.</p>
+          including a Cloudy square hiding a tile. If the board has no
+          legal banking or sliding action but you still have moves,
+          a held rescue tool (such as Hazard Eraser, Block Breaker,
+          Clear Space, Second Chance or Echo Seal) may save the run.
+          If Moves Left reaches zero, the game ends immediately.</p>
         <p><strong>Permanent hazard defences</strong> appear in shops before
           the relevant hazards are unlocked. Some reduce hazard warnings or
           make a particular type less likely; Hazard Tamer changes incoming
@@ -737,6 +741,6 @@
       <button type="button" id="cancel" class="textbtn">Keep this tile</button>
     </div>
   </dialog>
-  <script type="module" src="app.mjs?v=runestones-pass4"></script>
+  <script type="module" src="app.mjs?v=release-5a"></script>
 </body>
 </html>

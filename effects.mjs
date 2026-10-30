@@ -1,7 +1,7 @@
 // Pass 4: pure, testable Roguelite item rules. No DOM or mutable globals.
 // All effects require purchases; Classic never calls this module.
 import {
-  tile, key, isObstacle, isBlocker, blockerStrength, canMove,
+  tile, key, isObstacle, isBlocker, blockerStrength, canMove, isBankable,
   MAX_MOVES_LEFT
 } from "./engine.mjs?v=runestones-pass2";
 import { goldTier } from "./roguelite.mjs?v=runestones-pass2";
@@ -185,8 +185,9 @@ export function consumableTargets(state, slot, selected = []) {
     }
     // A covered tile must not leak its identity through item highlighting.
     if (state.hazards?.[i]?.type === "cloudy") return -1;
-    if (id === "second-chance") return locked.has(i) && numericTile(t) &&
-      t.exp >= 2 && !banked.has(key(t)) ? i : -1;
+    if (id === "second-chance") return locked.has(i) &&
+      isBankable(t, banked, i, new Set(), state.hazards,
+        state.enchantments) ? i : -1;
     if (!numericTile(t)) return -1;
     if (id === "power-surge") return t.exp < MAX_POWER_SURGE_EXPONENT &&
       !banked.has(t.base + "-" + (t.exp + 1)) ? i : -1;
@@ -199,7 +200,8 @@ export function consumableTargets(state, slot, selected = []) {
       probe[i] = null;
       return canMove(probe, banked, locked,
         { ...(bossMovementRules(state.run) || {}),
-          hazards: state.hazards }) ? i : -1;
+          hazards: state.hazards, enchantments: state.enchantments,
+          greedyLandingOnly: hazardItemProtection(state.run).greedyLandingOnly }) ? i : -1;
     }
     return -1;
   }).filter(i => i !== -1);
