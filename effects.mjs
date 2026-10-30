@@ -3,15 +3,15 @@
 import {
   tile, key, isObstacle, isBlocker, blockerStrength, canMove,
   MAX_MOVES_LEFT
-} from "./engine.mjs?v=hazard-counter-v1";
-import { goldTier } from "./roguelite.mjs?v=frostlock-v1";
+} from "./engine.mjs?v=runestones-pass2";
+import { goldTier } from "./roguelite.mjs?v=runestones-pass2";
 import { ENCHANTMENT_ITEMS, canPlaceEnchantment, placeEnchantment,
-  restoreEnchantmentLayer } from "./enchantments.mjs?v=runestones-pass1";
-import { ITEM_BY_ID } from "./shop.mjs?v=frostlock-v1";
-import { bossId, bossMovementRules } from "./bosses.mjs?v=frostlock-v1";
+  restoreEnchantmentLayer } from "./enchantments.mjs?v=runestones-pass2";
+import { ITEM_BY_ID } from "./shop.mjs?v=runestones-pass2";
+import { bossId, bossMovementRules } from "./bosses.mjs?v=runestones-pass2";
 import {
   hazardAt, restoreHazardLayer, removeHazard
-} from "./hazards.mjs?v=hazard-counter-v1";
+} from "./hazards.mjs?v=runestones-pass2";
 
 const whole = n => Number.isSafeInteger(n) && n >= 0;
 const numericTile = t => Boolean(t && !isObstacle(t) &&
