@@ -29,6 +29,7 @@ jobs:
           node shop-art.tests.mjs
           node boss-art.tests.mjs
           node world-art.tests.mjs
+          node quality-pass5.tests.mjs
       - name: Check JavaScript syntax
         run: |
           node --check engine.mjs
@@ -66,6 +67,7 @@ jobs:
           node --check stage-art.mjs
           node --check achievement-art.mjs
           node --check world-art.tests.mjs
+          node --check quality-pass5.tests.mjs
       - name: Verify Pages static files
         run: |
           test -f .nojekyll
