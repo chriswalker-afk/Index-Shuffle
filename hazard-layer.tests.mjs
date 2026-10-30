@@ -256,7 +256,7 @@ assert.match(app, /const squareHazard = rogue \? hazardAt\(state\.hazards, i\) :
 assert.match(app, /renderHazardLayer\(board, state\.hazards, state\.run\.hazardWarning, eraseTargets\)/);
 assert.match(app, /button\.replaceChildren\(\)/,
   "Cloudy must hide source content in addition to the opaque overlay");
-assert.match(app, /button\.setAttribute\("aria-label", description\)/);
+assert.match(app, /button\.setAttribute\("aria-label", label\)/);
 assert.match(app, /state\.board\.forEach\(\(t, i\) =>/);
 assert.match(app, /let result = slide\(before, direction, currentMovementRules\(\)\)/);
 assert.match(app, /progressHazardRound\(state\.board, state\.hazards, state\.run, nextMove/,
