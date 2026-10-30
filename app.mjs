@@ -2,8 +2,9 @@ import {
   key, slide, turnSpawns, initial, canMove, isBankable, isBlocker, isWarning,
   blockerStrength, blockerHitsForMove, BLOCKER_START, BLOCKER_INTERVAL, MAX_BLOCKERS,
   mergeReadyAfterSlide, attemptBank, adjacentIndices, activeBases, BASE_UNLOCKS,
-  INITIAL_MOVES_LEFT, MERGES_PER_BONUS_MOVE, spendMove, slideCost, gameEnded
-} from "./engine.mjs";
+  INITIAL_MOVES_LEFT, MERGES_PER_BONUS_MOVE, BUDGET_RULES_VERSION,
+  restoreMoveBudget, spendMove, slideCost, creditCorrectBank, gameEnded
+} from "./engine.mjs?v=banked-moves-v2";
 
 const $ = id => document.getElementById(id);
 const glyph = n => String(n).replace(/\d/g, d => "⁰¹²³⁴⁵⁶⁷⁸⁹"[+d]);
@@ -14,7 +15,8 @@ const prefersReducedMotion = () => window.matchMedia("(prefers-reduced-motion: r
 function fresh(best = 0) {
   return { board: initial(), discovered: [], banked: [], locked: [], mergeReady: [],
     score: 0, best, moves: 0, movesLeft: INITIAL_MOVES_LEFT,
-    mergeCredit: 0, over: false, notice: "" };
+    mergeCredit: 0, budgetRulesVersion: BUDGET_RULES_VERSION,
+    over: false, notice: "" };
 }
 function saved() {
   try { return JSON.parse(localStorage.getItem("index-shuffle-v1")); }
@@ -31,13 +33,8 @@ if (!state || !Array.isArray(state.board) || state.board.length !== 16) {
   // Earlier saves never recorded which tiles came from genuine merges.
   // They remain playable; new merges earn bank-triggered blocker hits.
   state.mergeReady = Array.isArray(state.mergeReady) ? state.mergeReady : [];
-  // Older saved games have no move budget. Give them a fresh 10-move
-  // allowance without altering their cumulative slide count or powers.
-  state.movesLeft = Number.isSafeInteger(state.movesLeft) && state.movesLeft >= 0
-    ? state.movesLeft : INITIAL_MOVES_LEFT;
-  state.mergeCredit = Number.isSafeInteger(state.mergeCredit) &&
-    state.mergeCredit >= 0 && state.mergeCredit < MERGES_PER_BONUS_MOVE
-    ? state.mergeCredit : 0;
+  // Upgrade older games once without losing their board or score.
+  Object.assign(state, restoreMoveBudget(state));
   state.notice = "";
   state.over = gameEnded(state.board, new Set(state.banked),
     new Set(state.locked), state.movesLeft);
@@ -67,7 +64,7 @@ function render() {
   $("moves").textContent = state.moves;
   $("movesLeft").textContent = state.movesLeft;
   $("mergeProgress").textContent = state.mergeCredit + " / " +
-    MERGES_PER_BONUS_MOVE + " merges to +1 move";
+    MERGES_PER_BONUS_MOVE + " correctly banked merges";
   const currentSlideCost = slideCost(state.board);
   $("slideCost").textContent = "Next slide costs " + currentSlideCost +
     (currentSlideCost === 1 ? " move" : " moves");
@@ -161,12 +158,12 @@ function render() {
     }).join("")
     : '<p class="muted">Discover your first square by merging two matching bases.</p>';
   $("status").textContent = state.movesLeft === 0
-    ? "Out of moves! Game over. Every two merges restore one move."
+    ? "Out of moves! Game over. Bank two merged powers correctly to earn a move."
     : state.over ? "No legal slides or bankable powers remain. Game over!"
     : state.notice ||
       (state.movesLeft <= 3
-        ? "Low on moves! Make two merges to earn one back."
-        : "Merge pairs of powers to earn more moves, or bank a tile.");
+        ? "Low on moves! Correctly bank two merged powers to regain one."
+        : "Slide to merge powers, then bank them correctly for move bonuses.");
   $("stage").textContent = state.movesLeft === 0
     ? "OUT OF MOVES" : state.over ? "GAME OVER" : "SURVIVAL MODE";
   persist();
@@ -241,10 +238,10 @@ function move(direction) {
   // Snapshot active blockers BEFORE the slide. A warning that matures
   // on this slide only increases the cost of the following slide.
   const activeBlockers = slideCost(before) - 1;
-  const budget = spendMove(state.movesLeft, state.mergeCredit,
-    result.merges.length, activeBlockers);
+  const budget = spendMove(state.movesLeft, activeBlockers);
   state.movesLeft = budget.movesLeft;
-  state.mergeCredit = budget.mergeCredit;
+  // No reward here, no matter how many tiles merged. Correct banking
+  // of a merged power is the only way to advance mergeCredit.
   // Keep merge provenance attached to its tile as it slides, and mark
   // newly merged powers. Spawned powers never inherit that provenance.
   state.mergeReady = mergeReadyAfterSlide(state.mergeReady, result.motions);
@@ -257,11 +254,8 @@ function move(direction) {
   // A successful slide clears the incorrect-attempt and banking cooldowns.
   state.locked = [];
   const news = [];
-  if (budget.earned) {
-    news.push("+" + budget.earned + " " +
-      (budget.earned === 1 ? "move" : "moves") +
-      " earned from merging!");
-  }
+  news.push("Slide cost: " + budget.cost +
+    (budget.cost === 1 ? " move." : " moves."));
   if (unlockedNow.length) news.push("Unlocked base " + unlockedNow.join(", ") + "!");
   // Merging next to a blocker does not cause damage: students must bank
   // the merged power correctly while it is adjacent to the blocker.
@@ -378,12 +372,27 @@ $("bankForm").addEventListener("submit", event => {
   // square, with the existing one-successful-slide banking cooldown.
   if (!state.locked.includes(i)) state.locked.push(i);
   state.banked.push(outcome.powerKey);
+  // Correct answers for genuinely merged tiles are the ONLY source of
+  // extra moves. A correctly banked random-spawn power earns score only.
+  const award = creditCorrectBank(state.movesLeft, state.mergeCredit,
+    outcome.creditedMerge);
+  state.movesLeft = award.movesLeft;
+  state.mergeCredit = award.mergeCredit;
   state.score += outcome.points;
   state.best = Math.max(state.best, state.score);
   const { replacement, damaged, destroyed } = outcome;
   state.notice = "Banked " + t.base + glyph(t.exp) + " for " + outcome.points
     + " points. " + replacement.base + glyph(replacement.exp)
     + " remains. Slide once before banking that replacement.";
+  if (outcome.creditedMerge) {
+    if (award.earned) {
+      state.notice += " +1 move earned for two correctly banked merges!";
+    } else if (state.mergeCredit === 1) {
+      state.notice += " 1/2 correctly banked merges toward your next move.";
+    } else {
+      state.notice += " Bonus reached, but Moves Left is already at 10.";
+    }
+  }
   if (destroyed.length) {
     state.notice += " " + destroyed.length
       + (destroyed.length === 1 ? " blocker destroyed!" : " blockers destroyed!");
