@@ -7,7 +7,7 @@ import {
 import { goldTier } from "./roguelite.mjs?v=runestones-pass2";
 import { ENCHANTMENT_ITEMS, canPlaceEnchantment, placeEnchantment,
   restoreEnchantmentLayer } from "./enchantments.mjs?v=runestones-pass2";
-import { ITEM_BY_ID } from "./shop.mjs?v=runestones-pass3";
+import { ITEM_BY_ID } from "./shop.mjs?v=runestones-pass4";
 import { bossId, bossMovementRules } from "./bosses.mjs?v=runestones-pass2";
 import {
   hazardAt, restoreHazardLayer, removeHazard
