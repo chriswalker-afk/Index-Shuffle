@@ -243,7 +243,9 @@ export function finalScoreSummary(mode, state, profile = emptyAchievementProfile
     bestSingleBank: stats.bestSingleBank,
     highestExponent: stats.highestExponent,
     blockersDestroyed: stats.blockersDestroyed,
-    bossesDefeated: stats.bossesDefeated,
+    bossesDefeated: rogue ? Math.max(stats.bossesDefeated,
+      Math.floor((won ? 12 : Math.max(0, state.run.round - 1)) / 3))
+      : stats.bossesDefeated,
     itemsBought: stats.itemsBought,
     consumablesUsed: stats.consumablesUsed,
     coinsEarned: rogue ? state.run.totalCoinsEarned : null,
