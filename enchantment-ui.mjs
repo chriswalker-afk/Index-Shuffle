@@ -2,7 +2,7 @@
 // Tile buttons remain the accessible source of square names and actions.
 import {
   ENCHANTMENT_CELLS, ENCHANTMENT_DEFINITIONS, activeEnchantmentCount
-} from "./enchantments.mjs?v=runestones-pass1";
+} from "./enchantments.mjs?v=runestones-pass2";
 
 export function renderEnchantmentLayer(board, layer) {
   board.querySelector(".enchantment-layer")?.remove();
