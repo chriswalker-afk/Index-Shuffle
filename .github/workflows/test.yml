@@ -10,13 +10,16 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Run game engine tests
-        run: node tests.mjs
+      - name: Run game engine and blocker tests
+        run: |
+          node tests.mjs
+          node hazards.tests.mjs
       - name: Check JavaScript syntax
         run: |
           node --check engine.mjs
           node --check app.mjs
           node --check tests.mjs
+          node --check hazards.tests.mjs
       - name: Verify Pages static files
         run: |
           test -f .nojekyll
