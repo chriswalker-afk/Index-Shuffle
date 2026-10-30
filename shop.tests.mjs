@@ -14,7 +14,7 @@ assert.equal(SHOP_OFFERS_PER_TYPE, 2);
 assert.equal(INITIAL_REROLL_COST, 1);
 const ids = ITEM_CATALOG.map(item => item.id);
 assert.equal(new Set(ids).size, ids.length, "Every item must have a unique stable ID");
-assert.equal(ITEM_CATALOG.filter(item => item.type === "permanents").length, 12);
+assert.equal(ITEM_CATALOG.filter(item => item.type === "permanents").length, 20);
 assert.equal(ITEM_CATALOG.filter(item => item.type === "consumables").length, 11);
 for (const item of ITEM_CATALOG) {
   assert.equal(ITEM_BY_ID[item.id], item);
