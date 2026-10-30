@@ -48,8 +48,8 @@
         </div>
         <div class="pressure-strip" aria-label="Blocker progress">
           <span class="pressure-symbol" aria-hidden="true">▦</span>
-          <span><strong>BLOCKERS</strong> <span id="blockerCount">0 / 1</span></span>
-          <span class="pressure-help">3 adjacent merges to clear</span>
+          <span><strong>BLOCKERS</strong> <span id="blockerCount">0 / 2</span></span>
+          <span id="blockerNext" class="pressure-help">First: move 10 · tier 1</span>
         </div>
         <p class="tip">Use arrow keys, WASD or swipe. ✦ means bankable;
           ⌛ means wait one slide; ▦ is a fixed blocker.</p>
@@ -78,11 +78,14 @@
           <h2>How to survive</h2>
           <p>Each valid slide spawns a new tile. From move 40, every tenth
              slide can add a <b>second tile</b> when space is available.</p>
-          <p>A fixed <b>blocker</b> may appear from move 55, no more often
-             than once every 30 moves and with only one active at a time.
-             Blockers never move or merge: make <b>three merges landing
-             directly beside one</b> (not diagonally) to break it and free
-             its square. A newly cleared square remains empty for that move.</p>
+          <p>The first <b>easy blocker</b> appears at move 10 and needs just
+             <b>one adjacent merge</b>. Another is attempted every 10
+             successful slides: the strength rises to 2, 3, 4 and then 5
+             merges (the maximum). At most <b>two blockers</b> can be active
+             at once, and a blocker needs an empty square to appear.</p>
+          <p>Blockers stay fixed and divide rows and columns. Merges must
+             finish <b>directly beside</b> them—not diagonally—to deal damage.
+             Breaking a blocker opens its square for future turns.</p>
           <p>New bases unlock at moves 15, 35 and 60. You lose when
              no legal slides or banking actions remain.</p>
         </section>
