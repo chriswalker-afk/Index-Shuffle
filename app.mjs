@@ -37,11 +37,13 @@ import {
 import { MODE_LABELS, resumableSave } from "./navigation.mjs?v=title-flow-v1";
 import { renderNavigation } from "./title-ui.mjs?v=title-flow-v1";
 import {
-  restoreHazardLayer, hazardAt, activeHazardCount, MAX_ACTIVE_HAZARDS
-} from "./hazards.mjs?v=hazard-layer-v1";
+  restoreHazardLayer, hazardAt, activeHazardCount, MAX_ACTIVE_HAZARDS,
+  restoreHazardPressure, progressHazardRound, resolveSlideHazards,
+  HAZARD_DEFINITIONS
+} from "./hazards.mjs?v=hazard-pass3-v1";
 import {
   renderHazardLayer, hazardTileDescription
-} from "./hazard-ui.mjs?v=hazard-layer-v1";
+} from "./hazard-ui.mjs?v=hazard-pass3-v1";
 
 const $ = id => document.getElementById(id);
 const glyph = n => String(n).replace(/\d/g, d => "⁰¹²³⁴⁵⁶⁷⁸⁹"[+d]);
@@ -94,6 +96,7 @@ if (!state || !Array.isArray(state.board) || state.board.length !== 16) {
       state.run = restoreEffectState(restoreShopState(
         restoreRogueliteRun(state.run, state.movesLeft)));
       state.hazards = restoreHazardLayer(state.hazards, state.board);
+      state.run = restoreHazardPressure(state.run, state.board, state.hazards);
     } else {
       state.stats = restoreRunStats(state.stats);
     }
@@ -112,9 +115,14 @@ let pendingItem = null;
 // explicit navigation decisions; loading the title never writes a fake save.
 let screen = "title";
 
+function currentMovementRules() {
+  return mode === "roguelite"
+    ? { ...(bossMovementRules(state.run) || {}), hazards: state.hazards }
+    : null;
+}
 function currentGameEnded() {
   return gameEnded(state.board, new Set(state.banked), new Set(state.locked),
-    state.movesLeft, mode === "roguelite" ? bossMovementRules(state.run) : null);
+    state.movesLeft, currentMovementRules());
 }
 
 function persist() {
@@ -169,6 +177,19 @@ function render() {
   if (rogue) {
     $("hazardCount").textContent = activeHazardCount(state.hazards) +
       " / " + MAX_ACTIVE_HAZARDS;
+    const warning = state.run.hazardWarning;
+    $("hazardNext").textContent = warning
+      ? HAZARD_DEFINITIONS[warning.type].name +
+        " square incoming on the next successful slide!"
+      : state.run.round <= 3
+        ? "Square hazards begin in Stage 2."
+        : "New hazards may be warned one successful slide in advance.";
+    $("hazardAlert").hidden = !warning;
+    $("hazardAlert").textContent = warning
+      ? "⚠ " + HAZARD_DEFINITIONS[warning.type].name +
+        " hazard: marked square activates after your next slide." : "";
+  } else {
+    $("hazardAlert").hidden = true;
   }
   finalizeGameIfNeeded();
   $("achievementToast").hidden = !rogue || !recentAchievementIds.length;
@@ -293,7 +314,8 @@ function render() {
       button.disabled = true;
     } else if (t) {
       const gold = rogue ? goldTier(t) : 0;
-      const available = isBankable(t, banked, i, locked);
+      const available = isBankable(t, banked, i, locked,
+        rogue ? state.hazards : null);
       const blocked = (t.exp >= 2 || gold > 0) && locked.has(i) &&
         (gold > 0 || !banked.has(key(t)));
       const strike = available && mergeReady.has(i) &&
@@ -363,11 +385,19 @@ function render() {
         button.setAttribute("aria-label", button.title);
       }
     }
+    if (rogue && state.run.hazardWarning?.index === i) {
+      const type = HAZARD_DEFINITIONS[state.run.hazardWarning.type]?.name;
+      if (type) {
+        button.title = (button.title ? button.title + ". " : "") +
+          "Incoming " + type + " square after the next slide.";
+        button.setAttribute("aria-label", button.title);
+      }
+    }
     board.appendChild(button);
   });
   // Stationary hazard overlay comes after the 16 tiles. It never intercepts
   // banking or slide gestures, and slide animation still uses cells 0..15.
-  if (rogue) renderHazardLayer(board, state.hazards);
+  if (rogue) renderHazardLayer(board, state.hazards, state.run.hazardWarning);
   $("blockerCount").textContent =
     state.board.filter(isBlocker).length + " / " + MAX_BLOCKERS;
   const incoming = state.board.find(isWarning);
@@ -795,6 +825,7 @@ function loadSavedGame(snapshot) {
     state.run = restoreEffectState(restoreShopState(
       restoreRogueliteRun(state.run, state.movesLeft)));
     state.hazards = restoreHazardLayer(state.hazards, state.board);
+    state.run = restoreHazardPressure(state.run, state.board, state.hazards);
     state.over = state.run.phase === "playing" ? currentGameEnded() : false;
   } else {
     state.stats = restoreRunStats(state.stats);
