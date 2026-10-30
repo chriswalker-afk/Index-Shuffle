@@ -88,7 +88,7 @@ assert.match(resultsUI, /if \(earned\) \{/);
 assert.match(resultsUI, /achievementMedalHref\(achievement\.id\)/);
 assert.match(resultsUI, /progressForAchievement\(profile, achievement\)/);
 assert.match(html, /styles\.css\?v=frostlock-v1/);
-assert.match(html, /app\.mjs\?v=frostlock-v1/);
+assert.match(html, /app\.mjs\?v=bank-timer-v1/);
 assert.match(app, /hazard-ui\.mjs\?v=hazard-counter-v1-art-pass4/);
 for (const selector of [
   ".stage-scene", ".title-numberworld-art", ".title-realm-grid",
