@@ -183,7 +183,7 @@ const matured = progressHazardRound(board, nullTamed.hazards, nullTamed.run, 6,
 assert.equal(matured.hazards[nullTamed.run.hazardWarning.index].type, "cracked");
 assert.ok(matured.run.hazardWarning === null);
 assert.equal(matured.events[0].kind, "appeared");
-assert.ok(warningFor(8, 0.4, "hazard-tamer").run.hazardWarning.type === "cloudy",
+assert.ok(warningFor(8, 0.2, "hazard-tamer").run.hazardWarning.type === "cloudy",
   "Hazard Tamer does not turn every hazard harmless");
 
 // Fog Lantern shortens only NEW cloudy hazards to two successful slides.
