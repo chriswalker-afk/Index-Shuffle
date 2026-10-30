@@ -22,7 +22,7 @@ const sprite = readFileSync("assets/art/item-sprites.svg", "utf8");
 assert.match(sprite, /^<svg xmlns="http:\/\/www.w3.org\/2000\/svg"/);
 assert.match(sprite, /<title/);
 assert.match(sprite, /<desc/);
-assert.doesNotMatch(sprite, /<script|<foreignObject|<image|onload=|http:\/\/|https:\/\/[^"]+\.(?:png|js|woff)/i);
+assert.doesNotMatch(sprite, /<script|<foreignObject|<image|onload=|(?:href|src)="https?:\/\//i);
 const spriteIDs = [...sprite.matchAll(/<symbol id="item-([a-z-]+)"/g)].map(m => m[1]);
 assert.equal(spriteIDs.length, 32, "31 items plus a fallback symbol");
 assert.equal(new Set(spriteIDs).size, spriteIDs.length);
