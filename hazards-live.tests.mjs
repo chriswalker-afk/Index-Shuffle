@@ -281,7 +281,7 @@ const ui = readFileSync("hazard-ui.mjs", "utf8");
 const html = readFileSync("index.html", "utf8");
 const css = readFileSync("styles.css", "utf8");
 assert.match(app, /let result = slide\(before, direction, currentMovementRules\(\)\)/);
-assert.match(app, /result = resolveSlideHazards\(result, state\.hazards\)/);
+assert.match(app, /result = resolveSlideHazards\(result, state\.hazards,/);
 assert.match(app, /progressHazardRound\(state\.board, state\.hazards, state\.run, nextMove/);
 assert.match(app, /hazardAvoid\.add\(state\.run\.hazardWarning\.index\)/);
 assert.match(app, /state\.run = restoreHazardPressure\(state\.run, state\.board, state\.hazards\)/);
