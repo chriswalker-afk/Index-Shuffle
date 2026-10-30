@@ -343,7 +343,7 @@ assert.match(uiSource,
 assert.match(uiSource, /\$\("movesLeft"\)\.textContent = state\.movesLeft/,
   "the counter in the UI must be updated after each render");
 assert.match(page, /id="movesLeft"/);
-assert.match(page, /app\.mjs\?v=bank-timer-v1/);
+assert.match(page, /app\.mjs\?v=runestones-pass1/);
 assert.match(uiSource, /engine\.mjs\?v=hazard-counter-v1/);
 assert.match(page, /Correct merged-power banks/);
 
