@@ -1527,6 +1527,30 @@ details[open] > summary .chevron { transform: rotate(180deg); }
   .hazard-slot.hazard-erase-target { animation: none; transition: none; }
 }
 
+/* Purchased Runestones mark board coordinates without intercepting input. */
+.enchantment-layer { position:absolute; inset:11px; z-index:3;
+  display:grid; grid-template-columns:repeat(4,minmax(0,1fr));
+  grid-template-rows:repeat(4,minmax(0,1fr)); gap:9px; pointer-events:none; }
+.enchantment-slot { min-width:0; min-height:0; position:relative;
+  border-radius:10px; pointer-events:none; }
+.enchantment-slot[data-enchantment] { border:3px solid #ffe49a;
+  background:#e6ae4320; box-shadow:inset 0 0 0 2px #fff7ca7d, 0 0 11px #ffe28f66; }
+.enchantment-slot[data-enchantment="power-prism"] { border-color:#beabff;
+  background:#a389ef22; box-shadow:inset 0 0 0 2px #ede3ff80,0 0 11px #a792f388; }
+.enchantment-mark { position:absolute; top:2px; right:3px; padding:2px 4px;
+  border-radius:5px; font-size:11px; font-weight:900; color:#fff4c7;
+  background:#45321cd9; }
+.enchantment-slot[data-enchantment="power-prism"] .enchantment-mark {
+  color:#efe5ff; background:#332455dc; }
+.enchantment-remaining { position:absolute; bottom:2px; left:3px;
+  border-radius:5px; padding:2px 5px; font-size:10px; line-height:1;
+  color:#fff; font-weight:900; background:#17263ce6; border:1px solid #fff9; }
+.enchantment-status { margin:0 0 10px; padding:7px 10px;
+  background:#263246; border:1px solid #a999ea; border-radius:9px;
+  color:#f8e5ff; font-size:11px; font-weight:750; }
+.enchantment-status[hidden] { display:none; }
+@media(max-width:580px) { .enchantment-layer { inset:8px; gap:6px; }
+  .enchantment-mark { font-size:9px; } .enchantment-remaining { font-size:9px; } }
 /* Hazard-defence permanents share the two standard permanent slots.
    The shop distinguishes them from scoring and economy items. */
 .shop-offer-card.hazard-counter-offer {
