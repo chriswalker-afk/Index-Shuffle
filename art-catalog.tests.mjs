@@ -46,4 +46,4 @@ assert.ok(existsSync("art-preview.html"));
 assert.ok(existsSync("assets/art/ART_DIRECTION.md"));
 assert.match(html, /styles\.css\?v=hazard-counter-v1-art-pass5/);
 assert.match(html, /app\.mjs\?v=hazard-counter-v1-art-pass5/);
-console.log("Index Shuffle all-seven-boss art catalogue checks passed.");
+console.log("Index Shuffle all-eight-boss art catalogue checks passed.");

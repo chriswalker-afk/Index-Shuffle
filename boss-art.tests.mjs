@@ -7,7 +7,7 @@ import { BOSS_ART, bossPortraitFor } from "./art-catalog.mjs";
 import { BOSS_SCENES, bossSceneFor } from "./boss-scenes.mjs";
 
 const ids = BOSS_CATALOG.map(b => b.id);
-assert.equal(ids.length, 7);
+assert.equal(ids.length, 8);
 assert.deepEqual(Object.keys(BOSS_ART).sort(), [...ids].sort());
 assert.deepEqual(Object.keys(BOSS_SCENES).sort(), [...ids].sort());
 assert.deepEqual(BOSS_ROUNDS, [3,6,9,12]);
@@ -62,8 +62,8 @@ assert.match(resultsUI, /finalBoss = rogue && summary\.won \? bossForRound\(stat
 assert.match(resultsUI, /\$\("resultsBossVictory"\)\.hidden = !finalBoss/);
 assert.match(shopUI, /\$\("shopBossPreview"\)\.dataset\.boss = boss\?\.id/);
 assert.match(app, /\$\("bossRule"\)\.dataset\.boss = boss\?\.id/);
-assert.match(html, /styles\.css\?v=hazard-counter-v1-art-pass5/);
-assert.match(html, /app\.mjs\?v=hazard-counter-v1-art-pass5/);
+assert.match(html, /styles\.css\?v=frostlock-v1/);
+assert.match(html, /app\.mjs\?v=frostlock-v1/);
 assert.match(gallery, /BOSS_CATALOG/);
 assert.match(gallery, /bossPortraitFor\(boss\.id\)/);
 assert.match(gallery, /dialog\.showModal\(\)/);
@@ -78,4 +78,4 @@ assert.ok(begin > -1 && finish > begin);
 const intro = app.slice(begin, finish);
 assert.doesNotMatch(intro, /setTimeout\(|setInterval\(|localStorage\.|state\s*=[^=]|persist\(/,
   "Boss intro must not alter saved progress or use time-based locks");
-console.log("Index Shuffle all-seven-boss portraits, intro, victory and gallery checks passed.");
+console.log("Index Shuffle all-eight-boss portraits, intro, victory and gallery checks passed.");

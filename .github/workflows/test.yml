@@ -21,6 +21,7 @@ jobs:
           node shop.tests.mjs
           node effects.tests.mjs
           node bosses.tests.mjs
+          node frostlock.tests.mjs
           node gold-banking.tests.mjs
           node milestones.tests.mjs
           node navigation.tests.mjs
@@ -47,6 +48,7 @@ jobs:
           node --check effects.tests.mjs
           node --check bosses.mjs
           node --check bosses.tests.mjs
+          node --check frostlock.tests.mjs
           node --check gold-banking.tests.mjs
           node --check milestones.mjs
           node --check results-ui.mjs
@@ -104,6 +106,8 @@ jobs:
           test -f assets/art/boss-power-snob.svg
           test -f assets/art/boss-timekeeper.svg
           test -f assets/art/boss-three-curse.svg
+          test -f assets/art/boss-frostlock.svg
+          test -f frostlock.tests.mjs
           test -f stage-art.mjs
           test -f achievement-art.mjs
           test -f world-gallery.html
