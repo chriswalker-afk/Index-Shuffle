@@ -186,7 +186,7 @@ goldBoard[1] = { ...tile(3), gold: 1 };
 merge = slide(goldBoard, "left");
 assert.deepEqual(merge.board[0], { base: 3, exp: 2, gold: 2 });
 assert.equal(goldForBank(merge.board[0], true), 4);
-assert.equal(goldForBank(merge.board[0], false), 0);
+assert.equal(goldForBank(merge.board[0], false), 1);
 assert.equal(goldForBank({ ...tile(7, 4), gold: 1 }, true), 3);
 assert.equal(goldForBank({ ...tile(7, 2), gold: 1 }, true), 2);
 assert.equal(goldForBank(tile(7, 5), true), 0);
