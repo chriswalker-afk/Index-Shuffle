@@ -95,8 +95,8 @@ assert.equal(bankItemBonuses(setup({
 }).run, golden, true).extraCoins, 1);
 assert.equal(bankItemBonuses(setup({
   permanents: ["golden-calculator"]
-}).run, golden, false).extraCoins, 0,
-  "Unmerged gold still cannot generate coins");
+}).run, golden, false).extraCoins, 1,
+  "Golden Calculator also rewards directly banked gold");
 const threes = bankItemBonuses(setup({
   permanents: ["threes-company"]
 }).run, tile(3, 3), true);
