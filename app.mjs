@@ -231,7 +231,10 @@ function render() {
         : available ? "Bank " + description : description) + goldHint +
         (curseBadge ? ". Three Curse: " + t.curseLeft +
           " successful slides until it becomes a blocker." : "");
-      if (gold) button.classList.add("gold-tile");
+      if (gold) {
+        button.classList.add("gold-tile");
+        if (gold === 2) button.classList.add("gold-double");
+      }
       button.setAttribute("aria-label", button.title);
       if (blocked) button.classList.add("locked");
       if (strike) button.classList.add("block-strike");
@@ -347,7 +350,8 @@ function animateSlide(before, motions, mergedDestinations, spawned, damaged, des
     const from = rects[movement.from], to = rects[movement.to];
     const ghost = document.createElement("div");
     ghost.className = "tile-ghost base" + t.base +
-      (mode === "roguelite" && goldTier(t) ? " gold-tile" : "");
+      (mode === "roguelite" && goldTier(t) ? " gold-tile" +
+        (goldTier(t) === 2 ? " gold-double" : "") : "");
     ghost.style.left = (from.left - boardRect.left) + "px";
     ghost.style.top = (from.top - boardRect.top) + "px";
     ghost.style.width = from.width + "px";
