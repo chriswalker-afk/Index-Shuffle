@@ -20,6 +20,7 @@ jobs:
           node bosses.tests.mjs
           node gold-banking.tests.mjs
           node milestones.tests.mjs
+          node navigation.tests.mjs
       - name: Check JavaScript syntax
         run: |
           node --check engine.mjs
@@ -39,6 +40,9 @@ jobs:
           node --check milestones.mjs
           node --check results-ui.mjs
           node --check milestones.tests.mjs
+          node --check navigation.mjs
+          node --check title-ui.mjs
+          node --check navigation.tests.mjs
       - name: Verify Pages static files
         run: |
           test -f .nojekyll
@@ -53,3 +57,5 @@ jobs:
           test -f bosses.mjs
           test -f milestones.mjs
           test -f results-ui.mjs
+          test -f navigation.mjs
+          test -f title-ui.mjs
