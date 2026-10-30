@@ -344,7 +344,7 @@ assert.match(uiSource, /\$\("movesLeft"\)\.textContent = state\.movesLeft/,
   "the counter in the UI must be updated after each render");
 assert.match(page, /id="movesLeft"/);
 assert.match(page, /app\.mjs\?v=runestones-pass2/);
-assert.match(uiSource, /engine\.mjs\?v=hazard-counter-v1/);
+assert.match(uiSource, /engine\.mjs\?v=runestones-pass2/);
 assert.match(page, /Correct merged-power banks/);
 
 // Presentation regression checks: learning content is optional and the
