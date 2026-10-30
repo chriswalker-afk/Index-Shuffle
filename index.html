@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#10192f">
   <title>Index Shuffle — Powers, with purpose</title>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css?v=banked-moves-v2">
 </head>
 <body>
   <main class="shell">
@@ -21,7 +21,7 @@
     <section class="stats" aria-label="Game statistics">
       <div id="movesCard" class="stat-budget">
         <small>MOVES LEFT</small><strong id="movesLeft" aria-live="polite">10</strong>
-        <span id="mergeProgress" class="merge-progress">0 / 2 merges to +1 move</span>
+        <span id="mergeProgress" class="merge-progress">0 / 2 correctly banked merges</span>
         <span id="slideCost" class="slide-cost">Next slide costs 1 move</span>
       </div>
       <div><small>SCORE</small><strong id="score">0</strong></div>
@@ -86,10 +86,12 @@
              <b>1 move, plus 1 for each active blocker</b> already on the board:
              with one blocker, a slide costs 2 moves; with two, 3 moves.
              An incoming warning does not count until its blocker appears.</p>
-          <p>Every <b>two merges</b> return one move, including merges from
-             different slides. Earned moves are credited before checking for
-             defeat. If moves left reaches <b>zero</b>, the game ends—even if
-             you could still bank a tile. Swipes that change nothing are free.</p>
+          <p>Only <b>correctly banking</b> a power created through merging
+             counts towards restoring moves. For every <b>two correctly banked
+             merged powers</b>, earn one move, up to a <b>maximum of 10</b>.
+             Merely merging tiles or banking a randomly spawned power earns
+             no moves. If moves left reaches <b>zero</b>, the game ends—even
+             if you could still bank a tile. Swipes that change nothing are free.</p>
           <p>Each valid slide spawns a new tile. From move 40, every tenth
              slide can add a <b>second tile</b> when space is available.</p>
           <p>At move <b>9</b>, an empty square is <b>highlighted as a warning</b>.
@@ -140,6 +142,6 @@
       <button id="cancel" class="textbtn">Keep this tile</button>
     </div>
   </div>
-  <script type="module" src="app.mjs"></script>
+  <script type="module" src="app.mjs?v=banked-moves-v2"></script>
 </body>
 </html>
