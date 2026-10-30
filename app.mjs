@@ -151,7 +151,10 @@ function tileContent(t, badge = "") {
 function render() {
   renderNavigation(screen, saved("classic"), saved("roguelite"),
     mode, achievementProfile, resumeSavedGame);
-  if (screen !== "game") return;
+  if (screen !== "game") {
+    $("helpRogueBlock").hidden = false;
+    return;
+  }
   const rogue = mode === "roguelite";
   $("currentModeName").textContent = MODE_LABELS[mode];
   finalizeGameIfNeeded();
@@ -925,6 +928,7 @@ function applyShopAction(reducer, kind = null) {
 $("shopReroll").addEventListener("click", () => {
   applyShopAction(value => rerollRogueliteShop(value));
 });
+$("shopReturnTitle").addEventListener("click", returnToTitle);
 $("shopContinue").addEventListener("click", () => {
   if (mode !== "roguelite" || state.run.phase !== "shop") return;
   stopMotion();
