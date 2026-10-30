@@ -2,7 +2,8 @@ import assert from "node:assert/strict";
 import {
   tile, key, slide, spawn, canMove, isBankable,
   bankReplacement, checkAnswer, answerFor, scoreFor, initial,
-  BASES, BASE_UNLOCKS, activeBases, spawnOptions
+  BASES, BASE_UNLOCKS, activeBases, spawnOptions,
+  INITIAL_MOVES_LEFT, MERGES_PER_BONUS_MOVE, spendMove, gameEnded
 } from "./engine.mjs";
 
 const blank = () => Array(16).fill(null);
@@ -176,5 +177,72 @@ assert.equal(isBankable(tile(5, 7), bankedPowers, 4, new Set()), false,
   "a previously banked power remains ineligible after cooldown");
 assert.equal(isBankable(tile(3, 2), bankedPowers, 8, new Set([4])), true,
   "banking another tile is still allowed while a replacement is locked");
+
+
+// MOVES LEFT is distinct from the cumulative successful-slide count.
+// One successful slide costs one; every two merges refund one. The
+// credit persists when the pair is made on separate slides.
+assert.equal(INITIAL_MOVES_LEFT, 10);
+assert.equal(MERGES_PER_BONUS_MOVE, 2);
+assert.deepEqual(spendMove(10, 0, 0),
+  { movesLeft: 9, mergeCredit: 0, earned: 0 });
+assert.deepEqual(spendMove(10, 0, 1),
+  { movesLeft: 9, mergeCredit: 1, earned: 0 });
+assert.deepEqual(spendMove(9, 1, 1),
+  { movesLeft: 9, mergeCredit: 0, earned: 1 });
+assert.deepEqual(spendMove(10, 0, 2),
+  { movesLeft: 10, mergeCredit: 0, earned: 1 });
+assert.deepEqual(spendMove(10, 0, 3),
+  { movesLeft: 10, mergeCredit: 1, earned: 1 });
+assert.deepEqual(spendMove(10, 1, 3),
+  { movesLeft: 11, mergeCredit: 0, earned: 2 });
+assert.deepEqual(spendMove(10, 0, 4),
+  { movesLeft: 11, mergeCredit: 0, earned: 2 },
+  "multiple earned moves in a single swipe are all credited");
+assert.deepEqual(spendMove(1, 1, 1),
+  { movesLeft: 1, mergeCredit: 0, earned: 1 },
+  "reward on the last available slide prevents premature game over");
+assert.deepEqual(spendMove(1, 0, 0),
+  { movesLeft: 0, mergeCredit: 0, earned: 0 },
+  "running out of moves is a terminal loss");
+assert.deepEqual(spendMove(0, 1, 2),
+  { movesLeft: 0, mergeCredit: 1, earned: 0 },
+  "cannot start a new swipe or resurrect from an exhausted budget");
+for (const badArgs of [[-1, 0, 0], [1, -1, 0], [1, 2, 0],
+  [1, 0, -1], [1.5, 0, 1], [1, 0, 1.5]]) {
+  assert.throws(() => spendMove(...badArgs), RangeError);
+}
+
+// A user can still have legal sliding and/or banking actions and lose
+// immediately if the move budget reaches zero.
+const bankableBoard = put([0, 3, 2], [1, 3, 2]);
+assert.equal(gameEnded(bankableBoard, new Set(), new Set(), 0), true);
+assert.equal(gameEnded(bankableBoard, new Set(), new Set(), 1), false);
+assert.equal(gameEnded(full, new Set(["2-2", "3-2", "5-2"]),
+  new Set(), 10), true, "old gridlock loss condition still works");
+
+// Integration-level budget checks use actual merge totals from the
+// sliding engine, not powers discovered or tiles shifted.
+const twoMerges = put([0, 2], [1, 2], [2, 3], [3, 3]);
+const slideWithTwo = slide(twoMerges, "left");
+assert.equal(slideWithTwo.changed, true);
+assert.equal(slideWithTwo.merges.length, 2);
+assert.deepEqual(spendMove(1, 0, slideWithTwo.merges.length),
+  { movesLeft: 1, mergeCredit: 0, earned: 1 });
+const ordinarySlide = slide(put([1, 2]), "left");
+assert.equal(ordinarySlide.changed, true);
+assert.equal(ordinarySlide.merges.length, 0);
+assert.deepEqual(spendMove(10, 0, ordinarySlide.merges.length),
+  { movesLeft: 9, mergeCredit: 0, earned: 0 });
+assert.equal(slide(put([0, 2]), "up").changed, false,
+  "an unchanged swipe should be discarded before budget processing");
+
+// Saved game fields can be represented as ordinary integer values.
+const persisted = JSON.parse(JSON.stringify({
+  moves: 31, movesLeft: 4, mergeCredit: 1
+}));
+assert.deepEqual(spendMove(persisted.movesLeft, persisted.mergeCredit, 1),
+  { movesLeft: 4, mergeCredit: 0, earned: 1 });
+assert.equal(persisted.moves, 31, "slide milestones are separate from the budget");
 
 console.log("All Index Shuffle engine tests passed.");
