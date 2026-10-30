@@ -4,7 +4,7 @@ import {
 } from "./engine.mjs?v=roguelite-pass2-v1";
 
 export const ROUND_TARGETS = Object.freeze([
-  4, 6, 8, 9, 11, 15, 17, 20, 25, 27, 33, 40
+  8, 11, 14, 17, 20, 24, 28, 33, 39, 45, 52, 60
 ]);
 export const TOTAL_ROUNDS = ROUND_TARGETS.length;
 export const GOLD_SPAWN_CHANCE = 0.12;
