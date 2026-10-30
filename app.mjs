@@ -17,7 +17,7 @@ import {
 } from "./shop-ui.mjs?v=hazard-pass4-v1";
 import {
   restoreEffectState, bankItemBonuses, goldChancesForRun,
-  costOfNextSlide, canActivateConsumable, CONSUMABLE_TARGETS,
+  hazardItemProtection, costOfNextSlide, canActivateConsumable, CONSUMABLE_TARGETS,
   consumableTargets, useConsumable
 } from "./effects.mjs?v=hazard-pass4-v1";
 import { ITEM_BY_ID } from "./shop.mjs?v=hazard-pass4-v1";
@@ -117,7 +117,8 @@ let screen = "title";
 
 function currentMovementRules() {
   return mode === "roguelite"
-    ? { ...(bossMovementRules(state.run) || {}), hazards: state.hazards }
+    ? { ...(bossMovementRules(state.run) || {}), hazards: state.hazards,
+      greedyLandingOnly: hazardItemProtection(state.run).greedyLandingOnly }
     : null;
 }
 function currentGameEnded() {
@@ -130,7 +131,7 @@ function currentGameEnded() {
   return !(state.run.inventory?.consumables?.some(entry =>
     entry?.id === "hazard-eraser") && canRescueHazardLock(
       state.board, state.hazards, banked, locked,
-      bossMovementRules(state.run)));
+      currentMovementRules()));
 }
 
 function persist() {
@@ -302,10 +303,18 @@ function render() {
       ? name + ": select a second number tile to swap."
       : name + ": select a highlighted tile.";
   }
+  const hazardItemNames = rogue && state.run.round >= 4
+    ? state.run.inventory.permanents.filter(entry =>
+      entry && ITEM_BY_ID[entry.id]?.hazardCounter).map(entry =>
+      ITEM_BY_ID[entry.id].name)
+    : [];
   $("rogueEffectStatus").hidden = !rogue ||
-    (state.run.protectionSlides === 0 && state.run.blockerDelay === 0);
+    (state.run.protectionSlides === 0 && state.run.blockerDelay === 0 &&
+      hazardItemNames.length === 0);
   if (rogue) {
     const effects = [];
+    if (hazardItemNames.length) effects.push(
+      "Hazard defence: " + hazardItemNames.join(" + "));
     if (state.run.protectionSlides > 0) effects.push(
       "Protection: " + state.run.protectionSlides + " slides");
     if (state.run.blockerDelay > 0) effects.push(
@@ -580,7 +589,8 @@ function move(direction) {
   let result = slide(before, direction, currentMovementRules());
   if (!result.changed) return;
   if (mode === "roguelite") {
-    result = resolveSlideHazards(result, state.hazards);
+    result = resolveSlideHazards(result, state.hazards,
+      hazardItemProtection(state.run));
     state.hazards = result.hazards;
   }
   recentAchievementIds = [];
@@ -639,7 +649,8 @@ function move(direction) {
       { rng: Math.random, boss: isBossRound(state.run.round),
         banked: new Set(state.banked), locked: new Set(),
         movesLeft: state.movesLeft,
-        movementRules: bossMovementRules(state.run) })
+        movementRules: currentMovementRules(),
+        protection: hazardItemProtection(state.run) })
     : null;
   if (hazardStep) {
     state.hazards = hazardStep.hazards;
@@ -672,8 +683,15 @@ function move(direction) {
     }
     for (const event of hazardStep.events) {
       const name = HAZARD_DEFINITIONS[event.type].name;
-      if (event.kind === "warning") news.unshift(
-        "Watch out! " + name + " will appear on the marked square next slide.");
+      if (event.kind === "warning") {
+        news.unshift("Watch out! " + name +
+          " will appear on the marked square next slide.");
+        if (event.downgradedFrom) {
+          news.unshift("Hazard Tamer softened incoming " +
+            HAZARD_DEFINITIONS[event.downgradedFrom].name +
+            " into " + name + "!");
+        }
+      }
       if (event.kind === "appeared") news.unshift(
         name + " hazard appeared on the warned square!");
       if (event.kind === "dispelled") news.push(
