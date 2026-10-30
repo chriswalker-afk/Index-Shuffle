@@ -105,12 +105,14 @@ function offerCard(type, itemId, slotIndex, state, dispatch) {
   const kind = itemArtKind(item);
   card.classList.add("shop-offer-card--" + kind);
   if (item.hazardCounter) card.classList.add("hazard-counter-offer");
+  if (item.rare) card.classList.add("runestone-offer");
 
   const top = element("div", "shop-offer-feature");
   top.append(itemArtwork(itemId, kind));
   const info = element("div", "shop-offer-info");
   info.append(element("div", "shop-offer-type",
-    item.hazardCounter ? "Permanent · Hazard defence" : labelFor(type)));
+    item.hazardCounter ? "Permanent · Hazard defence"
+      : item.rare ? "Single use · Rare Runestone" : labelFor(type)));
   info.append(element("strong", "shop-item-name", item.name));
   const priceLabel = element("p", "shop-price");
   priceLabel.append(element("span", "shop-price-coin", "●"),
