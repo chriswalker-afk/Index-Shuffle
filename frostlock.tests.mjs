@@ -113,7 +113,7 @@ assert.match(app,/bossSceneFor\(boss\.id\)/);
 assert.match(html,/id="frostlockStatus"/);
 assert.match(html,/id="frostlockDirection"/);
 assert.match(html,/styles\.css\?v=frostlock-v1/);
-assert.match(html,/app\.mjs\?v=frostlock-v1/);
+assert.match(html,/app\.mjs\?v=bank-timer-v1/);
 assert.match(css,/\.controls button\.frostlock-frozen/);
 assert.match(css,/\.frostlock-status/);
 assert.match(css,/data-boss="frostlock"/);

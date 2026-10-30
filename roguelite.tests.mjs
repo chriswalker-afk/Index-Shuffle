@@ -6,7 +6,8 @@ import {
   scoreForRoguelitePower, newRogueliteRun, recordRogueliteBank,
   advanceRogueliteRound, validRogueliteRun, markGoldSpawns, goldTier,
   goldForBank, spareMoveGold, restoreRogueliteRun, MAX_SPARE_MOVE_COINS,
-  GOLD_SPAWN_CHANCE, GOLD_PITY_SLIDES
+  GOLD_SPAWN_CHANCE, GOLD_PITY_SLIDES, bankSecondsForRound,
+  INITIAL_BANK_SECONDS, BANK_SECONDS_PER_BOSS, MIN_BANK_SECONDS
 } from "./roguelite.mjs";
 import { enterRogueliteShop } from "./shop.mjs";
 
@@ -21,6 +22,16 @@ assert.deepEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
 assert.equal(stageForRound(7), 3);
 assert.throws(() => targetForRound(0), RangeError);
 assert.throws(() => isBossRound(13), RangeError);
+
+// Only clearing a boss reduces the next round's bank-answer countdown.
+assert.equal(INITIAL_BANK_SECONDS, 60);
+assert.equal(BANK_SECONDS_PER_BOSS, 10);
+assert.equal(MIN_BANK_SECONDS, 20);
+assert.deepEqual(Array.from({ length: TOTAL_ROUNDS }, (_, index) =>
+  bankSecondsForRound(index + 1)),
+  [60, 60, 60, 50, 50, 50, 40, 40, 40, 30, 30, 30]);
+assert.throws(() => bankSecondsForRound(0), RangeError);
+assert.throws(() => bankSecondsForRound(13), RangeError);
 
 // Correctly banked score is the exponent, not the value or Classic score.
 for (const base of [2, 3, 5, 7, 11, 13]) {
@@ -43,6 +54,8 @@ assert.equal(state.board.filter(Boolean).length, 3);
 assert.equal(validRogueliteRun(state.run), true);
 assert.equal(validRogueliteRun({ ...state.run, round: 13 }), false);
 assert.equal(validRogueliteRun({ ...state.run, phase: "victory" }), false);
+assert.equal(bankSecondsForRound(restoreRogueliteRun({ ...state.run,
+  round: 7 }).round), 40, "Resumed runs use their already-defeated bosses");
 
 // Round one now takes four ordinary exponent-2 banks, not two. Coins
 // from remaining moves are awarded once when the final bank clears target.
@@ -132,6 +145,12 @@ assert.match(html, /id="modeRoguelite"/);
 assert.match(html, /id="rogueProgress"[^>]*hidden/);
 assert.match(html, /id="roundClearPanel"[^>]*hidden/);
 assert.match(html, /id="roundScoreProgress"/);
+assert.match(html, /id="helpBankSeconds"/);
+assert.match(html, /id="mathsBankSeconds"/);
+assert.match(app, /remainingMs = bankLimit \* 1000/);
+assert.match(app, /remainingMs \/ \(currentBankSeconds\(\) \* 1000\)/);
+assert.match(app, /"You have " \+ bankLimit \+ " seconds\. "/);
+assert.match(app, /bankSecondsForRound\(state\.run\.round \+ 1\)/);
 
 /* Pass 2: gold mechanics */
 assert.equal(GOLD_SPAWN_CHANCE, 0.12);

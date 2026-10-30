@@ -7,8 +7,9 @@ import {
 } from "./engine.mjs?v=hazard-counter-v1";
 import { newRogueliteRun, targetForRound, stageForRound, isBossRound,
   recordRogueliteBank, advanceRogueliteRound, validRogueliteRun,
-  restoreRogueliteRun, markGoldSpawns, goldTier, goldForBank
-} from "./roguelite.mjs?v=frostlock-v1";
+  restoreRogueliteRun, markGoldSpawns, goldTier, goldForBank,
+  bankSecondsForRound, INITIAL_BANK_SECONDS
+} from "./roguelite.mjs?v=bank-timer-v1";
 import {
   restoreShopState, enterRogueliteShop, rerollRogueliteShop
 } from "./shop.mjs?v=frostlock-v1";
@@ -51,7 +52,6 @@ import {
 
 const $ = id => document.getElementById(id);
 const glyph = n => String(n).replace(/\d/g, d => "⁰¹²³⁴⁵⁶⁷⁸⁹"[+d]);
-const BANK_SECONDS = 60;
 const SLIDE_MS = 170;
 // Honour user preferences and avoid motion while backgrounded or in data-saving mode.
 const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -114,7 +114,7 @@ if (!state || !Array.isArray(state.board) || state.board.length !== 16) {
 }
 let pending = null;
 let bankTimer = null;
-let remainingMs = BANK_SECONDS * 1000;
+let remainingMs = INITIAL_BANK_SECONDS * 1000;
 let deadline = 0;
 let animating = false;
 let animationToken = 0;
@@ -142,6 +142,12 @@ function rollFrostlockAfterAction() {
   state.run.frozenDirection = nextFrozenDirection(
     state.board, state.run, Math.random, currentMovementRules());
   return state.run.frozenDirection;
+}
+
+// The current round captures all previously defeated bosses; Classic stays at 60s.
+function currentBankSeconds() {
+  return mode === "roguelite"
+    ? bankSecondsForRound(state.run.round) : INITIAL_BANK_SECONDS;
 }
 
 function currentMovementRules() {
@@ -204,6 +210,9 @@ function tileContent(t, badge = "") {
 function render() {
   renderNavigation(screen, saved("classic"), saved("roguelite"),
     mode, achievementProfile, resumeSavedGame);
+  // Optional maths and game guides always reflect the selected saved run.
+  $("helpBankSeconds").textContent = currentBankSeconds();
+  $("mathsBankSeconds").textContent = currentBankSeconds();
   if (screen !== "game") {
     $("helpRogueBlock").hidden = false;
     return;
@@ -330,6 +339,9 @@ function render() {
       $("bossVictoryPortrait").alt = victoryArt.alt;
       $("bossVictoryName").textContent = boss.name;
       $("bossVictoryLine").textContent = bossSceneFor(boss.id)?.defeated ?? "";
+      $("bossVictoryTimer").textContent = "Next stage: " +
+        bankSecondsForRound(state.run.round + 1) +
+        " seconds per answer (10 seconds less).";
     }
     $("rogueEndSummary").textContent = "All 12 rounds cleared! " +
       state.run.totalScore + " points scored and " + state.run.coins +
@@ -846,7 +858,7 @@ function updateClock() {
   const seconds = Math.ceil(remainingMs / 1000);
   $("timeLeft").textContent = Math.floor(seconds / 60) + ":"
     + String(seconds % 60).padStart(2, "0");
-  $("timeProgress").style.width = (remainingMs / (BANK_SECONDS * 1000) * 100) + "%";
+  $("timeProgress").style.width = (remainingMs / (currentBankSeconds() * 1000) * 100) + "%";
   $("clock").classList.toggle("running-low", remainingMs <= 15000);
 }
 function pauseClock() {
@@ -896,7 +908,8 @@ function openBank(i) {
   if (!isBankable(t, new Set(state.banked), i, new Set(state.locked),
       mode === "roguelite" ? state.hazards : null)) return;
   pending = { i, t };
-  remainingMs = BANK_SECONDS * 1000;
+  const bankLimit = currentBankSeconds();
+  remainingMs = bankLimit * 1000;
   // Use the same mathematical exponent markup as board tiles, not a
   // Unicode superscript approximation. Announce the full phrase in speech.
   const heading = $("promptTitle");
@@ -921,7 +934,7 @@ function openBank(i) {
     (bankGold + (bonuses?.extraCoins ?? 0)) +
     " " + (bankGold + (bonuses?.extraCoins ?? 0) === 1 ? "coin" : "coins") +
     (bankGold === 1 ? ". Merge it first to earn a bigger reward." : ".");
-  $("promptHelp").textContent = (canStrike
+  $("promptHelp").textContent = "You have " + bankLimit + " seconds. " + (canStrike
     ? "Correct answer: bank this power and damage the nearby blocker."
     : "Calculate its exact value to bank this power.") + goldHelp +
     (bonuses ? " Correct bank scores " + previewScore + " points." +

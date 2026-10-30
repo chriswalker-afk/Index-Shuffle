@@ -2097,6 +2097,9 @@ details[open] > summary .chevron { transform: rotate(180deg); }
 .boss-victory-copy p {
   margin: 0; font-size: 12px; color: #d8e3e7; line-height: 1.55;
 }
+.boss-victory-copy .boss-victory-timer {
+  margin-top: 7px; color: #fff1b2; font-weight: 850;
+}
 .round-clear-panel:has(.boss-victory-banner:not([hidden])) {
   border-top-color: #f0b991a8;
 }
