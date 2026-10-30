@@ -14,8 +14,9 @@ import {
 } from "./shop.mjs?v=hazard-counter-v1";
 import {
   renderRogueliteInventory, renderRogueliteShop
-} from "./shop-ui.mjs?v=hazard-counter-v1-art-pass2";
-import { bossPortraitFor } from "./art-catalog.mjs?v=hazard-counter-v1-art-pass1";
+} from "./shop-ui.mjs?v=hazard-counter-v1-art-pass3";
+import { bossPortraitFor } from "./art-catalog.mjs?v=hazard-counter-v1-art-pass3";
+import { bossSceneFor } from "./boss-scenes.mjs?v=hazard-counter-v1-art-pass3";
 import {
   restoreEffectState, bankItemBonuses, goldChancesForRun,
   hazardItemProtection, costOfNextSlide, canActivateConsumable, CONSUMABLE_TARGETS,
@@ -34,9 +35,9 @@ import {
 } from "./milestones.mjs?v=hazard-counter-v1";
 import {
   openAchievementGallery, renderFinalScreen
-} from "./results-ui.mjs?v=hazard-counter-v1";
+} from "./results-ui.mjs?v=hazard-counter-v1-art-pass3";
 import { MODE_LABELS, resumableSave } from "./navigation.mjs?v=hazard-counter-v1";
-import { renderNavigation } from "./title-ui.mjs?v=hazard-counter-v1";
+import { renderNavigation } from "./title-ui.mjs?v=hazard-counter-v1-art-pass3";
 import {
   restoreHazardLayer, hazardAt, activeHazardCount, MAX_ACTIVE_HAZARDS,
   restoreHazardPressure, progressHazardRound, resolveSlideHazards,
@@ -242,6 +243,7 @@ function render() {
       " · Round " + state.run.round + "/12" + (isBossRound(state.run.round) ? " · BOSS" : "");
     const boss = bossForRound(state.run);
     $("bossRule").hidden = !boss;
+    $("bossRule").dataset.boss = boss?.id ?? "";
     $("bossName").textContent = boss ? boss.name : "";
     $("bossText").textContent = boss ? boss.summary : "";
     const portrait = boss ? bossPortraitFor(boss.id) : null;
@@ -269,9 +271,22 @@ function render() {
     $("roundBankCoins").textContent = "+" + (reward?.bankCoins ?? 0);
     $("roundSpareCoins").textContent = "+" + (reward?.moveCoins ?? 0);
     $("roundRewardTotal").textContent = "+" + (reward?.totalCoins ?? 0);
+    const bossCleared = state.run.phase === "round-clear" && boss;
+    $("bossVictoryBanner").hidden = !bossCleared;
+    $("bossVictoryBanner").dataset.boss = boss?.id ?? "";
+    $("roundClearHeading").textContent = bossCleared ? "Challenge cleared!" : "Round complete!";
+    if (bossCleared) {
+      const victoryArt = bossPortraitFor(boss.id);
+      $("bossVictoryPortrait").src = victoryArt.src;
+      $("bossVictoryPortrait").alt = victoryArt.alt;
+      $("bossVictoryName").textContent = boss.name;
+      $("bossVictoryLine").textContent = bossSceneFor(boss.id)?.defeated ?? "";
+    }
     $("rogueEndSummary").textContent = "All 12 rounds cleared! " +
       state.run.totalScore + " points scored and " + state.run.coins +
       " coins remaining. Final-round gold: +" + (reward?.totalCoins ?? 0) + ".";
+  } else {
+    $("bossVictoryBanner").hidden = true;
   }
   const banked = new Set(state.banked);
   const locked = new Set(state.locked);
@@ -935,7 +950,7 @@ function closeNavigationDialogs() {
   closeBank();
   pendingItem = null;
   recentAchievementIds = [];
-  for (const id of ["shopDialog", "resultsDialog", "achievementsDialog"]) {
+  for (const id of ["shopDialog", "resultsDialog", "achievementsDialog", "bossIntroDialog"]) {
     if ($(id).open) $(id).close();
   }
 }
@@ -1129,12 +1144,45 @@ $("shopReroll").addEventListener("click", () => {
   applyShopAction(value => rerollRogueliteShop(value));
 });
 $("shopReturnTitle").addEventListener("click", returnToTitle);
+// The encounter is a presentation-only, immediately skippable modal. It
+// appears only after actively starting a new boss round from the shop, not
+// when reloading or continuing a round already in progress. No save flags,
+// timers or extra moves are introduced by this overlay.
+function showBossIntro(boss) {
+  if (screen !== "game" || mode !== "roguelite" ||
+      state.run.phase !== "playing" || !boss) return;
+  const dialog = $("bossIntroDialog");
+  const art = bossPortraitFor(boss.id);
+  dialog.dataset.boss = boss.id;
+  $("bossIntroPortrait").src = art.src;
+  $("bossIntroPortrait").alt = art.alt;
+  $("bossIntroRound").textContent = "STAGE " + stageForRound(state.run.round) +
+    " · ROUND " + state.run.round + " OF 12";
+  $("bossIntroName").textContent = boss.name;
+  $("bossIntroQuote").textContent = bossSceneFor(boss.id)?.entrance ?? "";
+  $("bossIntroRule").textContent = boss.detail;
+  $("bossIntroTarget").textContent = "Round target: " +
+    bossTargetFor(state.run, targetForRound(state.run.round)) + " points";
+  if (!dialog.open) dialog.showModal();
+}
+function dismissBossIntro() {
+  if ($("bossIntroDialog").open) $("bossIntroDialog").close();
+  $("headerTitle").focus();
+}
+$("bossIntroSkip").addEventListener("click", dismissBossIntro);
+$("bossIntroStart").addEventListener("click", dismissBossIntro);
+$("bossIntroDialog").addEventListener("cancel", event => {
+  event.preventDefault();
+  dismissBossIntro();
+});
 $("shopContinue").addEventListener("click", () => {
   if (mode !== "roguelite" || state.run.phase !== "shop") return;
   stopMotion();
   state = advanceRogueliteRound(state, Math.random, goldChancesForRun(state.run));
   recentAchievementIds = [];
   render();
+  const boss = bossForRound(state.run);
+  if (boss) showBossIntro(boss);
 });
 // Escape cannot dismiss the modal while the game is in its saved shop phase.
 // The Start round button is always available, even if there are no coins.
@@ -1163,7 +1211,7 @@ const keys = {
 document.addEventListener("keydown", event => {
   if (event.key === "Escape" && pending !== null) { closeBank(); return; }
   // Let arrow keys scroll the modal shop instead of swallowing them as slides.
-  if (screen !== "game" || $("shopDialog").open ||
+  if (screen !== "game" || $("shopDialog").open || $("bossIntroDialog").open ||
       $("achievementsDialog").open || $("resultsDialog").open) return;
   if (pendingItem !== null) {
     if (event.key === "Escape") { event.preventDefault(); cancelConsumable(); }
