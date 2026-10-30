@@ -368,7 +368,7 @@ assert.match(style, /grid-template-areas: "hud" "board" "secondary"/);
 assert.match(uiSource, /\$\("helpDialog"\)\.showModal\(\)/);
 assert.match(uiSource, /\$\("helpDialog"\)\.open \|\| pending !== null/,
   "swipe/keyboard shortcuts must be disabled while learning help is open");
-assert.match(uiSource, /\$\("bonusMeter"\)\.value = state\.mergeCredit/);
+assert.match(uiSource, /\$\("bonusMeter"\)\.value = noBonusMoves \? 0 : state\.mergeCredit/);
 assert.match(uiSource, /\$\("endActions"\)\.hidden = !state\.over/);
 // No uncollapsed instructions or detailed learning panels remain
 // alongside the game board on initial load.
