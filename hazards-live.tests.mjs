@@ -19,7 +19,7 @@ import {
   consumableTargets, canActivateConsumable, useConsumable,
   CONSUMABLE_TARGETS
 } from "./effects.mjs";
-import { bossMovementRules } from "./bosses.mjs";
+import { bossMovementRules, applyThreeCurse } from "./bosses.mjs";
 
 const blank = () => Array(16).fill(null);
 const grid = (...entries) => {
@@ -84,6 +84,18 @@ result = slide(b, "left", rules(hazards));
 assert.equal(result.changed, false);
 assert.equal(resolveSlideHazards(result, hazards).hazards[0].type, "void",
   "A stationary tile must not prematurely consume Void");
+
+// Boss interaction: Void may turn a just-merged base-3 power into
+// an unbankable exponent-1 tile; The Three Curse must not turn it into
+// an unavoidable blocker three slides later.
+const bossRun = newRogueliteRun(0, seeded).run;
+bossRun.round = 9;
+bossRun.bosses[9] = "three-curse";
+const voidReduced = grid([0, tile(3)]);
+const safeCurse = applyThreeCurse(voidReduced, [0], bossRun,
+  new Set(), emptyHazardLayer());
+assert.equal(safeCurse.board[0].curseLeft, undefined,
+  "Void-reduced base-3 exponent-1 tiles must remain uncursed");
 
 // Greedy strips gold for each tile that crosses or lands on its square.
 // It resolves BEFORE the gold of two merging inputs is combined.
