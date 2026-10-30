@@ -18,6 +18,7 @@ jobs:
           node shop.tests.mjs
           node effects.tests.mjs
           node bosses.tests.mjs
+          node gold-banking.tests.mjs
       - name: Check JavaScript syntax
         run: |
           node --check engine.mjs
@@ -33,6 +34,7 @@ jobs:
           node --check effects.tests.mjs
           node --check bosses.mjs
           node --check bosses.tests.mjs
+          node --check gold-banking.tests.mjs
       - name: Verify Pages static files
         run: |
           test -f .nojekyll

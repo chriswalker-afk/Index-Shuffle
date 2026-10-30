@@ -1,11 +1,11 @@
 // Roguelite progression and economy. Classic keeps its original scoring and rules.
 import {
   initial, INITIAL_MOVES_LEFT, MAX_MOVES_LEFT, BUDGET_RULES_VERSION
-} from "./engine.mjs?v=roguelite-pass5-v1";
+} from "./engine.mjs?v=gold-banking-v2";
 import {
   createBossSchedule, restoreBossSchedule, bossPointsFor,
   bossTargetFor, startBossBoard
-} from "./bosses.mjs?v=roguelite-pass5-v1";
+} from "./bosses.mjs?v=gold-banking-v2";
 
 export const ROUND_TARGETS = Object.freeze([
   8, 11, 14, 17, 20, 24, 28, 33, 39, 45, 52, 60
@@ -86,13 +86,14 @@ function startingBoard(rng, progress = 0, rates = null) {
   return markGoldSpawns(board, indices, 0, rng, false, rates).board;
 }
 
-// A golden tile must first participate in a REAL merge, then be banked
-// correctly. Gold status alone or a spawned higher power does not pay coins.
-// Banking removes the gold from the replacement tile.
+// Any golden number can be correctly banked for a small coin reward.
+// Banking a genuinely merged golden power pays more, rewarding the risk of
+// keeping it on the board. Replacement tiles lose gold and cannot be farmed.
 export function goldForBank(power, merged) {
   if (typeof merged !== "boolean") throw new RangeError("Invalid merge status");
   const gold = goldTier(power);
-  if (!gold || !merged) return 0;
+  if (!gold) return 0;
+  if (!merged) return 1;
   if (gold === 2) return 4;
   return power.exp >= 4 ? 3 : 2;
 }
@@ -105,10 +106,11 @@ export function spareMoveGold(movesLeft) {
   return Math.min(movesLeft, MAX_SPARE_MOVE_COINS);
 }
 
-// Each correct bank awards its exponent, irrespective of base or gold.
-// Future items and boss conditions will modify this calculation here.
+// Each correct bank awards its exponent irrespective of base. Ordinary
+// banking still requires exp >= 2, but golden exp-1 cards are now bankable.
 export function scoreForRoguelitePower(power) {
-  if (!power || !Number.isSafeInteger(power.exp) || power.exp < 2 ||
+  if (!power || !Number.isSafeInteger(power.exp) ||
+      (power.exp < 2 && !(power.exp === 1 && goldTier(power) > 0)) ||
       !Number.isSafeInteger(power.base) || power.base < 2) {
     throw new RangeError("Roguelite scoring requires a bankable power");
   }

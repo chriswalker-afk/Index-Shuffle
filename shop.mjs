@@ -1,6 +1,6 @@
 // Roguelite shop and two-slot inventory system. Gameplay effects are applied in effects.mjs.
 // Pure reducers make purchases, resale, replacement and rerolls testable.
-import { validRogueliteRun } from "./roguelite.mjs?v=roguelite-pass4-v1";
+import { validRogueliteRun } from "./roguelite.mjs?v=gold-banking-v2";
 
 export const INVENTORY_SLOTS = 2;
 export const SHOP_OFFERS_PER_TYPE = 2;
@@ -17,7 +17,7 @@ export const ITEM_CATALOG = Object.freeze([
   { id: "square-specialist", name: "Square Specialist", type: "permanents", price: 4, description: "Banking squares earns 1 bonus point." },
   { id: "five-alive", name: "Five Alive", type: "permanents", price: 4, description: "Base-5 powers score double points." },
   { id: "variety-bonus", name: "Variety Bonus", type: "permanents", price: 6, description: "Bank a different base from last time for 2 extra points." },
-  { id: "golden-calculator", name: "Golden Calculator", type: "permanents", price: 7, description: "Each correctly banked merged golden power earns an extra coin." },
+  { id: "golden-calculator", name: "Golden Calculator", type: "permanents", price: 7, description: "Every correctly banked golden tile earns an extra coin, including exponent 1." },
   { id: "blockbuster", name: "Blockbuster", type: "permanents", price: 6, description: "Correctly banked merged powers deal an extra hit to adjacent blockers." },
   { id: "lucky-spawn", name: "Lucky Spawn", type: "permanents", price: 8, description: "New tiles have a higher chance of being golden." },
   { id: "bulk-discount", name: "Bulk Discount", type: "permanents", price: 7, description: "All future shop items cost one coin less (minimum one)." },

@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#0c1428">
   <meta name="description" content="Slide and merge powers, solve banking challenges and stay in the game.">
   <title>Index Shuffle — Make every move count</title>
-  <link rel="stylesheet" href="styles.css?v=roguelite-pass5-v1">
+  <link rel="stylesheet" href="styles.css?v=gold-banking-v2">
 </head>
 <body>
   <main class="shell">
@@ -185,9 +185,11 @@
       <div class="help-block">
         <h3>2. Bank a power</h3>
         <p>Select a glowing <b>✦</b> tile and calculate its exact value in 60 seconds.
-           Each distinct power can be banked only once. Banking earns points and
-           leaves a smaller power behind. A wrong answer or timeout locks that
-           tile until another successful slide.</p>
+           Ordinary powers can be banked once per base–exponent combination.
+           In Roguelite, golden tiles can also be banked immediately, even at
+           exponent 1 or when that power was banked earlier. Banking earns points
+           and leaves a non-golden smaller tile behind. A wrong answer or timeout
+           locks that tile until another successful slide.</p>
       </div>
       <div class="help-block">
         <h3>3. Protect your moves</h3>
@@ -208,10 +210,13 @@
         <p>Each correctly banked power scores points equal to its exponent:
           7² scores 2 points. Reach your round target before running out of moves.
           Clear twelve rounds to win the run.</p>
-        <p>Golden tiles appear occasionally. Merge a golden tile into a
-          bankable power, then answer correctly to earn coins. Gold survives
-          slides and merges; combining two gold tiles gives a larger coin reward.
-          A golden power banked without a genuine merge earns points, but no coins.</p>
+        <p>Golden tiles have a full metallic appearance and a <b>◉</b> coin mark.
+          You can bank any golden tile by calculating its value correctly:
+          <b>3¹ = 3</b> is a valid bank and earns <b>1 coin</b>.
+          Or merge it first for a bigger payout: 2 coins for most merged golden
+          powers, 3 for exponent 4 or higher, or 4 for double gold.
+          Gold survives slides and merges; banking consumes the gold.
+          A new golden copy can be banked even if you already banked that power.</p>
         <p>When you clear a round you also earn 1 coin per unused move
           (up to 5 bonus coins). Your coins carry forward to a shop after each
           cleared round. The shop has two single-use offers and two permanent
@@ -226,7 +231,7 @@
         <span><b>✦</b> Bankable</span><span><b>⚡</b> Damages blocker if banked</span>
         <span><b>⌛</b> Banking cooldown</span><span><b>!</b> Incoming blocker</span>
         <span><b>▦</b> Fixed blocker</span>
-        <span><b>●</b> Golden tile (Roguelite)</span>
+        <span><b>◉</b> Golden tile: bank directly or merge for more coins</span>
       </div>
     </section>
 
@@ -243,7 +248,8 @@
         <p>The exponent tells you how many copies of the base to multiply.</p>
         <div class="math-example">3⁴ = 3 × 3 × 3 × 3 = 81</div>
         <p>Banking asks for the <strong>number value</strong>, not another
-           power expression. You have 60 seconds for each answer.</p>
+           power expression. A golden 3¹ is simply 3. You have 60 seconds
+           for each answer.</p>
       </div>
       <div class="help-block">
         <h3>Watch out for this mistake</h3>
@@ -316,11 +322,12 @@
       <details class="bank-hint">
         <summary>Need a maths reminder?</summary>
         <p>For a power such as 3⁴, multiply the base four times:
-           3 × 3 × 3 × 3. Only the exact final value can be banked.</p>
+           3 × 3 × 3 × 3. For a golden 3¹, enter 3.
+           Only the exact final value can be banked.</p>
       </details>
       <button type="button" id="cancel" class="textbtn">Keep this tile</button>
     </div>
   </div>
-  <script type="module" src="app.mjs?v=roguelite-pass5-v1"></script>
+  <script type="module" src="app.mjs?v=gold-banking-v2"></script>
 </body>
 </html>

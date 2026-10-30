@@ -3,10 +3,10 @@
 import {
   tile, key, isObstacle, isBlocker, blockerStrength, canMove,
   MAX_MOVES_LEFT
-} from "./engine.mjs?v=roguelite-pass5-v1";
-import { goldTier } from "./roguelite.mjs?v=roguelite-pass5-v1";
-import { ITEM_BY_ID } from "./shop.mjs?v=roguelite-pass5-v1";
-import { bossId, bossMovementRules } from "./bosses.mjs?v=roguelite-pass5-v1";
+} from "./engine.mjs?v=gold-banking-v2";
+import { goldTier } from "./roguelite.mjs?v=gold-banking-v2";
+import { ITEM_BY_ID } from "./shop.mjs?v=gold-banking-v2";
+import { bossId, bossMovementRules } from "./bosses.mjs?v=gold-banking-v2";
 
 const whole = n => Number.isSafeInteger(n) && n >= 0;
 const numericTile = t => Boolean(t && !isObstacle(t) &&
@@ -36,7 +36,9 @@ export function restoreEffectState(run) {
 // Multipliers combine with each other, then additive bonuses apply.
 // Example: Opening Act + Twin Twos on a first bank of 2^3 = 3 * 2 * 2 = 12.
 export function bankItemBonuses(run, power, merged = false) {
-  if (!numericTile(power) || power.exp < 2 || typeof merged !== "boolean") {
+  if (!numericTile(power) ||
+      (power.exp < 2 && !(power.exp === 1 && goldTier(power) > 0)) ||
+      typeof merged !== "boolean") {
     throw new RangeError("Bank bonuses require a bankable power");
   }
   const current = restoreEffectState(run);
@@ -60,7 +62,7 @@ export function bankItemBonuses(run, power, merged = false) {
       current.lastBankBase !== power.base) {
     additive += 2; notes.push("Variety Bonus +2");
   }
-  const extraCoins = owned.has("golden-calculator") && merged &&
+  const extraCoins = owned.has("golden-calculator") &&
     goldTier(power) > 0 ? 1 : 0;
   if (extraCoins) notes.push("Golden Calculator +1 coin");
   const delay = owned.has("threes-company") && merged && power.base === 3 ? 1 : 0;
@@ -212,7 +214,7 @@ export function useConsumable(state, slot, selections = []) {
       // Gold applied after a merge cannot claim gold from that earlier merge.
       // The tile must merge again before its golden bank can pay out.
       ready = ready.filter(i => i !== index);
-      notice = "Gold Touch gilded a number tile. Merge it again, then bank for coins.";
+      notice = "Gold Touch gilded a tile. Bank it for 1 coin, or merge it first for a bigger reward.";
       break;
     case "position-swap": {
       const other = selections[1];

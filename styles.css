@@ -163,7 +163,8 @@ button { -webkit-tap-highlight-color: transparent; }
 .tile { color: #172b3b; border: 0; }
 .tile sup, .tile-ghost sup { font-size: .54em; vertical-align: super; }
 .base2 { background: #78dfdf; }
-.base3 { background: #ffce80; }
+/* Coral red replaces the old amber base-3 colour, which looked like gold. */
+.base3 { background: #ea876d; }
 .base5 { background: #c8a3f9; }
 .base7 { background: #a9e3b2; }
 .base11 { background: #f7b6bb; }
@@ -613,19 +614,91 @@ details[open] > summary .chevron { transform: rotate(180deg); }
   .mode-picker button { flex: 1; font-size: 12px; padding: 11px 8px; }
 }
 
-/* Pass 2: gold is distinct from a tile's base colour. Keep the bankable
-   lightning/star indicator in the opposite corner for clear scanning. */
-.cell.gold-tile { border: 2px solid #f8cf70; box-shadow: 0 0 0 2px #e7b34142, inset 0 0 0 1px #fff2b5a6; }
-.cell.gold-tile.bankable { box-shadow: 0 0 0 2px #d6aa416b, inset 0 0 0 2px #fff9d8; }
-.cell.gold-tile.block-strike { box-shadow: 0 0 0 2px #d6aa416b, inset 0 0 0 2px #fff0ad, 0 0 16px #ffc76568; }
-.cell.gold-tile.locked { box-shadow: inset 0 0 0 2px #986c4c; }
-.tile-ghost.gold-tile { border: 2px solid #f8cf70; box-shadow: 0 0 0 2px #e7b34142; }
+/* Gold is a tile-wide material, not a yellow dot or a repainted base.
+   The metallic face, inner bevel and high-contrast coin mark make gold easy
+   to distinguish from all six normal base colours, including coral base 3. */
+.cell.gold-tile, .tile-ghost.gold-tile {
+  position: relative;
+  background:
+    linear-gradient(113deg, #fff8de77 0%, transparent 29%, transparent 65%, #74401520 100%),
+    linear-gradient(154deg, #fff5c3 0%, #f8dc85 24%, #e6b74c 49%, #c28b2c 74%, #edc76d 100%);
+  border: 2px solid #ffe49e;
+  color: #392708;
+  text-shadow: 0 1px 0 #fff3c9bb, 0 -1px 1px #8655155b;
+  box-shadow:
+    inset 0 2px 2px #fffce2ae,
+    inset 0 -4px 8px #70400a55,
+    0 2px 0 #a9742c9c,
+    0 5px 13px #e7b44635;
+}
+.cell.gold-tile::before, .tile-ghost.gold-tile::before {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  border-radius: 8px;
+  border: 1px solid #fff4d29c;
+  background: linear-gradient(127deg,
+    #fffce373 0%, #fffce326 29%, transparent 29%, transparent 71%, #804e1120 100%);
+  pointer-events: none;
+}
+.cell.gold-tile > span, .tile-ghost.gold-tile > span {
+  position: relative;
+  z-index: 1;
+}
+.cell.gold-tile.gold-double, .tile-ghost.gold-tile.gold-double {
+  background:
+    linear-gradient(110deg, #fff9e3a3 0%, transparent 42%, #70411521 100%),
+    linear-gradient(150deg, #fff6c8 0%, #ffdd70 35%, #cf9021 70%, #f2c761 100%);
+  border-color: #fff5cf;
+}
+.cell.gold-tile.bankable {
+  cursor: pointer;
+  outline: 2px solid #fff9de;
+  outline-offset: -6px;
+  box-shadow:
+    inset 0 2px 2px #fffee5c0,
+    inset 0 -4px 8px #70400a55,
+    0 0 0 2px #ffd575a1,
+    0 0 17px #ffd66b6b;
+}
+.cell.gold-tile.bankable:hover, .cell.gold-tile.bankable:focus-visible {
+  filter: brightness(1.10);
+}
+.cell.gold-tile.block-strike {
+  box-shadow: inset 0 0 0 2px #ffefc4, 0 0 0 2px #ffc766, 0 0 18px #eeba5a;
+}
+.cell.gold-tile.locked {
+  filter: saturate(.65);
+  outline: none;
+  border-color: #af8253;
+  box-shadow: inset 0 2px 6px #67441888;
+}
+.gold-tile i {
+  color: #5c390c;
+  text-shadow: 0 1px 0 #fff5d9;
+}
 .tile-gold-mark {
-  position: absolute; top: 4px; left: 5px; font-style: normal; font-size: 13px;
-  color: #39260d; background: #f4cd70; border: 1px solid #a37526;
-  padding: 0 4px; border-radius: 999px; min-height: 17px; min-width: 17px;
-  display: inline-grid; place-items: center; line-height: 1.1;
-  font-weight: 900; letter-spacing: -.3px;
+  position: absolute;
+  top: 4px;
+  left: 5px;
+  z-index: 3;
+  min-width: 19px;
+  min-height: 19px;
+  display: inline-grid;
+  place-items: center;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: linear-gradient(145deg, #85500c, #b17820 52%, #70440d);
+  border: 1px solid #ffebb1;
+  box-shadow: inset 0 1px 1px #ffe6a46b, 0 1px 3px #53340c75;
+  color: #fff7dd;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 900;
+  letter-spacing: -.3px;
+  line-height: 1;
+  white-space: nowrap;
+  pointer-events: none;
 }
 .rogue-progress-head { display: flex; justify-content: space-between; gap: 6px; align-items: center; }
 .rogue-progress-head .overline { margin: 0; line-height: 1.45; }
@@ -643,7 +716,8 @@ details[open] > summary .chevron { transform: rotate(180deg); }
   font-size: 13px; font-weight: 800; color: #fff0cc; }
 .round-reward-total strong { font-size: 18px; color: #ffdc92; }
 @media (max-width: 580px) {
-  .tile-gold-mark { font-size: 11px; left: 3px; top: 3px; min-height: 14px; min-width: 14px; }
+  .tile-gold-mark { font-size: 10px; left: 3px; top: 3px; min-height: 16px; min-width: 16px; }
+  .cell.gold-tile::before, .tile-ghost.gold-tile::before { inset: 2px; border-radius: 6px; }
   .coin-count { padding: 5px 7px; }
 }
 

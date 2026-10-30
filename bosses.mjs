@@ -3,7 +3,7 @@
 import {
   blocker, isBlocker, isObstacle, isWarning, canMove,
   MAX_BLOCKERS, adjacentIndices
-} from "./engine.mjs?v=roguelite-pass5-v1";
+} from "./engine.mjs?v=gold-banking-v2";
 
 export const BOSS_ROUNDS = Object.freeze([3, 6, 9, 12]);
 export const BOSS_CATALOG = Object.freeze([
