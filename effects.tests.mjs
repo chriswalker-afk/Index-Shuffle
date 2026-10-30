@@ -142,8 +142,8 @@ const globalLucky = markGoldSpawns(rateBoard, [0, 1], 0, () => 0.20,
   true, goldChancesForRun(setup({ permanents: ["lucky-spawn"] }).run));
 assert.deepEqual(globalLucky.board.map(t => t?.gold), [1, 1, ...Array(14).fill(undefined)]);
 
-// All ten consumables are individually usable under the right conditions.
-assert.equal(Object.keys(CONSUMABLE_TARGETS).length, 10);
+// All eleven consumables are usable under the right conditions.
+assert.equal(Object.keys(CONSUMABLE_TARGETS).length, 11);
 const blockerBoard = grid([0, tile(2)], [5, blocker(0, 1)], [6, warning(2)]);
 let st = setup({ consumables: ["block-breaker"], board: blockerBoard });
 assert.deepEqual(consumableTargets(st, 0), [5]);
