@@ -122,7 +122,9 @@
           <p class="overline">CURRENT GAME</p>
           <strong id="currentModeName">Classic</strong>
         </div>
-
+        <button type="button" id="gameAchievements" class="achievement-open" hidden>
+          <span aria-hidden="true">🏆</span> Achievements
+        </button>
       </div>
     <section class="play" aria-label="Index Shuffle game">
       <section class="game" aria-label="Game board">
@@ -202,7 +204,7 @@
         <div class="hud-score">
           <span>Score</span><strong id="score">0</strong>
         </div>
-        <section id="rogueInventory" class="rogue-equipped" hidden aria-label="Roguelite equipped items">
+        <section id="rogueInventory" class="rogue-equipped" hidden aria-label="Roguelike equipped items">
           <div class="equip-heading"><strong>Your build</strong><span>2 slots of each type</span></div>
           <div class="equip-row"><span>Permanent</span><div id="roguePermanentSlots" class="equip-slots"></div></div>
           <div class="equip-row"><span>Single use</span><div id="rogueConsumableSlots" class="equip-slots"></div></div>
