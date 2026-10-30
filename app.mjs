@@ -1467,6 +1467,7 @@ function beginNewMode(selected, skipConfirmation = false) {
   const best = Number.isSafeInteger(previous?.best) ? previous.best : 0;
   state = mode === "roguelite" ? newRogueliteRun(best) : fresh(best);
   state.activity = [];
+  $("resultsCopyStatus").textContent = "";
   tourStep = 0;
   tourVisible = !tourSeen;
   hideMoment();
@@ -1531,8 +1532,10 @@ function cancelConsumable() {
 $("itemCancel").addEventListener("click", cancelConsumable);
 
 function activateConsumable(slot, targets) {
+  let activated = false;
   try {
     const next = useConsumable(state, slot, targets);
+    activated = true;
     state = next;
     pendingItem = null;
     recentAchievementIds = [];
@@ -1546,9 +1549,7 @@ function activateConsumable(slot, targets) {
     state.notice = error instanceof Error ? error.message : "Unable to use that item.";
   }
   render();
-  if (!state.over && state.notice && state.notice.includes(" used.")) {
-    showMoment("item", state.notice);
-  }
+  if (activated) showMoment("item", state.notice);
 }
 
 function beginConsumable(slot) {
