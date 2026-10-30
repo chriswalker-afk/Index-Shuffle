@@ -25,6 +25,12 @@ import {
   bossForRound, bossTargetFor, bossPointsFor, bossMovementRules,
   bossAllowsMoveRestoration, applyThreeCurse
 } from "./bosses.mjs?v=gold-banking-v2";
+import {
+  ACHIEVEMENTS, ACHIEVEMENT_BY_ID, emptyRunStats, restoreRunStats,
+  restoreAchievementProfile, recordRunStats, recordSuccessfulSlide,
+  addEarnedToRunStats, recordAchievementEvent, countUnlocked,
+  progressForAchievement, isFinishedRun, finalScoreSummary
+} from "./milestones.mjs?v=mode-results-v1";
 
 const $ = id => document.getElementById(id);
 const glyph = n => String(n).replace(/\d/g, d => "⁰¹²³⁴⁵⁶⁷⁸⁹"[+d]);
@@ -36,11 +42,20 @@ function fresh(best = 0) {
   return { board: initial(), discovered: [], banked: [], locked: [], mergeReady: [],
     score: 0, best, moves: 0, movesLeft: INITIAL_MOVES_LEFT,
     mergeCredit: 0, budgetRulesVersion: BUDGET_RULES_VERSION,
-    over: false, notice: "" };
+    stats: emptyRunStats(), resultsFinalized: false,
+    resultsDismissed: false, over: false, notice: "" };
 }
 const CLASSIC_SAVE = "index-shuffle-v1";
 const ROGUE_SAVE = "index-shuffle-roguelite-v1";
 const MODE_SAVE = "index-shuffle-selected-mode-v1";
+const ACHIEVEMENT_SAVE = "index-shuffle-roguelite-achievements-v1";
+function savedAchievements() {
+  try { return restoreAchievementProfile(JSON.parse(
+    localStorage.getItem(ACHIEVEMENT_SAVE))); }
+  catch { return restoreAchievementProfile(null); }
+}
+let achievementProfile = savedAchievements();
+let recentAchievementIds = [];
 function saved(mode = "classic") {
   try { return JSON.parse(localStorage.getItem(mode === "roguelite" ? ROGUE_SAVE : CLASSIC_SAVE)); }
   catch { return null; }
@@ -51,6 +66,8 @@ if (!state || !Array.isArray(state.board) || state.board.length !== 16) {
   state = mode === "roguelite" ? newRogueliteRun() : fresh();
 } else {
   // Previous games did not track temporary banking lockouts.
+  state.resultsFinalized = state.resultsFinalized === true;
+  state.resultsDismissed = state.resultsDismissed === true;
   state.locked = Array.isArray(state.locked) ? state.locked : [];
   state.discovered = Array.isArray(state.discovered) ? state.discovered : [];
   state.banked = Array.isArray(state.banked) ? state.banked : [];
@@ -62,8 +79,12 @@ if (!state || !Array.isArray(state.board) || state.board.length !== 16) {
   state.notice = "";
   if (mode === "roguelite" && !validRogueliteRun(state.run)) state = newRogueliteRun();
   else {
-    if (mode === "roguelite") state.run = restoreEffectState(restoreShopState(
-      restoreRogueliteRun(state.run, state.movesLeft)));
+    if (mode === "roguelite") {
+      state.run = restoreEffectState(restoreShopState(
+        restoreRogueliteRun(state.run, state.movesLeft)));
+    } else {
+      state.stats = restoreRunStats(state.stats);
+    }
     state.over = mode === "roguelite" && state.run.phase !== "playing" ? false
       : currentGameEnded();
   }
@@ -82,8 +103,36 @@ function currentGameEnded() {
 }
 
 function persist() {
-  try { localStorage.setItem(mode === "roguelite" ? ROGUE_SAVE : CLASSIC_SAVE, JSON.stringify(state)); }
-  catch { /* Storage may be unavailable in private mode. */ }
+  try {
+    localStorage.setItem(mode === "roguelite" ? ROGUE_SAVE : CLASSIC_SAVE,
+      JSON.stringify(state));
+    localStorage.setItem(ACHIEVEMENT_SAVE, JSON.stringify(achievementProfile));
+  } catch { /* Storage may be unavailable in private mode. */ }
+}
+
+function awardRunEvent(event) {
+  if (mode !== "roguelite") return;
+  state.run.stats = recordRunStats(state.run.stats, event);
+  const awarded = recordAchievementEvent(achievementProfile, event);
+  achievementProfile = awarded.profile;
+  if (awarded.unlockedNow.length) {
+    state.run.stats = addEarnedToRunStats(state.run.stats, awarded.unlockedNow);
+    recentAchievementIds = awarded.unlockedNow;
+  }
+}
+
+function finalizeGameIfNeeded() {
+  if (!isFinishedRun(mode, state) || state.resultsFinalized) return;
+  if (mode === "roguelite") {
+    const awarded = recordAchievementEvent(achievementProfile,
+      { type: "finish", score: state.run.totalScore });
+    achievementProfile = awarded.profile;
+    if (awarded.unlockedNow.length) {
+      state.run.stats = addEarnedToRunStats(state.run.stats, awarded.unlockedNow);
+      recentAchievementIds = awarded.unlockedNow;
+    }
+  }
+  state.resultsFinalized = true;
 }
 
 function tileContent(t, badge = "") {
