@@ -261,7 +261,7 @@ const css = readFileSync("styles.css", "utf8");
 assert.match(app, /slide\(before, direction, currentMovementRules\(\)\)/);
 assert.match(app, /bossMovementRules\(state\.run\)/);
 assert.match(app, /bossTargetFor\(state\.run, targetForRound\(state\.run\.round\)\)/);
-assert.match(app, /bossPointsFor\(state\.run, t, bonuses\.score \* \(enchanted\.prism \? 2 : 1\)\)/);
+assert.match(app, /bossPointsFor\(state\.run, t, previewPrismScore\.score\)/);
 assert.match(app, /applyThreeCurse\(result\.board, result\.mergeDestinations/);
 assert.match(app, /bossAllowsMoveRestoration\(state\.run\)/);
 assert.match(app, /turnSpawns\(curse\.board/);
