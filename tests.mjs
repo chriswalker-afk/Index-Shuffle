@@ -362,7 +362,7 @@ assert.match(page, /data-help="how"/);
 assert.match(page, /data-help="maths"/);
 assert.match(page, /id="bonusMeter"[^>]*max="2"/);
 assert.match(page, /id="endActions"[^>]*hidden/);
-assert.match(page, /styles\.css\?v=roguelite-pass5-v1/);
+assert.match(page, /styles\.css\?v=gold-banking-v2/);
 assert.match(style, /grid-template-areas: "board hud" "board secondary"/);
 assert.match(style, /grid-template-areas: "hud" "board" "secondary"/);
 assert.match(uiSource, /\$\("helpDialog"\)\.showModal\(\)/);
