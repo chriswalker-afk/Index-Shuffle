@@ -1,8 +1,8 @@
-// Small, accessible DOM renderer for the Pass 3 shop. All economic
+// Accessible DOM renderer for the shop and active Roguelite loadout. Economic
 // mutations are delegated to pure reducers in shop.mjs.
 import {
-  ITEM_BY_ID, INVENTORY_SLOTS, purchaseShopOffer, sellPermanent, discardConsumable
-} from "./shop.mjs?v=roguelite-pass3-v1";
+  ITEM_BY_ID, INVENTORY_SLOTS, shopItemPrice, purchaseShopOffer, sellPermanent, discardConsumable
+} from "./shop.mjs?v=roguelite-pass4-v1";
 
 const $ = id => document.getElementById(id);
 const itemName = entry => entry ? ITEM_BY_ID[entry.id]?.name || "Unknown item" : "Empty";
@@ -23,7 +23,7 @@ function makeButton(label, callback, disabled = false, className = "shop-mini-bu
   return button;
 }
 
-export function renderRogueliteInventory(state, isRoguelite) {
+export function renderRogueliteInventory(state, isRoguelite, onUse, canUse) {
   $("rogueInventory").hidden = !isRoguelite;
   if (!isRoguelite) return;
   for (const [type, target] of [
@@ -35,11 +35,21 @@ export function renderRogueliteInventory(state, isRoguelite) {
     const slots = state.run.inventory[type];
     for (let i = 0; i < INVENTORY_SLOTS; i++) {
       const entry = slots[i];
-      const chip = element("span", "equip-chip" + (entry ? " equipped" : ""), entry
-        ? ITEM_BY_ID[entry.id].name : "+ Empty");
+      const usable = Boolean(entry && type === "consumables" &&
+        state.run.phase === "playing" && !state.over);
+      const chip = element(usable ? "button" : "span",
+        "equip-chip" + (entry ? " equipped" : ""),
+        entry ? ITEM_BY_ID[entry.id].name : "+ Empty");
       chip.title = entry
-        ? ITEM_BY_ID[entry.id].description + " (effects available in Pass 4)"
+        ? ITEM_BY_ID[entry.id].description
         : "Empty " + labelFor(type).toLowerCase() + " slot";
+      if (usable) {
+        chip.type = "button";
+        chip.disabled = !canUse(i);
+        chip.classList.add("equip-use");
+        chip.setAttribute("aria-label", "Use " + ITEM_BY_ID[entry.id].name);
+        chip.addEventListener("click", () => onUse(i));
+      }
       row.appendChild(chip);
     }
   }
@@ -55,18 +65,20 @@ function offerCard(type, itemId, slotIndex, state, dispatch) {
     return card;
   }
   const item = ITEM_BY_ID[itemId];
+  const price = shopItemPrice(state.run, item);
   card.append(element("div", "shop-offer-type", labelFor(type)));
   card.append(element("strong", "shop-item-name", item.name));
   card.append(element("p", "shop-item-description", item.description));
-  card.append(element("p", "shop-price", "● " + item.price + " coins"));
+  card.append(element("p", "shop-price", "● " + price + " coins" +
+    (price < item.price ? " (discounted from " + item.price + ")" : "")));
   const owned = state.run.inventory[type];
   const freeSlot = owned.findIndex(entry => !entry);
   const actions = element("div", "shop-card-actions");
   if (freeSlot >= 0) {
-    const enough = state.run.coins >= item.price;
+    const enough = state.run.coins >= price;
     actions.append(makeButton(enough
-      ? "Buy for " + item.price
-      : "Need " + (item.price - state.run.coins) + " more coins",
+      ? "Buy for " + price
+      : "Need " + (price - state.run.coins) + " more coins",
       () => dispatch(value => purchaseShopOffer(value, type, slotIndex)), !enough,
       "shop-buy-button"));
   } else {
@@ -74,8 +86,8 @@ function offerCard(type, itemId, slotIndex, state, dispatch) {
     for (let i = 0; i < INVENTORY_SLOTS; i++) {
       const occupied = owned[i];
       const refund = type === "permanents" ? Math.floor(occupied.pricePaid / 2) : 0;
-      const net = item.price - refund;
-      const enough = state.run.coins + refund >= item.price;
+      const net = price - refund;
+      const enough = state.run.coins + refund >= price;
       const text = "Replace " + itemName(occupied) + " · " +
         (net <= 0 ? "refund " + (-net) : "net " + net) + " coins";
       actions.append(makeButton(text,
