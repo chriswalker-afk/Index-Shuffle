@@ -141,7 +141,7 @@ assert.match(style, /\.cell\.gold-tile\.bankable \{/);
 assert.match(style, /\.cell\.gold-tile\.gold-double/);
 assert.match(style, /\.tile-gold-mark \{/);
 assert.match(style, /pointer-events: none;/);
-assert.match(app, /const available = isBankable\(t, banked, i, locked\)/);
+assert.match(app, /const available = isBankable\(t, banked, i, locked,/);
 assert.match(app, /if \(available && !selection\) \{/);
 assert.match(app, /button\.addEventListener\("click", \(\) => openBank\(i\)\)/);
 assert.match(app, /const blocked = \(t\.exp >= 2 \|\| gold > 0\)/);
