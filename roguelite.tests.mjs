@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { tile, activeBases, turnSpawns, initial, scoreFor, slide, attemptBank, key } from "./engine.mjs";
+import { tile, activeBases, turnSpawns, initial, scoreFor, slide, attemptBank } from "./engine.mjs";
 import {
   ROUND_TARGETS, TOTAL_ROUNDS, targetForRound, isBossRound, stageForRound,
   scoreForRoguelitePower, newRogueliteRun, recordRogueliteBank,
@@ -51,7 +51,13 @@ assert.deepEqual([bank.points, bank.roundScore, bank.cleared, bank.run.phase],
   [2, 2, false, "playing"]);
 assert.equal(bank.run.totalScore, 2);
 state = { ...state, score: bank.roundScore, run: bank.run };
-bank = recordRogueliteBank(state.run, 6, tile(3, 2),
+for (const base of [3, 5]) {
+  bank = recordRogueliteBank(state.run, state.score, tile(base, 2),
+    { movesLeft: 5 });
+  assert.equal(bank.cleared, false);
+  state = { ...state, score: bank.roundScore, run: bank.run };
+}
+bank = recordRogueliteBank(state.run, state.score, tile(2, 2),
   { movesLeft: 3 });
 assert.deepEqual([bank.points, bank.roundScore, bank.cleared, bank.run.phase],
   [2, 8, true, "round-clear"]);
@@ -65,7 +71,7 @@ state = { ...state, score: bank.roundScore, run: bank.run,
 const original = structuredClone(state);
 const next = advanceRogueliteRound(state, constantRng);
 assert.equal(next.run.round, 2);
-assert.equal(next.run.totalScore, 4);
+assert.equal(next.run.totalScore, 8);
 assert.equal(next.run.phase, "playing");
 assert.equal(next.score, 0);
 assert.equal(next.movesLeft, 10);
@@ -84,7 +90,7 @@ assert.throws(() => advanceRogueliteRound(next), RangeError);
 // Exponent-only points accumulate through successive rounds.
 const secondBank = recordRogueliteBank(next.run, 9, tile(13, 3), { movesLeft: 6 });
 assert.equal(secondBank.roundScore, 12);
-assert.equal(secondBank.run.totalScore, 7);
+assert.equal(secondBank.run.totalScore, 11);
 assert.equal(secondBank.run.phase, "round-clear");
 
 // The final bank completes a 12-round run rather than starting round 13.
@@ -165,8 +171,10 @@ let merge = slide(goldBoard, "left");
 assert.deepEqual(merge.board[0], { base: 3, exp: 2, gold: 1 });
 assert.equal(goldTier(merge.board[0]), 1);
 assert.deepEqual(goldBoard[0], { base: 3, exp: 1, gold: 1 });
-const ordinaryMovement = slide(goldBoard, "right");
-assert.equal(goldTier(ordinaryMovement.board[2]), 0);
+const singleGold = empty.slice();
+singleGold[0] = { ...tile(7, 2), gold: 1 };
+const ordinaryMovement = slide(singleGold, "right");
+assert.equal(goldTier(ordinaryMovement.board[3]), 1, "gold travels with sliding tile");
 goldBoard = empty.slice();
 goldBoard[0] = { ...tile(3), gold: 1 };
 goldBoard[1] = { ...tile(3), gold: 1 };
