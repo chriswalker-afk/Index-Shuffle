@@ -3,7 +3,8 @@ import {
   tile, key, slide, spawn, canMove, isBankable,
   bankReplacement, checkAnswer, answerFor, scoreFor, initial,
   BASES, BASE_UNLOCKS, activeBases, spawnOptions,
-  INITIAL_MOVES_LEFT, MERGES_PER_BONUS_MOVE, spendMove, gameEnded
+  INITIAL_MOVES_LEFT, MERGES_PER_BONUS_MOVE, spendMove, slideCost,
+  blocker, warning, gameEnded
 } from "./engine.mjs";
 
 const blank = () => Array(16).fill(null);
@@ -244,5 +245,52 @@ const persisted = JSON.parse(JSON.stringify({
 assert.deepEqual(spendMove(persisted.movesLeft, persisted.mergeCredit, 1),
   { movesLeft: 4, mergeCredit: 0, earned: 1 });
 assert.equal(persisted.moves, 31, "slide milestones are separate from the budget");
+
+
+// Blocker surcharge is computed from ACTIVE blockers at the start of
+// the slide. Warnings and newly spawned blockers are not charged yet.
+const noBlockerBoard = put([0, 2], [1, 2]);
+const oneBlockerBoard = noBlockerBoard.slice();
+oneBlockerBoard[5] = blocker(0, 1);
+const twoBlockerBoard = oneBlockerBoard.slice();
+twoBlockerBoard[10] = blocker(0, 2);
+const warningBoard = oneBlockerBoard.slice();
+warningBoard[10] = warning(2);
+assert.equal(slideCost(noBlockerBoard), 1);
+assert.equal(slideCost(oneBlockerBoard), 2);
+assert.equal(slideCost(twoBlockerBoard), 3);
+assert.equal(slideCost(warningBoard), 2,
+  "the warning only raises cost after it becomes a blocker");
+assert.deepEqual(spendMove(10, 0, 0, 1),
+  { movesLeft: 8, mergeCredit: 0, earned: 0 },
+  "one active blocker costs 2 moves per successful slide");
+assert.deepEqual(spendMove(10, 0, 0, 2),
+  { movesLeft: 7, mergeCredit: 0, earned: 0 },
+  "two active blockers cost 3 moves per successful slide");
+assert.deepEqual(spendMove(10, 0, 2, 1),
+  { movesLeft: 9, mergeCredit: 0, earned: 1 },
+  "two merges restore one move after the blocker surcharge");
+assert.deepEqual(spendMove(1, 1, 1, 1),
+  { movesLeft: 0, mergeCredit: 0, earned: 1 },
+  "one merge bonus does not fully offset a blocker surcharge");
+assert.deepEqual(spendMove(2, 0, 4, 2),
+  { movesLeft: 1, mergeCredit: 0, earned: 2 },
+  "two pairs of merges offset two of three moves charged");
+assert.deepEqual(spendMove(1, 0, 0, 2),
+  { movesLeft: 0, mergeCredit: 0, earned: 0 },
+  "balance is clamped to zero, not negative");
+assert.deepEqual(spendMove(0, 1, 3, 2),
+  { movesLeft: 0, mergeCredit: 1, earned: 0 },
+  "a game already over cannot earn back moves");
+assert.throws(() => spendMove(10, 0, 0, -1), RangeError);
+assert.throws(() => spendMove(10, 0, 0, 0.5), RangeError);
+
+// With a warning on the board, only active blockers present BEFORE the
+// swipe are charged; a new tier does not retroactively increase cost.
+let escalating = warningBoard.slice();
+assert.equal(slideCost(escalating), 2);
+escalating[10] = blocker(0, 2);
+assert.equal(slideCost(escalating), 3);
+assert.equal(gameEnded(noBlockerBoard, new Set(), new Set(), 0), true);
 
 console.log("All Index Shuffle engine tests passed.");
