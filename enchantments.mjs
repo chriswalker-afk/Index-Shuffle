@@ -1,6 +1,6 @@
 // Player-created positive board squares. Coordinates belong to the board,
 // never to a tile. Independent of hazards and the two-slot consumable inventory.
-import { SIZE, isObstacle } from "./engine.mjs?v=hazard-counter-v1";
+import { SIZE, isObstacle } from "./engine.mjs?v=runestones-pass2";
 
 export const ENCHANTMENT_CELLS = SIZE * SIZE;
 export const MAX_ACTIVE_ENCHANTMENTS = 2;
