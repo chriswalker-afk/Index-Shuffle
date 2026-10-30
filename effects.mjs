@@ -3,10 +3,10 @@
 import {
   tile, key, isObstacle, isBlocker, blockerStrength, canMove,
   MAX_MOVES_LEFT
-} from "./engine.mjs?v=mode-results-v1";
-import { goldTier } from "./roguelite.mjs?v=mode-results-v1";
-import { ITEM_BY_ID } from "./shop.mjs?v=mode-results-v1";
-import { bossId, bossMovementRules } from "./bosses.mjs?v=mode-results-v1";
+} from "./engine.mjs?v=hazard-pass3-v1";
+import { goldTier } from "./roguelite.mjs?v=hazard-pass3-v1";
+import { ITEM_BY_ID } from "./shop.mjs?v=hazard-pass3-v1";
+import { bossId, bossMovementRules } from "./bosses.mjs?v=hazard-pass3-v1";
 import {
   hazardAt, restoreHazardLayer, removeHazard
 } from "./hazards.mjs?v=hazard-pass3-v1";
