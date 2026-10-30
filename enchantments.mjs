@@ -5,6 +5,8 @@ import { SIZE, isObstacle } from "./engine.mjs?v=hazard-counter-v1";
 export const ENCHANTMENT_CELLS = SIZE * SIZE;
 export const MAX_ACTIVE_ENCHANTMENTS = 2;
 export const ENCHANTMENT_CHARGES = 2;
+export const SANCTUARY_BONUS_SECONDS = 10;
+export const MAX_SANCTUARY_SECONDS = 60;
 export const ENCHANTMENT_DEFINITIONS = Object.freeze({
   "gilded-foundry": Object.freeze({
     name: "Gilded Foundry", icon: "◉", charges: ENCHANTMENT_CHARGES,
@@ -13,11 +15,31 @@ export const ENCHANTMENT_DEFINITIONS = Object.freeze({
   "power-prism": Object.freeze({
     name: "Power Prism", icon: "×2", charges: ENCHANTMENT_CHARGES,
     description: "A merge here stores a double-score charge, or a correct bank here gains a multiplier."
+  }),
+  "echo-seal": Object.freeze({
+    name: "Echo Seal", icon: "↺", charges: 1,
+    description: "Correctly bank one previously banked base-and-exponent combination on this square."
+  }),
+  "twin-mint": Object.freeze({
+    name: "Twin Mint", icon: "◉×2", charges: 1,
+    description: "The next merge finishing here turns the resulting power into double gold."
+  }),
+  "time-sanctuary": Object.freeze({
+    name: "Time Sanctuary", icon: "+10", charges: ENCHANTMENT_CHARGES,
+    description: "Open a banking question here for 10 extra seconds, up to 60 seconds."
+  }),
+  "shatter-crest": Object.freeze({
+    name: "Shatter Crest", icon: "⚒", charges: ENCHANTMENT_CHARGES,
+    description: "Correctly bank a genuinely merged power beside a blocker here for one extra hit."
   })
 });
 export const ENCHANTMENT_ITEMS = Object.freeze({
   "foundry-runestone": "gilded-foundry",
-  "prism-runestone": "power-prism"
+  "prism-runestone": "power-prism",
+  "echo-runestone": "echo-seal",
+  "mint-runestone": "twin-mint",
+  "sanctuary-runestone": "time-sanctuary",
+  "shatter-runestone": "shatter-crest"
 });
 const isIndex = index => Number.isSafeInteger(index) &&
   index >= 0 && index < ENCHANTMENT_CELLS;
@@ -39,7 +61,8 @@ export function restoreEnchantmentLayer(saved, board = null, hazards = null) {
     const entry = saved[index];
     if (!entry || !Object.hasOwn(ENCHANTMENT_DEFINITIONS, entry.type) ||
         !Number.isSafeInteger(entry.chargesLeft) ||
-        entry.chargesLeft < 1 || entry.chargesLeft > ENCHANTMENT_CHARGES ||
+        entry.chargesLeft < 1 ||
+        entry.chargesLeft > ENCHANTMENT_DEFINITIONS[entry.type].charges ||
         (board && isObstacle(board[index])) || hazards?.[index] ||
         count >= MAX_ACTIVE_ENCHANTMENTS) continue;
     next[index] = { type: entry.type, chargesLeft: entry.chargesLeft };
@@ -74,7 +97,7 @@ export function placeEnchantment(layer, board, hazards, index, type,
     throw new RangeError("Enchantment cannot be placed on this square");
   }
   const next = restoreEnchantmentLayer(layer, board, hazards);
-  next[index] = { type, chargesLeft: ENCHANTMENT_CHARGES };
+  next[index] = { type, chargesLeft: ENCHANTMENT_DEFINITIONS[type].charges };
   return next;
 }
 
@@ -104,7 +127,9 @@ export function resolveSlideEnchantments(result, saved) {
       board[index] = { ...power, gold: 1 };
     } else if (entry.type === "power-prism" && power.prism !== 1) {
       board[index] = { ...power, prism: 1 };
-    } else continue; // Already gold/charged: do not waste a Runestone charge.
+    } else if (entry.type === "twin-mint" && power.gold !== 2) {
+      board[index] = { ...power, gold: 2 };
+    } else continue; // Already empowered, or a banking-only square.
     enchantments = useCharge(enchantments, index);
     events.push({ type: entry.type, index, kind: "merge" });
   }
@@ -113,30 +138,60 @@ export function resolveSlideEnchantments(result, saved) {
   return { ...result, board, merges, enchantments, enchantmentEvents: events };
 }
 
-// Preview is pure and does not spend charges. Only a correct mathematical bank
-// will actually redeem the square; existing tile gold/prism takes priority.
-export function previewEnchantedBank(layer, index, power) {
+// Pure preview: correct banking is still validated by the engine. Marked
+// powers carry existing gold and prism status, never a duplicate charge.
+// Echo changes repeat-banking eligibility only at its own occupied square.
+export function previewEnchantedBank(layer, index, power,
+  { alreadyBanked = false, merged = false, adjacentBlocker = false,
+    baseSeconds = MAX_SANCTUARY_SECONDS } = {}) {
   const entry = enchantmentAt(layer, index);
   const goldFromSquare = entry?.type === "gilded-foundry" && !isGold(power);
   const prismFromSquare = entry?.type === "power-prism" && power?.prism !== 1;
+  const repeatBank = entry?.type === "echo-seal" && alreadyBanked;
+  const extraBlockerHit = entry?.type === "shatter-crest" &&
+    merged && adjacentBlocker;
+  const extraSeconds = entry?.type === "time-sanctuary"
+    ? Math.max(0, Math.min(SANCTUARY_BONUS_SECONDS,
+      MAX_SANCTUARY_SECONDS - baseSeconds)) : 0;
   return {
     power: goldFromSquare ? { ...power, gold: 1 } : power,
     prism: power?.prism === 1 || prismFromSquare,
+    repeatBank, extraBlockerHit, extraSeconds,
     spend: goldFromSquare ? "gilded-foundry"
-      : prismFromSquare ? "power-prism" : null
+      : prismFromSquare ? "power-prism"
+        : repeatBank ? "echo-seal"
+          : extraBlockerHit ? "shatter-crest"
+            : extraSeconds > 0 ? "time-sanctuary" : null
   };
 }
 
+// Redemptions are explicit and pure. Time Sanctuary consumes a charge when
+// a question opens (even if subsequently cancelled/incorrect); all other
+// bank-only effects consume a charge only for a mathematically correct bank.
+// A score-nullifying boss must not waste a directly used Prism.
 export function redeemEnchantedBank(layer, index, preview,
-  { prismApplied = false, pointsAwarded = 0 } = {}) {
-  const entry = enchantmentAt(layer, index);
+  { trigger = "correct", prismApplied = false, pointsAwarded = 0,
+    repeatBanked = false, blockerApplied = false } = {}) {
+  const current = restoreEnchantmentLayer(layer);
+  const entry = enchantmentAt(current, index);
   if (!entry || entry.type !== preview?.spend) {
-    return { enchantments: restoreEnchantmentLayer(layer), used: false };
+    return { enchantments: current, used: false };
   }
-  // The boss can nullify a scoring bonus. In that case preserve the charge.
-  if (entry.type === "power-prism" && (!prismApplied || pointsAwarded <= 0)) {
-    return { enchantments: restoreEnchantmentLayer(layer), used: false };
+  if (entry.type === "time-sanctuary") {
+    if (trigger !== "open" || preview.extraSeconds <= 0) {
+      return { enchantments: current, used: false };
+    }
+  } else {
+    if (trigger !== "correct") return { enchantments: current, used: false };
+    if (entry.type === "power-prism" && (!prismApplied || pointsAwarded <= 0)) {
+      return { enchantments: current, used: false };
+    }
+    if (entry.type === "echo-seal" && !repeatBanked) {
+      return { enchantments: current, used: false };
+    }
+    if (entry.type === "shatter-crest" && !blockerApplied) {
+      return { enchantments: current, used: false };
+    }
   }
-  return { enchantments: useCharge(restoreEnchantmentLayer(layer), index),
-    used: true };
+  return { enchantments: useCharge(current, index), used: true };
 }
