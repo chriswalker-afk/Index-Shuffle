@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#152337">
+  <title>Shop art gallery · Index Shuffle</title>
+  <link rel="stylesheet" href="styles.css?v=hazard-counter-v1-art-pass2">
+  <style>
+    body { background: radial-gradient(circle at 87% 4%,#493b5c55,transparent 44%),
+      radial-gradient(circle at 10% 79%,#31544844,transparent 46%),#0b1325; }
+    .gallery-shell { padding-top: 24px; padding-bottom: 64px; }
+    .gallery-nav { display: flex; gap: 18px; flex-wrap: wrap; font-size: 13px; }
+    .gallery-nav a { color: #acf3df; font-weight: 800; }
+    .gallery-kicker { margin: 34px 0 9px; font-size: 11px; text-transform: uppercase;
+      letter-spacing: .16em; color: #f2ce8f; font-weight: 900; }
+    h1 { font-size: clamp(32px, 6vw, 57px); letter-spacing: -.05em;
+      margin: 0 0 12px; line-height: 1.08; }
+    .gallery-lede { color: #c0d1df; max-width: 75ch; font-size: 14px;
+      line-height: 1.7; margin: 0 0 23px; }
+    .gallery-legend { display: flex; flex-wrap: wrap; gap: 12px;
+      margin: 23px 0 28px; }
+    .gallery-legend span { display: flex; gap: 7px; align-items: center;
+      padding: 8px 12px; background: #1f2b40; border: 1px solid #43536c;
+      border-radius: 9px; color: #dde5ef; font-size: 11px; font-weight: 750; }
+    .gallery-legend i { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+    .gallery-legend .relic { background: #e8bb6f; }
+    .gallery-legend .ward { background: #8ddfc8; }
+    .gallery-legend .tool { background: #bdabea; }
+    .gallery-section { margin: 29px 0 40px; }
+    .gallery-section header { margin-bottom: 15px; border-bottom: 1px solid #43536c;
+      padding-bottom: 9px; display: flex; gap: 9px 15px;
+      justify-content: space-between; align-items: baseline; flex-wrap: wrap; }
+    .gallery-section h2 { font-size: 23px; margin: 0; color: #fff0d2; }
+    .gallery-section header p { color: #a9bcd0; font-size: 12px; margin: 0; }
+    .gallery-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr));
+      gap: 13px; }
+    .gallery-item { min-width: 0; display: grid; grid-template-columns: 70px minmax(0,1fr);
+      gap: 12px; align-items: start; padding: 12px; border-radius: 14px;
+      border: 1px solid #55657b; border-top: 2px solid #d5b47e;
+      background: linear-gradient(140deg,#273648,#1a2a3f);
+      box-shadow: 0 8px 19px #050b1944; }
+    .gallery-item--ward { border-top-color: #8ddfc8; }
+    .gallery-item--consumable { border-top-color: #bdabea; }
+    .gallery-item .shop-item-art { width: 70px; height: 72px; padding: 4px; }
+    .gallery-item h3 { margin: 0 0 4px; font-size: 14px; letter-spacing: -.02em; }
+    .gallery-item p { margin: 0; font-size: 11px; color: #c5d5e4; line-height: 1.5; }
+    .gallery-item .gallery-price { margin-top: 7px; font-size: 11px;
+      color: #f3d19b; font-weight: 800; }
+    .gallery-footer { max-width: 74ch; color: #b3c5d7; font-size: 13px;
+      border-top: 1px solid #465773; padding-top: 18px; line-height: 1.7; }
+    @media(max-width:900px) { .gallery-grid { grid-template-columns: repeat(2,minmax(0,1fr)); } }
+    @media(max-width:600px) { .gallery-grid { grid-template-columns: 1fr; }
+      .gallery-item h3 { font-size: 14px; } }
+  </style>
+</head>
+<body>
+  <main class="shell gallery-shell">
+    <nav class="gallery-nav" aria-label="Gallery navigation">
+      <a href="./">← Back to the game</a>
+      <a href="art-preview.html">Character concepts</a>
+    </nav>
+    <p class="gallery-kicker">The Curious Numberworld · Shop art · Pass 2</p>
+    <h1>Every relic has a story.</h1>
+    <p class="gallery-lede">All 31 original shop-item illustrations in one place.
+      These are the same icons used in the live shop and equipped build.
+      Their colourful frames distinguish how items work, not their rarity.
+      Purchases still happen only inside a Roguelike game.</p>
+    <div class="gallery-legend" aria-label="Visual types">
+      <span><i class="relic"></i> Permanent relic</span>
+      <span><i class="ward"></i> Hazard defence</span>
+      <span><i class="tool"></i> One-use tool</span>
+    </div>
+    <section class="gallery-section" aria-labelledby="relicHeading">
+      <header><h2 id="relicHeading">Lasting relics</h2><p>12 permanent upgrades</p></header>
+      <div class="gallery-grid" id="relicGallery"></div>
+    </section>
+    <section class="gallery-section" aria-labelledby="wardHeading">
+      <header><h2 id="wardHeading">Wards &amp; defences</h2><p>8 hazard-counter permanents</p></header>
+      <div class="gallery-grid" id="wardGallery"></div>
+    </section>
+    <section class="gallery-section" aria-labelledby="toolHeading">
+      <header><h2 id="toolHeading">One-use tools</h2><p>11 single-use items</p></header>
+      <div class="gallery-grid" id="toolGallery"></div>
+    </section>
+    <noscript><p>JavaScript is needed to display the item gallery.</p></noscript>
+    <footer class="gallery-footer">The artwork is decorative. In-game cards always include
+      item names, full effect descriptions, prices and text buttons. The shop and
+      existing inventory limits are unchanged.</footer>
+  </main>
+  <script type="module">
+    import { ITEM_CATALOG } from "./shop.mjs?v=hazard-counter-v1";
+    import { itemIconHref, itemArtKind } from "./shop-art.mjs?v=hazard-counter-v1-art-pass2";
+    const svgNS = "http://www.w3.org/2000/svg";
+    const targets = { permanent: document.getElementById("relicGallery"),
+      ward: document.getElementById("wardGallery"),
+      consumable: document.getElementById("toolGallery") };
+    for (const item of ITEM_CATALOG) {
+      const kind = itemArtKind(item);
+      const card = document.createElement("article");
+      card.className = "gallery-item gallery-item--" + kind;
+      const frame = document.createElement("span");
+      frame.className = "shop-item-art shop-item-art--" + kind;
+      frame.setAttribute("aria-hidden", "true");
+      const svg = document.createElementNS(svgNS, "svg");
+      svg.setAttribute("viewBox", "0 0 100 100");
+      svg.setAttribute("focusable", "false");
+      svg.classList.add("shop-item-icon");
+      const use = document.createElementNS(svgNS, "use");
+      use.setAttribute("href", itemIconHref(item.id));
+      use.setAttribute("width", "100");
+      use.setAttribute("height", "100");
+      svg.append(use); frame.append(svg);
+      const copy = document.createElement("div");
+      const title = document.createElement("h3");
+      title.textContent = item.name;
+      const desc = document.createElement("p");
+      desc.textContent = item.description;
+      const price = document.createElement("p");
+      price.className = "gallery-price";
+      price.textContent = item.price + (item.price === 1 ? " coin" : " coins") +
+        (item.unlockRound ? " · from round " + item.unlockRound : "");
+      copy.append(title, desc, price);
+      card.append(frame, copy);
+      targets[kind].append(card);
+    }
+  </script>
+</body>
+</html>

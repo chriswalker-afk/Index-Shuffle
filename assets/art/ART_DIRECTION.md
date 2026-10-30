@@ -1,6 +1,6 @@
 # Index Shuffle · Art direction (Pass 1)
 
-Status: **prototype / first-pass original artwork**. This guide is the single
+Status: **Pass 1 character concepts + Pass 2 illustrated shop complete**. This guide is the single
 source of truth for visual design decisions in later passes.
 
 ## Concept: The Curious Numberworld
@@ -67,10 +67,36 @@ These are illustration colours, *not* replacements for accessible UI colours.
 Existing boss definitions, item IDs, score logic, saves and economy are not
 changed by this art pass. More boss IDs can be added to `BOSS_ART` later.
 
+## Pass 2 · Illustrated shop (complete)
+
+- `assets/art/item-sprites.svg`: 31 original symbolic mini-illustrations,
+  each under a stable `item-<item id>` SVG symbol. The sprite uses one
+  network asset and no external images, scripts, fonts, or animation.
+- `shop-art.mjs`: deterministic icon hrefs with a neutral fallback,
+  plus visual type classification (permanent / ward / consumable).
+  Every item ID has a dedicated symbol and automated coverage tests.
+- `shop-ui.mjs`: icon frames, two labelled shelves (permanents and
+  consumables), true discounted prices, clear replacement and resale
+  actions, compact owned-item iconography and illustrated equipped chips.
+  All price arithmetic and the game economy stay in `shop.mjs`.
+- Merchant quotes are short, keyed to the upcoming round, and never
+  chosen randomly or stored in saves. Boss round previews retain
+  their explicit rule and score target.
+- The shop help is collapsed by default, but the essential permanent/
+  single-use distinction stays visible. Full item effects remain
+  visible on the cards; icon shapes are never the sole source of meaning.
+- Visual frame colours identify **functional types**, not invented
+  item rarities: gold = permanent relic, purple = consumable tool,
+  jade = hazard defence. Existing `hazardCounter` rules remain.
+- Mobile cards stack, inventory columns collapse, the shop continues
+  to scroll, and the sticky shop actions remain visible. Focus, disabled
+  states, `[hidden]` fallbacks, accessible text and reduced-motion
+  behaviour are preserved.
+- `item-gallery.html`: an optional visual-review gallery for all
+  31 items without needing to reach an in-game shop.
+
 ## Next passes
 
-- **Pass 2:** shop layout, collectible icons for every purchasable item and
-  character-led but concise item presentation.
 - **Pass 3:** portraits for the other five bosses, encounter and victory beats.
 - **Pass 4:** stage atmospheres, hazard icons, title and achievements.
 - **Pass 5:** restrained animation, mobile/performance/accessibility polish.
