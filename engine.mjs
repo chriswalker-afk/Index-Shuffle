@@ -235,17 +235,18 @@ export function slide(board, direction, rules = null) {
 // restriction within a round. A repeated golden copy offers no extra
 // scoring or coins, even when it has just spawned or merged.
 export function isBankable(t, banked, index, locked = new Set(),
-  hazards = null) {
+  hazards = null, enchantments = null) {
   if (!t || isObstacle(t) || locked.has(index) ||
       hazards?.[index]?.type === "cloudy") return false;
   const golden = t.gold === 1 || t.gold === 2;
+  const repeatOnEcho = enchantments?.[index]?.type === "echo-seal";
   return Number.isSafeInteger(t.exp) && (t.exp >= 2 || (golden && t.exp === 1)) &&
-    !banked.has(key(t));
+    (!banked.has(key(t)) || repeatOnEcho);
 }
 
 export function canMove(board, banked, locked = new Set(), rules = null) {
   if (board.some((t, i) => isBankable(t, banked, i, locked,
-    rules?.hazards))) return true;
+    rules?.hazards, rules?.enchantments))) return true;
   // An empty square is not enough: blockers can isolate it so that no
   // tile can actually move. Check the four legal swipes instead.
   return ["up", "down", "left", "right"].some(direction =>
@@ -420,13 +421,13 @@ export function mergeReadyAfterSlide(previous = [], motions = []) {
 export function attemptBank(board, index, answer,
   { discovered = new Set(), banked = new Set(),
     locked = new Set(), mergeReady = new Set(), blockerDamage = 1,
-    hazards = null } = {},
+    hazards = null, enchantments = null } = {},
   rng = Math.random) {
-  if (!Number.isSafeInteger(blockerDamage) || blockerDamage < 1 || blockerDamage > 2) {
+  if (!Number.isSafeInteger(blockerDamage) || blockerDamage < 1 || blockerDamage > 3) {
     throw new RangeError("Blocker banking damage must be one or two hits");
   }
   const t = board[index];
-  if (!isBankable(t, banked, index, locked, hazards)) {
+  if (!isBankable(t, banked, index, locked, hazards, enchantments)) {
     return { status: "unavailable" };
   }
   if (!checkAnswer(t, answer)) return { status: "incorrect" };
@@ -451,7 +452,7 @@ export function attemptBank(board, index, answer,
   }
   return {
     status: "success", board: next, replacement,
-    powerKey: key(t), points: scoreFor(t),
+    powerKey: key(t), repeatedBank: banked.has(key(t)), points: scoreFor(t),
     creditedMerge: mergeReady.has(index),
     damaged, destroyed
   };
