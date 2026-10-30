@@ -66,6 +66,9 @@ button:focus-visible, input:focus-visible {
 .base2 { background: #78dfdf; }
 .base3 { background: #ffce80; }
 .base5 { background: #c8a3f9; }
+.base7 { background: #a9e3b2; }
+.base11 { background: #f7b6bb; }
+.base13 { background: #b7c5ff; }
 .bankable { box-shadow: inset 0 0 0 3px #ffffff99; cursor: pointer; }
 .bankable:hover { transform: scale(.97); }
 .locked { box-shadow: inset 0 0 0 2px #805e52; cursor: not-allowed; }
@@ -94,6 +97,21 @@ button:focus-visible, input:focus-visible {
   width: 48px; height: 43px; border-radius: 11px; font-size: 24px; font-weight: 700;
 }
 .controls button:hover { background: #34496f; }
+.base-progress {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 10px;
+  padding: 11px 13px; margin-top: 17px;
+  border: 1px solid #31425f; border-radius: 13px; background: #101c32;
+}
+.base-progress-label {
+  color: #9aacc7; font-size: 10px; font-weight: 850; letter-spacing: 1.15px;
+}
+.base-chips { display: flex; align-items: center; gap: 5px; }
+.base-chip {
+  display: flex; align-items: center; justify-content: center;
+  width: 31px; height: 31px; border-radius: 8px;
+  color: #172b3b; font-size: 14px; font-weight: 850;
+}
+.next-base { margin-left: auto; color: #a8bbd4; font-size: 11px; }
 .tip { font-size: 13px; color: #acb9d1; text-align: center; line-height: 1.6; }
 .side { display: grid; gap: 16px; align-content: start; }
 .panel { padding: 22px; }

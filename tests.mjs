@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import {
   tile, key, slide, spawn, canMove, isBankable,
-  bankReplacement, checkAnswer, answerFor, scoreFor, initial
+  bankReplacement, checkAnswer, answerFor, scoreFor, initial,
+  BASES, BASE_UNLOCKS, activeBases, spawnOptions
 } from "./engine.mjs";
 
 const blank = () => Array(16).fill(null);
@@ -112,5 +113,68 @@ assert.equal(checkAnswer(tile(3, 4), "81.0"), false);
 assert.equal(answerFor(tile(5, 8)), 390625n);
 assert.ok(scoreFor(tile(3, 4)) > scoreFor(tile(3, 2)));
 assert.equal(key(tile(3, 4)), "3-4");
+
+
+// The progressive unlock schedule is finite and depends only on successful slides.
+assert.deepEqual(BASES, [2, 3, 5, 7, 11, 13]);
+assert.deepEqual(BASE_UNLOCKS.map(x => [x.base, x.moves]), [[7, 15], [11, 35], [13, 60]]);
+for (const [moves, expected] of [
+  [0, [2, 3, 5]],
+  [14, [2, 3, 5]],
+  [15, [2, 3, 5, 7]],
+  [34, [2, 3, 5, 7]],
+  [35, [2, 3, 5, 7, 11]],
+  [59, [2, 3, 5, 7, 11]],
+  [60, [2, 3, 5, 7, 11, 13]],
+  [1000, [2, 3, 5, 7, 11, 13]]
+]) {
+  assert.deepEqual(activeBases(moves), expected, "bases available at move " + moves);
+  assert.deepEqual(
+    spawnOptions(new Set(), moves).map(option => option.t.base),
+    expected,
+    "only active simple bases can spawn at move " + moves
+  );
+}
+
+// A new base begins rare, increases gradually over twelve valid slides,
+// and eventually matches the earlier bases' per-base weight.
+function chanceFor(base, moves) {
+  return spawnOptions(new Set(), moves)
+    .find(option => option.t.base === base && option.t.exp === 1)?.w || 0;
+}
+assert.equal(chanceFor(7, 14), 0);
+assert.ok(chanceFor(7, 15) > 0);
+assert.ok(chanceFor(7, 15) < chanceFor(7, 20));
+assert.ok(chanceFor(7, 20) < chanceFor(7, 27));
+assert.ok(Math.abs(chanceFor(7, 27) - chanceFor(2, 27)) < 1e-9);
+assert.equal(chanceFor(11, 34), 0);
+assert.ok(chanceFor(11, 35) < chanceFor(11, 42));
+assert.ok(Math.abs(chanceFor(11, 47) - chanceFor(2, 47)) < 1e-9);
+assert.equal(chanceFor(13, 59), 0);
+assert.ok(chanceFor(13, 60) < chanceFor(13, 67));
+assert.ok(Math.abs(chanceFor(13, 72) - chanceFor(2, 72)) < 1e-9);
+
+// With no higher powers discovered, a near-1 RNG picks the final allowed
+// base, proving the spawn selection honours each milestone.
+for (const [moves, base] of [[14, 5], [15, 7], [34, 7],
+  [35, 11], [59, 11], [60, 13], [100, 13]]) {
+  const spawnedBase = spawn(blank(), new Set(), () => 0.9999, moves).find(Boolean);
+  assert.deepEqual(spawnedBase, tile(base), "last allowed base at move " + moves);
+}
+assert.equal(spawnOptions(new Set(["13-2"]), 59).some(x => x.t.base === 13), false);
+assert.equal(spawnOptions(new Set(["13-2"]), 60).some(x => x.t.base === 13 && x.t.exp === 2), true);
+
+// Successful banking retains its square and temporarily locks its replacement,
+// preventing an immediate second bank. A valid slide clears the lock.
+const prior = tile(5, 7);
+const bankedPowers = new Set(["5-7"]);
+const lower = bankReplacement(prior, new Set(["5-2", "5-3", "5-7"]), () => 0.99);
+assert.deepEqual(lower, tile(5, 3));
+assert.equal(isBankable(lower, bankedPowers, 4, new Set([4])), false);
+assert.equal(isBankable(lower, bankedPowers, 4, new Set()), true);
+assert.equal(isBankable(tile(5, 7), bankedPowers, 4, new Set()), false,
+  "a previously banked power remains ineligible after cooldown");
+assert.equal(isBankable(tile(3, 2), bankedPowers, 8, new Set([4])), true,
+  "banking another tile is still allowed while a replacement is locked");
 
 console.log("All Index Shuffle engine tests passed.");

@@ -1,5 +1,24 @@
 export const SIZE = 4;
-export const BASES = [2, 3, 5];
+export const BASES = [2, 3, 5, 7, 11, 13];
+export const BASE_UNLOCKS = Object.freeze([
+  { base: 7, moves: 15 },
+  { base: 11, moves: 35 },
+  { base: 13, moves: 60 }
+]);
+
+// Only successful board slides count. Once unlocked, a new base starts rare
+// and gradually becomes as common as the original bases over twelve moves.
+export function activeBases(moves = 0) {
+  return BASES.filter(base =>
+    !BASE_UNLOCKS.some(step => step.base === base && moves < step.moves));
+}
+function baseWeight(base, moves) {
+  const unlock = BASE_UNLOCKS.find(step => step.base === base);
+  if (!unlock) return 1;
+  if (moves < unlock.moves) return 0;
+  const progress = Math.min(1, Math.max(0, (moves - unlock.moves) / 12));
+  return 0.3 + 0.7 * progress;
+}
 
 export const key = t => t.base + "-" + t.exp;
 export const tile = (base, exp = 1) => ({ base, exp });
@@ -79,21 +98,33 @@ export function bankReplacement(t, discovered, rng = Math.random) {
   return tile(t.base, unlocked[selection]);
 }
 
-export function spawn(board, discovered, rng = Math.random) {
-  const empty = board.map((t, i) => t ? null : i).filter(i => i !== null);
-  if (!empty.length) return board.slice();
+// Keep the familiar ~85% base / 11% square / 3% cube / 1% higher-power
+// split whenever those categories are unlocked. Missing categories are
+// automatically reweighted by spawn().
+export function spawnOptions(discovered, moves = 0) {
+  const active = activeBases(moves);
+  const weighted = active.map(base => ({ base, weight: baseWeight(base, moves) }));
+  const weightSum = weighted.reduce((sum, entry) => sum + entry.weight, 0);
+  const options = weighted.map(({ base, weight }) =>
+    ({ t: tile(base), w: 85 * weight / weightSum }));
+
   const pool = Array.from(discovered)
     .map(k => { const [base, exp] = k.split("-").map(Number); return tile(base, exp); })
-    .filter(t => BASES.includes(t.base) && t.exp >= 2 && t.exp <= 6);
-  const options = BASES.map(base => ({ t: tile(base), w: 85 / BASES.length }));
+    .filter(t => active.includes(t.base) && t.exp >= 2 && t.exp <= 6);
   const squares = pool.filter(t => t.exp === 2);
   const cubes = pool.filter(t => t.exp === 3);
   const higher = pool.filter(t => t.exp >= 4);
   if (squares.length) options.push(...squares.map(t => ({ t, w: 11 / squares.length })));
   if (cubes.length) options.push(...cubes.map(t => ({ t, w: 3 / cubes.length })));
   if (higher.length) options.push(...higher.map(t => ({ t, w: 1 / higher.length })));
+  return options;
+}
 
-  const total = options.reduce((sum, item) => sum + item.w, 0);
+export function spawn(board, discovered, rng = Math.random, moves = 0) {
+  const empty = board.map((t, i) => t ? null : i).filter(i => i !== null);
+  if (!empty.length) return board.slice();
+  const options = spawnOptions(discovered, moves);
+  const total = options.reduce((sum, option) => sum + option.w, 0);
   let pick = rng() * total, chosen = options[0].t;
   for (const option of options) {
     pick -= option.w;

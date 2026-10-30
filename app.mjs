@@ -1,6 +1,6 @@
 import {
   key, slide, spawn, initial, canMove, isBankable,
-  bankReplacement, checkAnswer, scoreFor
+  bankReplacement, checkAnswer, scoreFor, activeBases, BASE_UNLOCKS
 } from "./engine.mjs";
 
 const $ = id => document.getElementById(id);
@@ -50,6 +50,13 @@ function render() {
   $("best").textContent = state.best;
   $("count").textContent = state.banked.length;
   $("moves").textContent = state.moves;
+  const active = activeBases(state.moves);
+  $("activeBases").innerHTML = active.map(base =>
+    '<span class="base-chip base' + base + '">' + base + '</span>').join("");
+  const upcoming = BASE_UNLOCKS.find(step => state.moves < step.moves);
+  $("nextBase").textContent = upcoming
+    ? "Next: " + upcoming.base + " at move " + upcoming.moves
+    : "All six bases unlocked";
   const board = $("board");
   board.innerHTML = "";
 
@@ -160,11 +167,17 @@ function move(direction) {
   for (const t of result.merges) {
     if (t.exp >= 2 && !state.discovered.includes(key(t))) state.discovered.push(key(t));
   }
-  state.board = spawn(result.board, new Set(state.discovered));
+  const nextMove = state.moves + 1;
+  state.board = spawn(result.board, new Set(state.discovered), Math.random, nextMove);
   const spawnedAt = state.board.findIndex((t, i) => Boolean(t && !result.board[i]));
-  state.moves++;
-  state.locked = []; // Only a successful board slide removes a failed-attempt lock.
-  state.notice = "";
+  const unlockedNow = activeBases(nextMove).filter(base => !activeBases(state.moves).includes(base));
+  state.moves = nextMove;
+  // A valid slide unlocks both incorrect-attempt and successful-bank replacements.
+  state.locked = [];
+  state.notice = unlockedNow.length
+    ? "New base unlocked: " + unlockedNow.join(", ") +
+      "! It will appear more frequently over the next few moves."
+    : "";
   state.over = !canMove(state.board, new Set(state.banked), new Set());
   render();
   const mergedDestinations = new Set(result.motions.filter(m => m.merged).map(m => m.to));
@@ -244,12 +257,16 @@ $("bankForm").addEventListener("submit", event => {
   const replacement = bankReplacement(t, new Set(state.discovered));
   closeBank();
   state.board[i] = replacement; // Banking retains a tile in the occupied square.
+  // Prevent immediately banking the replacement, even when its power is new.
+  // The position unlocks only after the next valid board slide.
+  if (!state.locked.includes(i)) state.locked.push(i);
   state.banked.push(key(t));
   const points = scoreFor(t);
   state.score += points;
   state.best = Math.max(state.best, state.score);
   state.notice = "Banked " + t.base + glyph(t.exp) + " for " + points
-    + " points. " + replacement.base + glyph(replacement.exp) + " remains on the board.";
+    + " points. " + replacement.base + glyph(replacement.exp)
+    + " remains. Slide once before banking that replacement.";
   state.over = !canMove(state.board, new Set(state.banked), new Set(state.locked));
   render();
   if (!prefersReducedMotion()) $("board").children[i]?.classList.add("bank-flash");
