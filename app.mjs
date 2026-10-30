@@ -555,7 +555,7 @@ function move(direction) {
   state.mergeReady = mergeReadyAfterSlide(state.mergeReady, result.motions);
   const curse = mode === "roguelite"
     ? applyThreeCurse(result.board, result.mergeDestinations,
-      state.run, new Set(state.banked))
+      state.run, new Set(state.banked), state.hazards)
     : { board: result.board, expired: [], spared: [] };
   if (curse.expired.length) {
     const expired = new Set(curse.expired);
