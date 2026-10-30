@@ -4,7 +4,9 @@ import { newRogueliteRun, advanceRogueliteRound,
   restoreRogueliteRun, targetForRound } from "./roguelite.mjs";
 import {
   ITEM_CATALOG, ITEM_BY_ID, INVENTORY_SLOTS, SHOP_OFFERS_PER_TYPE,
-  INITIAL_REROLL_COST, emptyInventory, restoreShopState, enterRogueliteShop,
+  INITIAL_REROLL_COST, RUNESTONE_SHOP_CHANCE,
+  RUNESTONE_ITEM_IDS, RUNESTONE_WEIGHTS,
+  emptyInventory, restoreShopState, enterRogueliteShop,
   purchaseShopOffer, sellPermanent, discardConsumable, rerollRogueliteShop
 } from "./shop.mjs";
 
@@ -214,6 +216,13 @@ assert.deepEqual(rare.map(item => item.id), [
   "mint-runestone", "sanctuary-runestone", "shatter-runestone"
 ]);
 assert.deepEqual(rare.map(item => item.unlockRound), [4,4,7,10,4,7]);
+assert.equal(RUNESTONE_SHOP_CHANCE, .22);
+assert.deepEqual(RUNESTONE_ITEM_IDS, rare.map(item => item.id));
+assert.deepEqual(Object.keys(RUNESTONE_WEIGHTS).sort(),
+  RUNESTONE_ITEM_IDS.slice().sort());
+assert.ok(RUNESTONE_WEIGHTS["mint-runestone"] <
+  RUNESTONE_WEIGHTS["prism-runestone"],
+  "The late Twin Mint must be rarer than the basic prism");
 const runForStage = stage => ({
   ...base,
   run: { ...base.run, round: stage - 1, phase: "round-clear",
@@ -229,11 +238,30 @@ let rareShop = enterRogueliteShop(runForStage(4),
   sequence(.5, .5, .15, .99, .5));
 assert.ok(rareShop.run.shop.consumables.includes("sanctuary-runestone"));
 assert.equal(rareShop.run.shop.consumables.filter(id => ITEM_BY_ID[id]?.rare).length, 1);
+assert.equal(rareShop.run.shop.runestoneSeen, true,
+  "Once revealed, a Runestone stays recorded for the shop visit");
+let noSecondRune = rerollRogueliteShop(rareShop,
+  sequence(.5, .5, .1, .99, .5));
+assert.equal(noSecondRune.run.shop.consumables.some(id => ITEM_BY_ID[id]?.rare),
+  false, "Rerolls after a Runestone was revealed must contain ordinary tools");
+assert.equal(noSecondRune.run.shop.runestoneSeen, true);
+noSecondRune = rerollRogueliteShop(noSecondRune,
+  sequence(.5, .5, .1, .99, .5));
+assert.equal(noSecondRune.run.shop.consumables.some(id => ITEM_BY_ID[id]?.rare),
+  false, "Rare shop cap must persist through multiple rerolls");
+const recoveredRareShop = restoreShopState({
+  ...rareShop.run,
+  shop: { ...rareShop.run.shop, runestoneSeen: undefined }
+}, () => .99);
+assert.equal(recoveredRareShop.shop.runestoneSeen, true,
+  "Pass 2 shop saves with a revealed Runestone migrate safely");
+assert.deepEqual(recoveredRareShop.shop.consumables, rareShop.run.shop.consumables,
+  "Save migration must not reroll existing rare offers");
 rareShop = enterRogueliteShop(runForStage(7),
   sequence(.5, .5, .15, .99, .5));
 assert.ok(rareShop.run.shop.consumables.includes("shatter-runestone"));
 rareShop = enterRogueliteShop(runForStage(10),
-  sequence(.5, .5, .15, .55, .5));
+  sequence(.5, .5, .15, .60, .5));
 assert.ok(rareShop.run.shop.consumables.includes("mint-runestone"));
 for (const stage of [2,3]) {
   const oldShop = enterRogueliteShop(runForStage(stage),
@@ -245,6 +273,12 @@ const ordinaryStock = enterRogueliteShop(runForStage(10),
   sequence(.5, .5, .75, .99, .5));
 assert.equal(ordinaryStock.run.shop.consumables.some(id => ITEM_BY_ID[id]?.rare),
   false, "A failed rare roll must not include rare items");
+assert.equal(ordinaryStock.run.shop.runestoneSeen, false);
+const foundOnReroll = rerollRogueliteShop(ordinaryStock,
+  sequence(.5, .5, .15, .99, .5));
+assert.equal(foundOnReroll.run.shop.runestoneSeen, true,
+  "A reroll can discover one rare if none appeared earlier");
+assert.equal(foundOnReroll.run.shop.consumables.filter(id => ITEM_BY_ID[id]?.rare).length, 1);
 
 // A final victory (round 12) is not a shop visit.
 const victorious = {
