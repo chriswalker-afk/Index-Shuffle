@@ -1,7 +1,7 @@
 // Roguelite progression and economy. Classic keeps its original scoring and rules.
 import {
   initial, INITIAL_MOVES_LEFT, MAX_MOVES_LEFT, BUDGET_RULES_VERSION
-} from "./engine.mjs?v=roguelite-pass2-v1";
+} from "./engine.mjs?v=roguelite-pass3-v1";
 
 export const ROUND_TARGETS = Object.freeze([
   8, 11, 14, 17, 20, 24, 28, 33, 39, 45, 52, 60
@@ -108,8 +108,8 @@ export function validRogueliteRun(run) {
       run.round > TOTAL_ROUNDS ||
       !Number.isSafeInteger(run.totalScore) || run.totalScore < 0 ||
       !Number.isSafeInteger(run.totalSlides) || run.totalSlides < 0 ||
-      !["playing", "round-clear", "victory"].includes(run.phase)) return false;
-  if (run.phase === "round-clear" && run.round === TOTAL_ROUNDS) return false;
+      !["playing", "round-clear", "shop", "victory"].includes(run.phase)) return false;
+  if (["round-clear", "shop"].includes(run.phase) && run.round === TOTAL_ROUNDS) return false;
   if (run.phase === "victory" && run.round !== TOTAL_ROUNDS) return false;
   return true;
 }
@@ -154,7 +154,9 @@ export function newRogueliteRun(best = 0, rng = Math.random) {
     run: {
       round: 1, totalScore: 0, totalSlides: 0, phase: "playing",
       coins: 0, totalCoinsEarned: 0, roundBankCoins: 0,
-      goldDryStreak: 0, lastRoundReward: null
+      goldDryStreak: 0, lastRoundReward: null,
+      inventory: { permanents: [null, null], consumables: [null, null] },
+      shop: null
     }
   };
 }
@@ -194,8 +196,8 @@ export function recordRogueliteBank(run, previousScore, power,
 // tile gold, dry streak, blockers, moves, and round score all reset.
 export function advanceRogueliteRound(state, rng = Math.random) {
   if (state?.mode !== "roguelite" || !validRogueliteRun(state.run) ||
-      state.run.phase !== "round-clear") {
-    throw new RangeError("Advance only after clearing a Roguelite round");
+      state.run.phase !== "shop") {
+    throw new RangeError("Advance only after visiting the Roguelite shop");
   }
   const nextRound = state.run.round + 1;
   const run = restoreRogueliteRun(state.run, state.movesLeft);
@@ -211,7 +213,7 @@ export function advanceRogueliteRound(state, rng = Math.random) {
       " points by banking powers correctly.",
     run: {
       ...run, round: nextRound, phase: "playing",
-      roundBankCoins: 0, goldDryStreak: 0, lastRoundReward: null
+      roundBankCoins: 0, goldDryStreak: 0, lastRoundReward: null, shop: null
     }
   };
 }

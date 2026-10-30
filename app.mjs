@@ -4,11 +4,17 @@ import {
   mergeReadyAfterSlide, attemptBank, adjacentIndices, activeBases, BASE_UNLOCKS,
   INITIAL_MOVES_LEFT, MERGES_PER_BONUS_MOVE, BUDGET_RULES_VERSION,
   restoreMoveBudget, spendMove, slideCost, creditCorrectBank, gameEnded
-} from "./engine.mjs?v=roguelite-pass2-v1";
+} from "./engine.mjs?v=roguelite-pass3-v1";
 import { newRogueliteRun, targetForRound, stageForRound, isBossRound,
   recordRogueliteBank, advanceRogueliteRound, validRogueliteRun,
   restoreRogueliteRun, markGoldSpawns, goldTier, goldForBank
-} from "./roguelite.mjs?v=roguelite-pass2-v1";
+} from "./roguelite.mjs?v=roguelite-pass3-v1";
+import {
+  restoreShopState, enterRogueliteShop, rerollRogueliteShop
+} from "./shop.mjs?v=roguelite-pass3-v1";
+import {
+  renderRogueliteInventory, renderRogueliteShop
+} from "./shop-ui.mjs?v=roguelite-pass3-v1";
 
 const $ = id => document.getElementById(id);
 const glyph = n => String(n).replace(/\d/g, d => "⁰¹²³⁴⁵⁶⁷⁸⁹"[+d]);
@@ -46,7 +52,8 @@ if (!state || !Array.isArray(state.board) || state.board.length !== 16) {
   state.notice = "";
   if (mode === "roguelite" && !validRogueliteRun(state.run)) state = newRogueliteRun();
   else {
-    if (mode === "roguelite") state.run = restoreRogueliteRun(state.run, state.movesLeft);
+    if (mode === "roguelite") state.run = restoreShopState(
+      restoreRogueliteRun(state.run, state.movesLeft));
     state.over = mode === "roguelite" && state.run.phase !== "playing" ? false
       : gameEnded(state.board, new Set(state.banked),
         new Set(state.locked), state.movesLeft);
@@ -75,8 +82,7 @@ function render() {
   $("helpRogueBlock").hidden = !rogue;
   $("rogueEndSummary").hidden = !rogue || state.run.phase !== "victory";
   $("roundClearPanel").hidden = !rogue || state.run.phase !== "round-clear";
-  $("nextRound").textContent = rogue && state.run.phase === "round-clear"
-    ? "Continue to round " + (state.run.round + 1) : "Next round";
+  $("nextRound").textContent = "Visit shop";
   $("endActions").querySelector("strong").textContent = rogue && state.run.phase === "victory"
     ? "Run completed!" : "Run finished";
   if (rogue) {
@@ -216,7 +222,9 @@ function render() {
     }).join("")
     : '<p class="muted">Discover your first square by merging two matching bases.</p>';
   $("status").textContent = rogue && state.run.phase === "round-clear"
-    ? "Round cleared! Continue to the next round."
+    ? "Round cleared! Your shop visit is next."
+    : rogue && state.run.phase === "shop"
+    ? "Shop open: choose items, reroll, or save your coins."
     : rogue && state.run.phase === "victory"
     ? "You completed all 12 rounds!"
     : state.movesLeft === 0
@@ -228,8 +236,11 @@ function render() {
         : "Swipe to merge, or select a glowing power to bank.");
   $("status").classList.toggle("is-over", state.over);
   $("stage").textContent = rogue && state.run.phase === "round-clear" ? "Round cleared"
+    : rogue && state.run.phase === "shop" ? "Shopping"
     : rogue && state.run.phase === "victory" ? "Victory" : state.over ? "Game over" : "Playing";
   $("endActions").hidden = !state.over && !(rogue && state.run.phase === "victory");
+  renderRogueliteInventory(state, rogue);
+  renderRogueliteShop(state, mode, applyShopAction);
   persist();
 }
 
@@ -518,9 +529,30 @@ $("newFromEnd").addEventListener("click", startNewGame);
 $("nextRound").addEventListener("click", () => {
   if (mode !== "roguelite" || state.run.phase !== "round-clear") return;
   stopMotion();
+  state = enterRogueliteShop(state);
+  render();
+});
+function applyShopAction(reducer) {
+  if (mode !== "roguelite" || state.run.phase !== "shop") return;
+  try {
+    state = reducer(state);
+  } catch (error) {
+    state.run.shop.notice = error instanceof Error ? error.message : "Unable to complete that action.";
+  }
+  render();
+}
+$("shopReroll").addEventListener("click", () => {
+  applyShopAction(value => rerollRogueliteShop(value));
+});
+$("shopContinue").addEventListener("click", () => {
+  if (mode !== "roguelite" || state.run.phase !== "shop") return;
+  stopMotion();
   state = advanceRogueliteRound(state);
   render();
 });
+// Escape cannot dismiss the modal while the game is in its saved shop phase.
+// The Start round button is always available, even if there are no coins.
+$("shopDialog").addEventListener("cancel", event => event.preventDefault());
 function switchMode(selected) {
   if (selected === mode || pending !== null) return;
   if (mode === "roguelite" && state.run.phase === "playing" && !state.over ||
@@ -540,7 +572,8 @@ function switchMode(selected) {
   state.mergeReady = Array.isArray(state.mergeReady) ? state.mergeReady : [];
   state.discovered = Array.isArray(state.discovered) ? state.discovered : [];
   state.banked = Array.isArray(state.banked) ? state.banked : [];
-  if (mode === "roguelite") state.run = restoreRogueliteRun(state.run, state.movesLeft);
+  if (mode === "roguelite") state.run = restoreShopState(
+    restoreRogueliteRun(state.run, state.movesLeft));
   state.over = mode === "roguelite" && state.run.phase !== "playing" ? false
     : gameEnded(state.board, new Set(state.banked), new Set(state.locked), state.movesLeft);
   render();
@@ -570,6 +603,8 @@ const keys = {
 };
 document.addEventListener("keydown", event => {
   if (event.key === "Escape" && pending !== null) { closeBank(); return; }
+  // Let arrow keys scroll the modal shop instead of swallowing them as slides.
+  if ($("shopDialog").open) return;
   if ($("helpDialog").open || pending !== null ||
       ["INPUT", "TEXTAREA"].includes(document.activeElement.tagName)) return;
   const direction = keys[event.key];

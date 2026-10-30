@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#0c1428">
   <meta name="description" content="Slide and merge powers, solve banking challenges and stay in the game.">
   <title>Index Shuffle — Make every move count</title>
-  <link rel="stylesheet" href="styles.css?v=roguelite-pass2-v1">
+  <link rel="stylesheet" href="styles.css?v=roguelite-pass3-v1">
 </head>
 <body>
   <main class="shell">
@@ -92,6 +92,12 @@
         <div class="hud-score">
           <span>Score</span><strong id="score">0</strong>
         </div>
+        <section id="rogueInventory" class="rogue-equipped" hidden aria-label="Roguelite equipped items">
+          <div class="equip-heading"><strong>Your build</strong><span>2 slots of each type</span></div>
+          <div class="equip-row"><span>Permanent</span><div id="roguePermanentSlots" class="equip-slots"></div></div>
+          <div class="equip-row"><span>Single use</span><div id="rogueConsumableSlots" class="equip-slots"></div></div>
+          <p>Item effects arrive in Pass 4. Purchased items are saved.</p>
+        </section>
         <div id="roundClearPanel" class="round-clear-panel" hidden>
           <strong>Round complete!</strong>
           <p id="roundClearMessage"></p>
@@ -100,7 +106,7 @@
             <div><span>Unused moves (up to 5)</span><strong id="roundSpareCoins">+0</strong></div>
             <div class="round-reward-total"><span>Total gold earned this round</span><strong id="roundRewardTotal">+0</strong></div>
           </div>
-          <button type="button" id="nextRound" class="primary">Next round</button>
+          <button type="button" id="nextRound" class="primary">Visit shop</button>
         </div>
         <div id="endActions" class="end-actions" hidden>
           <strong>Run finished</strong>
@@ -197,8 +203,11 @@
           slides and merges; combining two gold tiles gives a larger coin reward.
           A golden power banked without a genuine merge earns points, but no coins.</p>
         <p>When you clear a round you also earn 1 coin per unused move
-          (up to 5 bonus coins). Your coins carry forward. The item shop
-          and special boss conditions arrive in later passes.</p>
+          (up to 5 bonus coins). Your coins carry forward to a shop after each
+          cleared round. The shop has two single-use offers and two permanent
+          offers, with two inventory slots for each type. Purchased items are
+          saved, but their effects are not active until Pass 4. Boss conditions
+          arrive in Pass 5.</p>
       </div>
       <div class="symbol-guide" aria-label="Board symbol legend">
         <span><b>✦</b> Bankable</span><span><b>⚡</b> Damages blocker if banked</span>
@@ -232,6 +241,39 @@
     </section>
   </dialog>
 
+  <dialog id="shopDialog" class="shop-dialog" aria-labelledby="shopTitle" aria-describedby="shopExplanation">
+    <div class="shop-dialog-inner">
+      <header class="shop-head">
+        <div>
+          <p class="overline">BETWEEN ROUNDS</p>
+          <h2 id="shopTitle">The Index Shop</h2>
+          <p id="shopRound" class="shop-round">Preparing for round 2 of 12</p>
+        </div>
+        <div class="shop-wallet" aria-label="Current coin balance">
+          <span aria-hidden="true">●</span><strong id="shopCoins">0</strong><small>coins</small>
+        </div>
+      </header>
+      <p id="shopExplanation" class="shop-explanation">
+        Buy upgrades, sell or replace permanent items, discard single-use items,
+        or save coins for a later round. You may leave without buying.
+        <strong>Item effects are coming in Pass 4; purchases are saved now.</strong>
+      </p>
+      <p id="shopNotice" class="shop-notice" role="status" aria-live="polite"></p>
+      <div class="shop-section-heading">
+        <h3>Available offers</h3><span>2 permanent · 2 single use</span>
+      </div>
+      <div id="shopOffers" class="shop-offers" aria-label="Available shop items"></div>
+      <div class="shop-section-heading">
+        <h3>Your inventory</h3><span>Exactly 2 slots for each type</span>
+      </div>
+      <div id="shopInventory" class="shop-inventory" aria-label="Equipped items and slot management"></div>
+      <footer class="shop-actions">
+        <button type="button" id="shopReroll" class="outline">Reroll offers · 1 coin</button>
+        <button type="button" id="shopContinue" class="primary">Start next round</button>
+      </footer>
+    </div>
+  </dialog>
+
   <div id="modal" class="overlay" hidden>
     <div class="dialog" role="dialog" aria-modal="true"
          aria-labelledby="promptTitle" aria-describedby="promptHelp">
@@ -259,6 +301,6 @@
       <button type="button" id="cancel" class="textbtn">Keep this tile</button>
     </div>
   </div>
-  <script type="module" src="app.mjs?v=roguelite-pass2-v1"></script>
+  <script type="module" src="app.mjs?v=roguelite-pass3-v1"></script>
 </body>
 </html>

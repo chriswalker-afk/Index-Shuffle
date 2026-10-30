@@ -8,6 +8,7 @@ import {
   goldForBank, spareMoveGold, restoreRogueliteRun, MAX_SPARE_MOVE_COINS,
   GOLD_SPAWN_CHANCE, GOLD_PITY_SLIDES
 } from "./roguelite.mjs";
+import { enterRogueliteShop } from "./shop.mjs";
 
 // Every target is explicit, increasing, and based on the exponent-only scale.
 assert.equal(TOTAL_ROUNDS, 12);
@@ -69,7 +70,11 @@ state = { ...state, score: bank.roundScore, run: bank.run,
   discovered: ["7-2"], banked: ["7-2", "3-2"],
   locked: [3], mergeReady: [0], moves: 8, movesLeft: 3, mergeCredit: 1 };
 const original = structuredClone(state);
-const next = advanceRogueliteRound(state, constantRng);
+assert.throws(() => advanceRogueliteRound(state), RangeError,
+  "Roguelite rounds cannot be advanced without visiting the shop");
+const shopping = enterRogueliteShop(state, constantRng);
+assert.equal(shopping.run.phase, "shop");
+const next = advanceRogueliteRound(shopping, constantRng);
 assert.equal(next.run.round, 2);
 assert.equal(next.run.totalScore, 8);
 assert.equal(next.run.phase, "playing");
@@ -216,9 +221,9 @@ assert.deepEqual(goldAward.run.lastRoundReward, {
 });
 assert.equal(restoreRogueliteRun(goldAward.run, 4).coins, 10,
   "restoring a cleared round must not pay the bonus again");
-assert.equal(advanceRogueliteRound({
+assert.equal(advanceRogueliteRound(enterRogueliteShop({
   ...next, score: 8, run: goldAward.run
-}, constantRng).run.coins, 10, "round transition must not pay twice");
+}, constantRng), constantRng).run.coins, 10, "shop and round transition must not pay twice");
 assert.equal(spareMoveGold(0), 0);
 assert.equal(spareMoveGold(3), 3);
 assert.equal(spareMoveGold(10), 5);
