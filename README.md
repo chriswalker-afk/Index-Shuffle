@@ -56,6 +56,34 @@ a new one instead.
 - Moves animate briefly (170 ms). System **reduced motion** preferences disable animations. Banking timers pause while the browser tab is hidden.
 - Game state, correctly banked merge credit, remaining moves and high score are saved locally in the browser. New games start with 10 moves. **Existing saved games created under the earlier automatic-merge-reward rule** keep their board, score, discoveries and historical slide count but receive a fresh ten-move balance and zero correct-bank credit; this upgrade occurs once.
 
+## Enchanted Squares — Pass 1
+
+From round 4, a rare shop roll can offer **Runestones**, one-use tools in the existing
+two consumable slots. The Gilded Foundry (5 coins) and Power Prism (6 coins) each
+create a **fixed positive square** on a selected board position. Runestone squares
+have two charges, at most two active squares are allowed, and unused charges vanish
+on advancing to the next round. They are independent of the five square hazards,
+not carried by moving tiles, and cannot be placed on a hazard, an incoming
+hazard or blocker warning, a blocker, or an already-enchanted square. Empty
+squares are valid targets; placing one does not spend a slide.
+
+- **Gilded Foundry:** a merge finishing on this square becomes golden and
+  carries its gold when moved. A correct bank on the square instead counts
+  as golden for its one bank. Already-golden tiles do not spend Foundry charges.
+- **Power Prism:** a merge finishing on this square receives a persistent
+  double-score mark, carried with the power until banked. A correct bank on
+  the square also earns twice the normal scored points if the tile is not
+  already marked. No double-application or extra charge is incurred from
+  activating the same effect twice. A boss that nullifies the score still
+  nullifies it, without wasting a directly banked square charge.
+
+Each activation is tied to a meaningful merge or correct answer. Enchantments
+have a separate persistent 4×4 save layer (legacy saves safely start with none);
+consumable inventory, existing hazards and Classic scoring remain compatible.
+The board shows enchanted positions and remaining charges without intercepting
+gestures. CI includes separate Runestone tests and the full existing browser
+and game test suite.
+
 ## Square hazards — Passes 1–4 (balance, rescue and visual polish)
 
 Square hazards are anchored to **board positions beneath numbered tiles**,

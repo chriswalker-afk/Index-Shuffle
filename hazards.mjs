@@ -264,7 +264,8 @@ const chosenIndex = (rng, length) => Math.max(0,
 // create a hazard under an ordinary tile, but never under a blocker.
 export function progressHazardRound(board, hazards, run, movesInRound,
   { rng = Math.random, boss = false, banked = new Set(), locked = new Set(),
-    movementRules = null, movesLeft = null, protection = null } = {}) {
+    movementRules = null, movesLeft = null, protection = null,
+    enchantments = null } = {}) {
   if (!isTileBoard(board) || !Array.isArray(hazards) ||
       hazards.length !== HAZARD_CELLS || !run ||
       !Number.isInteger(movesInRound) || movesInRound < 0 ||
@@ -286,7 +287,8 @@ export function progressHazardRound(board, hazards, run, movesInRound,
   }
   if (warning) {
     const candidate = { ...warning };
-    const allowed = canPlaceHazard(next, board, candidate.index, candidate.type);
+    const allowed = !enchantments?.[candidate.index] &&
+      canPlaceHazard(next, board, candidate.index, candidate.type);
     if (allowed) {
       const probe = placeHazard(next, board, candidate.index, candidate.type);
       const legal = canMove(board, banked, locked,
@@ -321,7 +323,8 @@ export function progressHazardRound(board, hazards, run, movesInRound,
     for (const type of difficulty.types) {
       const positions = [];
       for (let index = 0; index < HAZARD_CELLS; index++) {
-        if (board[index] || !canPlaceHazard(next, board, index, type)) continue;
+        if (board[index] || enchantments?.[index] ||
+            !canPlaceHazard(next, board, index, type)) continue;
         // Null/Cracked next to a fixed obstacle can remove the only viable
         // merge needed to break that obstacle. Keep those square types away
         // from live blockers and pending blocker warnings.

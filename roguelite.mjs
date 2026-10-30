@@ -9,6 +9,7 @@ import {
 } from "./bosses.mjs?v=frostlock-v1";
 import { emptyRunStats, restoreRunStats } from "./milestones.mjs?v=hazard-counter-v1";
 import { emptyHazardLayer } from "./hazards.mjs?v=hazard-counter-v1";
+import { emptyEnchantmentLayer } from "./enchantments.mjs?v=runestones-pass1";
 
 export const ROUND_TARGETS = Object.freeze([
   8, 11, 14, 17, 20, 24, 28, 33, 39, 45, 52, 60
@@ -183,6 +184,7 @@ export function newRogueliteRun(best = 0, rng = Math.random) {
   return {
     mode: "roguelite",
     board: startingBoard(rng), hazards: emptyHazardLayer(),
+    enchantments: emptyEnchantmentLayer(),
     discovered: [], banked: [], locked: [], mergeReady: [],
     score: 0, best: Number.isSafeInteger(best) && best > 0 ? best : 0,
     moves: 0, movesLeft: INITIAL_MOVES_LEFT, mergeCredit: 0,
@@ -268,6 +270,7 @@ export function advanceRogueliteRound(state, rng = Math.random, rates = null) {
     ...state,
     board: nextBoard,
     hazards: emptyHazardLayer(),
+    enchantments: emptyEnchantmentLayer(),
     discovered: [...state.discovered],
     banked: [], locked: [], mergeReady: [],
     score: 0, moves: 0, movesLeft: INITIAL_MOVES_LEFT, mergeCredit: 0,

@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" aria-labelledby="title description">
   <title id="title">Index Shuffle shop item icon library</title>
-  <desc id="description">Thirty-one original illustrated emblems for persistent upgrades, hazard defences and single-use items.</desc>
+  <desc id="description">Thirty-three original illustrated emblems for persistent upgrades, hazard defences and single-use items.</desc>
   <defs>
   <symbol id="item-opening-act" viewBox="0 0 100 100">
     <circle cx="50" cy="50" r="45" fill="#f4cf86" opacity=".16"/>
@@ -156,6 +156,22 @@
     <circle cx="50" cy="50" r="45" fill="#c3a7ee" opacity=".16"/>
     <circle cx="50" cy="50" r="40" fill="none" stroke="#c3a7ee" stroke-width="1.8" opacity=".37" stroke-dasharray="3 7"/>
     <g stroke="#172b3d" stroke-width="4.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="49" cy="55" r="27" fill="none" stroke="#fff0c5" stroke-width="8"/><path d="M21 36l1 22 21-6" stroke="#f4cf86" stroke-width="8" fill="none"/><path d="M50 36v20l14 8" stroke="#f4cf86" stroke-width="6" fill="none"/><path d="M72 13l2.43 6.57L81 22l-6.57 2.43L72 31l-2.43 -6.57L63 22l6.57 -2.43Z" fill="#f4cf86" stroke="none"/></g>
+  </symbol>
+  <symbol id="item-foundry-runestone" viewBox="0 0 100 100">
+    <circle cx="50" cy="50" r="44" fill="#f5cd77" opacity=".18"/>
+    <path d="M50 9 83 27 83 69 50 91 17 69 17 27Z" fill="#593e34" stroke="#ffde90" stroke-width="5"/>
+    <path d="M50 17 75 31 75 65 50 81 25 65 25 31Z" fill="#bb772c"/>
+    <circle cx="50" cy="49" r="20" fill="#ffe4a2" stroke="#fff6cc" stroke-width="3"/>
+    <circle cx="50" cy="49" r="12" fill="#c78a35" stroke="#54371c" stroke-width="2"/>
+    <path d="M50 39v20M40 49h20" stroke="#fff5ce" stroke-width="4"/>
+    <path d="m26 13 3 7 7 3-7 3-3 7-3-7-7-3 7-3Z" fill="#fff0ba"/>
+  </symbol>
+  <symbol id="item-prism-runestone" viewBox="0 0 100 100">
+    <circle cx="50" cy="50" r="44" fill="#baa5ff" opacity=".18"/>
+    <path d="M50 8 87 32 77 76 50 94 23 76 13 32Z" fill="#302e5d" stroke="#d3b8ff" stroke-width="5"/>
+    <path d="M50 17 76 35 68 71 50 83 32 71 24 35Z" fill="#8266cb" stroke="#f7eaff" stroke-width="2"/>
+    <path d="M50 18v65M24 35l26 18 26-18M32 71l18-18 18 18" stroke="#e8dfff" fill="none" stroke-width="3"/>
+    <text x="50" y="63" text-anchor="middle" font-family="system-ui,Arial" font-weight="900" font-size="25" fill="#fff5df">×2</text>
   </symbol>
   <symbol id="item-generic" viewBox="0 0 100 100">
     <circle cx="50" cy="50" r="45" fill="#9bc6e9" opacity=".16"/>

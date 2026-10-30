@@ -5,6 +5,8 @@ import {
   MAX_MOVES_LEFT
 } from "./engine.mjs?v=hazard-counter-v1";
 import { goldTier } from "./roguelite.mjs?v=frostlock-v1";
+import { ENCHANTMENT_ITEMS, canPlaceEnchantment, placeEnchantment,
+  restoreEnchantmentLayer } from "./enchantments.mjs?v=runestones-pass1";
 import { ITEM_BY_ID } from "./shop.mjs?v=frostlock-v1";
 import { bossId, bossMovementRules } from "./bosses.mjs?v=frostlock-v1";
 import {
@@ -129,7 +131,8 @@ export const CONSUMABLE_TARGETS = Object.freeze({
   "block-breaker": 1, "power-surge": 1, "second-wind": 0,
   "alchemist": 1, "protection": 0, "gold-touch": 1,
   "position-swap": 2, "delay-tactics": 0, "clear-space": 1,
-  "second-chance": 1, "hazard-eraser": 1
+  "second-chance": 1, "hazard-eraser": 1,
+  "foundry-runestone": 1, "prism-runestone": 1
 });
 
 function itemInSlot(state, slot) {
@@ -150,6 +153,10 @@ export function consumableTargets(state, slot, selected = []) {
   const banked = new Set(state.banked || []);
   return board.map((t, i) => {
     if (selected.includes(i)) return -1;
+    if (ENCHANTMENT_ITEMS[id]) return canPlaceEnchantment(
+      restoreEnchantmentLayer(state.enchantments, board, state.hazards),
+      board, state.hazards, i, ENCHANTMENT_ITEMS[id],
+      state.run.hazardWarning?.index) ? i : -1;
     if (id === "block-breaker") return isBlocker(t) ? i : -1;
     if (id === "hazard-eraser") {
       return state.hazards && hazardAt(state.hazards, i) ? i : -1;
@@ -207,6 +214,7 @@ export function useConsumable(state, slot, selections = []) {
   }
   const board = state.board.slice();
   let hazards = restoreHazardLayer(state.hazards, board);
+  let enchantments = restoreEnchantmentLayer(state.enchantments, board, hazards);
   const current = restoreEffectState(state.run);
   let locked = [...state.locked], ready = [...state.mergeReady];
   let movesLeft = state.movesLeft;
@@ -218,6 +226,14 @@ export function useConsumable(state, slot, selections = []) {
   };
   const index = selections[0];
   switch (id) {
+    case "foundry-runestone":
+    case "prism-runestone":
+      enchantments = placeEnchantment(enchantments, board, hazards, index,
+        ENCHANTMENT_ITEMS[id], state.run.hazardWarning?.index);
+      notice = ITEM_BY_ID[id].name + " enchanted row " +
+        (Math.floor(index / 4) + 1) + ", column " + (index % 4 + 1) +
+        ". Two charges remain this round.";
+      break;
     case "block-breaker":
       board[index] = null;
       notice = "Block Breaker removed a blocker.";
@@ -287,7 +303,7 @@ export function useConsumable(state, slot, selections = []) {
   // These are tools, never mathematical banks: no score, move credit, gold,
   // blocker damage or discovered powers are earned by activating an item.
   return {
-    ...state, board, hazards, locked, mergeReady: ready, movesLeft,
+    ...state, board, hazards, enchantments, locked, mergeReady: ready, movesLeft,
     run, notice
   };
 }

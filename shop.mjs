@@ -50,7 +50,9 @@ export const ITEM_CATALOG = Object.freeze([
   { id: "position-swap", name: "Position Swap", type: "consumables", price: 3, description: "Swap the positions of two number tiles." },
   { id: "delay-tactics", name: "Delay Tactics", type: "consumables", price: 2, description: "Delay the next scheduled blocker by two slides." },
   { id: "clear-space", name: "Clear Space", type: "consumables", price: 2, description: "Remove one ordinary number tile without scoring." },
-  { id: "second-chance", name: "Second Chance", type: "consumables", price: 2, description: "Unlock one temporarily locked banking attempt." }
+  { id: "second-chance", name: "Second Chance", type: "consumables", price: 2, description: "Unlock one temporarily locked banking attempt." },
+  { id: "foundry-runestone", name: "Gilded Foundry", type: "consumables", price: 5, unlockRound: 4, rare: true, description: "Place a golden foundry on one safe board square. Two useful merges or correct banks there become golden." },
+  { id: "prism-runestone", name: "Power Prism", type: "consumables", price: 6, unlockRound: 4, rare: true, description: "Place a prism on one safe board square. Two merges or correct banks there can gain double scoring." }
 ].map(item => Object.freeze(item)));
 export const ITEM_BY_ID = Object.freeze(
   Object.fromEntries(ITEM_CATALOG.map(item => [item.id, item]))
@@ -100,12 +102,25 @@ function drawOffers(type, inventory, rng, previous = [], nextRound = 1) {
   const owned = new Set(type === "permanents"
     ? inventory.permanents.filter(Boolean).map(entry => entry.id) : []);
   const last = new Set(previous.filter(Boolean));
+  // At most one rare Runestone enters a shop draw (roughly 22% of shops).
+  // Rerolls draw again; a nonrare pair remains unchanged for legacy runs.
+  const rareEnabled = type === "consumables" && nextRound >= 4 &&
+    (() => { const roll = rng(); return roll > 0 && roll < 0.22; })();
+  const rareItems = ITEM_CATALOG.filter(item => item.rare &&
+    item.unlockRound <= nextRound);
+  const selectedRare = rareEnabled ? rareItems[Math.min(rareItems.length - 1,
+    Math.floor(rng() * rareItems.length))]?.id : null;
   const valid = ITEM_CATALOG.filter(item =>
     item.type === type && !owned.has(item.id) &&
+    (!item.rare || item.id === selectedRare) &&
     (item.unlockRound === undefined || nextRound >= item.unlockRound));
   const fresh = valid.filter(item => !last.has(item.id));
   const pool = (fresh.length >= SHOP_OFFERS_PER_TYPE ? fresh : valid).slice();
-  const offered = [];
+  const offered = selectedRare ? [selectedRare] : [];
+  if (selectedRare) {
+    const index = pool.findIndex(item => item.id === selectedRare);
+    if (index >= 0) pool.splice(index, 1);
+  }
   while (offered.length < SHOP_OFFERS_PER_TYPE) {
     const randomIndex = Math.min(pool.length - 1,
       Math.max(0, Math.floor(rng() * pool.length)));
