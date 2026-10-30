@@ -2,6 +2,7 @@
 // is intentionally unchanged even though the mode's display name is Roguelike.
 import { validRogueliteRun } from "./roguelite.mjs?v=frostlock-v1";
 import { isFinishedRun } from "./milestones.mjs?v=hazard-counter-v1";
+import { validSavedBoard } from "./save-validation.mjs?v=release-5a";
 
 export const MODE_LABELS = Object.freeze({
   classic: "Classic",
@@ -13,7 +14,7 @@ const display = number => positive(number) ? number.toLocaleString() : "0";
 
 export function resumableSave(gameMode, snapshot) {
   if (!(gameMode in MODE_LABELS) || !snapshot ||
-      !Array.isArray(snapshot.board) || snapshot.board.length !== 16) return false;
+      !validSavedBoard(snapshot.board)) return false;
   if (gameMode === "roguelite" && !validRogueliteRun(snapshot.run)) return false;
   if (isFinishedRun(gameMode, snapshot)) return false;
   if (gameMode === "roguelite" && snapshot.run.phase !== "playing") return true;
