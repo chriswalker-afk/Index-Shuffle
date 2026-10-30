@@ -1,6 +1,6 @@
 # Index Shuffle · Numberworld art direction
 
-Status: **Pass 1 characters + Pass 2 illustrated shop + Pass 3 boss scenes complete**. This guide is the single
+Status: **Passes 1–4 artwork complete**: character art, illustrated shop, boss scenes and world environments. This guide is the single
 source of truth for visual design decisions in later passes.
 
 ## Concept: The Curious Numberworld
@@ -64,8 +64,8 @@ These are illustration colours, *not* replacements for accessible UI colours.
 - `art-catalog.mjs` — immutable mappings and safe missing-portrait fallback
 - `art-preview.html` — static concept gallery for reviewing the first pass
 
-Existing boss definitions, item IDs, score logic, saves and economy are not
-changed by this art pass. More boss IDs can be added to `BOSS_ART` later.
+Existing boss definitions, item IDs, score logic, saves and economy were not
+changed by Pass 1. All seven current bosses now have portraits (see Pass 3).
 
 ## Pass 2 · Illustrated shop (complete)
 
@@ -127,10 +127,50 @@ changed by this art pass. More boss IDs can be added to `BOSS_ART` later.
 - `boss-gallery.html` offers all seven images and a real live
   preview of the encounter dialog **without entering a game**.
 
-## Next passes
+## Pass 4 · The world, hazards and achievement cabinet (complete)
 
-- **Pass 4:** stage atmospheres, hazard icons, title and achievements.
-- **Pass 5:** restrained animation, mobile/performance/accessibility polish.
+- **Four original 960×260 panoramic SVG environments**, each evocative but
+  deliberately less visually prominent than the tile grid:
+  The Observatory (rounds 1–3; jade/stone observatory);
+  The Mist Gardens (rounds 4–6; pale fog/arched ruins);
+  The Fracture Forge (rounds 7–9; amber fractured masonry);
+  The Eclipse Vault (rounds 10–12; violet eclipse and chained powers).
+  The `stage-art.mjs` map stores presentation-only titles and asset paths.
+  **`stageForRound` in `roguelite.mjs` remains canonical**; data-stage
+  attributes are DOM-only, not stored in saves.
+- **Dedicated illustrated title gateway** in `title-numberworld.svg`,
+  layered behind the existing four mathematically labelled sample tiles.
+  The four-realm journey cards appear underneath the mode previews.
+  New Game / Continue and help links remain the principal title controls.
+- **Five original compact hazard emblem SVGs**, applied consistently to
+  live hazards, imminent hazard warnings, the hazard summary and the
+  optional instructional guide. Distinct colours, existing symbolic badges,
+  explicit hazard names and the `! NEXT` warning remain visible.
+  The warning remains announced in text and never captures pointer input.
+  **Cloudy remains opaque**: it hides tile values and gold, including
+  screen-reader descriptions, exactly as before. Other hazards remain
+  translucent and do not conceal tile maths.
+- **A collectible trophy cabinet** for the existing 16 achievements.
+  `assets/art/achievement-medals.svg` contains 16 bespoke symbolic
+  medal emblems; `achievement-art.mjs` maps stable achievement IDs
+  to icons and purely visual enamel themes. Only unlocked medals display
+  the emblems in the game. Locked cards show subdued question-mark medals
+  and existing goal progress, preserving the secret-art reveal.
+  Unlock rules, profile storage, descriptions and dates are unchanged.
+- **All assets are local**. No embedded scripts, network dependencies,
+  audio or font files. Decorative images have empty alt text where adjacent
+  visible text already conveys the information, and boss/hazard rule text
+  is never replaced with an image.
+- Stage banners collapse in height on narrow viewports; icons cannot
+  intercept input. Existing reduced-motion handling continues to disable
+  decorative transitions and animations.
+- `world-gallery.html` provides easy, static review of the complete
+  four-stage, five-hazard and 16-medal collections, without changing saves.
 
-Before expanding the library, review the three illustrations at
-`/art-preview.html` and confirm silhouette, palette, tone and portrait size.
+## Next pass
+
+- **Pass 5:** final motion restraint, real-device mobile layout,
+  performance/accessibility review and maths/readability regression audit.
+
+Review the art in `art-preview.html`, `item-gallery.html`,
+`boss-gallery.html` and `world-gallery.html` before finalising polishing.
