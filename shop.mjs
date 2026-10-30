@@ -17,7 +17,7 @@ export const ITEM_CATALOG = Object.freeze([
   { id: "square-specialist", name: "Square Specialist", type: "permanents", price: 4, description: "Banking squares earns 1 bonus point." },
   { id: "five-alive", name: "Five Alive", type: "permanents", price: 4, description: "Base-5 powers score double points." },
   { id: "variety-bonus", name: "Variety Bonus", type: "permanents", price: 6, description: "Bank a different base from last time for 2 extra points." },
-  { id: "golden-calculator", name: "Golden Calculator", type: "permanents", price: 7, description: "Each successfully banked golden power earns an extra coin." },
+  { id: "golden-calculator", name: "Golden Calculator", type: "permanents", price: 7, description: "Each correctly banked merged golden power earns an extra coin." },
   { id: "blockbuster", name: "Blockbuster", type: "permanents", price: 6, description: "Correctly banked merged powers deal an extra hit to adjacent blockers." },
   { id: "lucky-spawn", name: "Lucky Spawn", type: "permanents", price: 8, description: "New tiles have a higher chance of being golden." },
   { id: "bulk-discount", name: "Bulk Discount", type: "permanents", price: 7, description: "All future shop items cost one coin less (minimum one)." },
