@@ -224,10 +224,10 @@ export function turnSpawns(board, discovered, moves, rng = Math.random, avoid = 
     if (index >= 0) spawned.push(index);
   };
 
-  // The regular number spawns first. At a ten-move milestone, reserve an
-  // available blocker square BEFORE adding the optional second number.
-  addNumber();
-
+  // At a scheduled milestone the blocker gets first choice of a free
+  // square, so it cannot be crowded out by the ordinary number spawn.
+  // When the board has only one vacancy, a blocker replaces that turn's
+  // normal spawn; otherwise one or two number tiles still appear.
   let blockerAt = -1;
   if (moves >= BLOCKER_START &&
       (moves - BLOCKER_START) % BLOCKER_INTERVAL === 0 &&
@@ -249,6 +249,7 @@ export function turnSpawns(board, discovered, moves, rng = Math.random, avoid = 
     }
   }
 
+  addNumber();
   if (moves >= EXTRA_SPAWN_START && moves % EXTRA_SPAWN_INTERVAL === 0) {
     addNumber();
   }
