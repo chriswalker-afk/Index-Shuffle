@@ -42,6 +42,44 @@ a new one instead.
 - Moves animate briefly (170 ms). System **reduced motion** preferences disable animations. Banking timers pause while the browser tab is hidden.
 - Game state, correctly banked merge credit, remaining moves and high score are saved locally in the browser. New games start with 10 moves. **Existing saved games created under the earlier automatic-merge-reward rule** keep their board, score, discoveries and historical slide count but receive a fresh ten-move balance and zero correct-bank credit; this upgrade occurs once.
 
+## Square hazards — Pass 1 (foundation and presentation)
+
+This pass adds the infrastructure for **five new Roguelike square hazards**.
+A hazard is a separate board-coordinate layer, not a numbered tile or a fixed
+blocker. It can be shown underneath an occupied tile, and remains in place
+when numbered tiles move. The slide animations continue to use the original
+16 tile positions; the non-interactive visual hazard layer is anchored above
+them instead of moving with the numbered tiles.
+
+| Hazard | Planned interaction | Visual |
+| --- | --- | --- |
+| **Cloudy** | Hides the base, exponent and gold of an occupied tile; lasts 3 successful slides | Opaque mist with a question mark and countdown |
+| **Void** | Reduces an arriving tile's exponent by one, then disappears | Purple vortex and −1 marker |
+| **Null** | Prevents merges finishing on the square | Red crossed-circle marker |
+| **Cracked** | Becomes Null after a merge finishes on it | Amber fractured-square marker |
+| **Greedy** | Removes gold from tiles passing through or landing on the square | Gold siphon marker |
+
+**Important: Pass 1 only.** These are currently **visual previews and saved
+data structures**, not live hazards. They **do not spawn** during play, and
+Void/Null/Cracked/Greedy rules **do not run yet**. The optional How to play
+dialogue includes a five-hazard field guide so their styles can be checked
+before any gameplay is changed.
+
+The Roguelike game state has a separate 16-slot `hazards` array. Each entry
+is either null or a small serializable descriptor such as
+`{ "type": "cloudy", "turnsLeft": 3 }`. The state is migrated safely for
+existing Roguelike saves (missing or malformed layers default to empty),
+supports up to two simultaneous hazards, reserves only one Null/Cracked
+candidate, and avoids overlays on blocker or warning squares. The hazard
+layer **resets every round**; gold, items, scoring, bosses and Classic remain
+unchanged. The renderer keeps overlays non-interactive so existing bank,
+keyboard and touch controls are unaffected.
+
+**Next passes:** (2) implement tile movement/merge and bank interactions
+for all five hazards; (3) activate difficulty-based spawning from Stage 2
+onwards and add a one-use **Hazard Eraser** consumable; (4) tune timings,
+fairness, boss combinations, accessibility and mobile visuals.
+
 ## Roguelite — Passes 2–5 (Gold, shop, active items and bosses)
 
 Select **Roguelite** for a separate 12-round run. Correctly banking a power earns **exactly its exponent in points** (for example, 7² earns 2 points). Classic scoring is unchanged. Each round has a rising target: **8, 11, 14, 17, 20, 24, 28, 33, 39, 45, 52, 60**. Every third round is labelled as a boss milestone; actual boss effects arrive in a later pass. These targets are provisional and will need balancing with the now-active item combinations.
@@ -122,6 +160,8 @@ The game is plain HTML, CSS, and native JavaScript modules, with no external run
 - **shop-ui.mjs:** accessible shop offer and equipment controls, plus active consumable buttons in the Roguelite HUD.
 - **effects.mjs:** pure bonus calculations, protected slides, hazard delays, gold rates, and ten targeted or immediate consumable effects, with independent tests.
 - **bosses.mjs:** boss scheduling, restrictions, score/target overrides, extra blockers, timed curses and migration for existing runs.
+- **hazards.mjs:** independent 4×4 square hazard data, normalization, safe placement/removal and round-limited persistence; effects are deferred to Pass 2.
+- **hazard-ui.mjs:** non-interactive stationary overlay renderer and accessible, non-revealing descriptions.
 - **milestones.mjs:** achievement catalogue, permanent progress tracking, per-run bank/shop/move stats and final-score summaries.
 - **results-ui.mjs:** accessible final score and achievement gallery dialogs with earned and locked medal states.
 - **navigation.mjs:** pure title-screen save eligibility and Continue summaries, preserving the legacy Roguelite save format.
