@@ -4,46 +4,46 @@ import {
   mergeReadyAfterSlide, attemptBank, adjacentIndices, activeBases, BASE_UNLOCKS,
   INITIAL_MOVES_LEFT, MERGES_PER_BONUS_MOVE, BUDGET_RULES_VERSION,
   restoreMoveBudget, spendMove, slideCost, creditCorrectBank, gameEnded
-} from "./engine.mjs?v=hazard-pass3-v1";
+} from "./engine.mjs?v=hazard-pass4-v1";
 import { newRogueliteRun, targetForRound, stageForRound, isBossRound,
   recordRogueliteBank, advanceRogueliteRound, validRogueliteRun,
   restoreRogueliteRun, markGoldSpawns, goldTier, goldForBank
-} from "./roguelite.mjs?v=hazard-pass3-v1";
+} from "./roguelite.mjs?v=hazard-pass4-v1";
 import {
   restoreShopState, enterRogueliteShop, rerollRogueliteShop
-} from "./shop.mjs?v=hazard-pass3-v1";
+} from "./shop.mjs?v=hazard-pass4-v1";
 import {
   renderRogueliteInventory, renderRogueliteShop
-} from "./shop-ui.mjs?v=hazard-pass3-v1";
+} from "./shop-ui.mjs?v=hazard-pass4-v1";
 import {
   restoreEffectState, bankItemBonuses, goldChancesForRun,
   costOfNextSlide, canActivateConsumable, CONSUMABLE_TARGETS,
   consumableTargets, useConsumable
-} from "./effects.mjs?v=hazard-pass3-v1";
-import { ITEM_BY_ID } from "./shop.mjs?v=hazard-pass3-v1";
+} from "./effects.mjs?v=hazard-pass4-v1";
+import { ITEM_BY_ID } from "./shop.mjs?v=hazard-pass4-v1";
 import {
   bossForRound, bossTargetFor, bossPointsFor, bossMovementRules,
   bossAllowsMoveRestoration, applyThreeCurse
-} from "./bosses.mjs?v=hazard-pass3-v1";
+} from "./bosses.mjs?v=hazard-pass4-v1";
 import {
   ACHIEVEMENTS, ACHIEVEMENT_BY_ID, emptyRunStats, restoreRunStats,
   restoreAchievementProfile, recordRunStats, recordSuccessfulSlide,
   addEarnedToRunStats, recordAchievementEvent, countUnlocked,
   progressForAchievement, isFinishedRun, finalScoreSummary
-} from "./milestones.mjs?v=hazard-pass3-v1";
+} from "./milestones.mjs?v=hazard-pass4-v1";
 import {
   openAchievementGallery, renderFinalScreen
-} from "./results-ui.mjs?v=hazard-pass3-v1";
-import { MODE_LABELS, resumableSave } from "./navigation.mjs?v=hazard-pass3-v1";
-import { renderNavigation } from "./title-ui.mjs?v=hazard-pass3-v1";
+} from "./results-ui.mjs?v=hazard-pass4-v1";
+import { MODE_LABELS, resumableSave } from "./navigation.mjs?v=hazard-pass4-v1";
+import { renderNavigation } from "./title-ui.mjs?v=hazard-pass4-v1";
 import {
   restoreHazardLayer, hazardAt, activeHazardCount, MAX_ACTIVE_HAZARDS,
   restoreHazardPressure, progressHazardRound, resolveSlideHazards,
   HAZARD_DEFINITIONS, canRescueHazardLock
-} from "./hazards.mjs?v=hazard-pass3-v1";
+} from "./hazards.mjs?v=hazard-pass4-v1";
 import {
   renderHazardLayer, hazardTileDescription
-} from "./hazard-ui.mjs?v=hazard-pass3-v1";
+} from "./hazard-ui.mjs?v=hazard-pass4-v1";
 
 const $ = id => document.getElementById(id);
 const glyph = n => String(n).replace(/\d/g, d => "⁰¹²³⁴⁵⁶⁷⁸⁹"[+d]);
