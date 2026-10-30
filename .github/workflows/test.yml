@@ -22,6 +22,8 @@ jobs:
           node enchantments-balance.tests.mjs
           node enchantments-hazard-audit.tests.mjs
           node enchantments-integration.tests.mjs
+          node rescue.tests.mjs
+          node save-safety.tests.mjs
           node shop.tests.mjs
           node effects.tests.mjs
           node bosses.tests.mjs
@@ -51,6 +53,11 @@ jobs:
           node --check enchantments-balance.tests.mjs
           node --check enchantments-hazard-audit.tests.mjs
           node --check enchantments-integration.tests.mjs
+          node --check rescue.mjs
+          node --check rescue.tests.mjs
+          node --check save-safety.mjs
+          node --check save-safety.tests.mjs
+          node --check save-validation.mjs
           node --check shop.mjs
           node --check shop-ui.mjs
           node --check shop.tests.mjs
@@ -95,6 +102,11 @@ jobs:
           test -f enchantments-balance.tests.mjs
           test -f enchantments-hazard-audit.tests.mjs
           test -f enchantments-integration.tests.mjs
+          test -f rescue.mjs
+          test -f rescue.tests.mjs
+          test -f save-safety.mjs
+          test -f save-safety.tests.mjs
+          test -f save-validation.mjs
           test -f shop.mjs
           test -f shop-ui.mjs
           test -f effects.mjs
