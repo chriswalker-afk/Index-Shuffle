@@ -192,9 +192,10 @@ assert.equal(used.score, 0);
 st.banked = ["5-2"];
 assert.deepEqual(consumableTargets(st, 0), []);
 
-st = setup({ consumables: ["gold-touch"], board: grid([0, tile(3)]) });
+st = setup({ consumables: ["gold-touch"], board: grid([0, tile(3)]), mergeReady: [0] });
 used = useConsumable(st, 0, [0]);
 assert.deepEqual(used.board[0], { base: 3, exp: 1, gold: 1 });
+assert.deepEqual(used.mergeReady, [], "A tile gilded after merging must merge again to earn gold");
 assert.equal(used.moves, 0, "Gold Touch itself is not a slide");
 assert.equal(slide(used.board, "right").board[3].gold, 1);
 assert.deepEqual(consumableTargets({
