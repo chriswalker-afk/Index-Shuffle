@@ -104,7 +104,8 @@ function drawOffers(type, inventory, rng, previous = [], nextRound = 1) {
   const last = new Set(previous.filter(Boolean));
   // At most one rare Runestone enters a shop draw (roughly 22% of shops).
   // Rerolls draw again; a nonrare pair remains unchanged for legacy runs.
-  const rareEnabled = type === "consumables" && nextRound >= 4 && rng() < 0.22;
+  const rareEnabled = type === "consumables" && nextRound >= 4 &&
+    (() => { const roll = rng(); return roll > 0 && roll < 0.22; })();
   const rareItems = ITEM_CATALOG.filter(item => item.rare &&
     item.unlockRound <= nextRound);
   const selectedRare = rareEnabled ? rareItems[Math.min(rareItems.length - 1,
