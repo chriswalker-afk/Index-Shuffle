@@ -15,7 +15,7 @@ assert.equal(INITIAL_REROLL_COST, 1);
 const ids = ITEM_CATALOG.map(item => item.id);
 assert.equal(new Set(ids).size, ids.length, "Every item must have a unique stable ID");
 assert.equal(ITEM_CATALOG.filter(item => item.type === "permanents").length, 20);
-assert.equal(ITEM_CATALOG.filter(item => item.type === "consumables").length, 13);
+assert.equal(ITEM_CATALOG.filter(item => item.type === "consumables").length, 17);
 for (const item of ITEM_CATALOG) {
   assert.equal(ITEM_BY_ID[item.id], item);
   assert.ok(Number.isSafeInteger(item.price) && item.price > 0);
@@ -205,6 +205,46 @@ assert.deepEqual(missingSlot.inventory.permanents, [
 assert.deepEqual(missingSlot.inventory.consumables, [
   { id: "gold-touch", pricePaid: 4 }, null
 ]);
+
+// Stage gating and rare weighted stock never expose locked Runestones,
+// show at most one per shop, or dilute the 22% rare-roll probability.
+const rare = ITEM_CATALOG.filter(item => item.rare);
+assert.deepEqual(rare.map(item => item.id), [
+  "foundry-runestone", "prism-runestone", "echo-runestone",
+  "mint-runestone", "sanctuary-runestone", "shatter-runestone"
+]);
+assert.deepEqual(rare.map(item => item.unlockRound), [4,4,7,10,4,7]);
+const runForStage = stage => ({
+  ...base,
+  run: { ...base.run, round: stage - 1, phase: "round-clear",
+    lastRoundReward: reward }
+});
+const sequence = (...values) => {
+  let i = 0;
+  return () => values[i++] ?? .5;
+};
+// The first two rolls select ordinary permanents, third is rare-chance,
+// fourth selects the rare type, and fifth fills the ordinary consumable slot.
+let rareShop = enterRogueliteShop(runForStage(4),
+  sequence(.5, .5, .15, .99, .5));
+assert.ok(rareShop.run.shop.consumables.includes("sanctuary-runestone"));
+assert.equal(rareShop.run.shop.consumables.filter(id => ITEM_BY_ID[id]?.rare).length, 1);
+rareShop = enterRogueliteShop(runForStage(7),
+  sequence(.5, .5, .15, .99, .5));
+assert.ok(rareShop.run.shop.consumables.includes("shatter-runestone"));
+rareShop = enterRogueliteShop(runForStage(10),
+  sequence(.5, .5, .15, .55, .5));
+assert.ok(rareShop.run.shop.consumables.includes("mint-runestone"));
+for (const stage of [2,3]) {
+  const oldShop = enterRogueliteShop(runForStage(stage),
+    sequence(.5, .5, .15, .99, .5));
+  assert.equal(oldShop.run.shop.consumables.some(id => ITEM_BY_ID[id]?.rare),
+    false, "No early-stage Runestones");
+}
+const ordinaryStock = enterRogueliteShop(runForStage(10),
+  sequence(.5, .5, .75, .99, .5));
+assert.equal(ordinaryStock.run.shop.consumables.some(id => ITEM_BY_ID[id]?.rare),
+  false, "A failed rare roll must not include rare items");
 
 // A final victory (round 12) is not a shop visit.
 const victorious = {

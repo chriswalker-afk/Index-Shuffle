@@ -70,4 +70,157 @@ const html=readFileSync("index.html","utf8");
 assert.match(app,/resolveSlideEnchantments\(result, state.enchantments\)/);
 assert.match(app,/redeemEnchantedBank\(state.enchantments/);
 assert.match(html,/id="enchantmentStatus"/);
-console.log("Enchanted squares Pass 1 tests passed.");
+
+// Pass 2: one-charge and two-charge square definitions survive restoration.
+for (const [type, charges] of [
+  ["echo-seal", 1], ["twin-mint", 1],
+  ["time-sanctuary", 2], ["shatter-crest", 2]
+]) {
+  const placement = placeEnchantment(empty(), board, noHazard, 3, type);
+  assert.equal(placement[3].chargesLeft, charges, type + " initial charges");
+  assert.deepEqual(restoreEnchantmentLayer(JSON.parse(JSON.stringify(placement)),
+    board, noHazard), placement);
+  const bad = placement.slice();
+  bad[3] = { type, chargesLeft: charges + 1 };
+  assert.equal(restoreEnchantmentLayer(bad)[3], null,
+    type + " must reject excess save charges");
+}
+
+// Twin Mint is a MERGE-only effect and cannot be farmed by landing/banking.
+const mintLayer = placeEnchantment(empty(), board, noHazard, 0, "twin-mint");
+let minted = resolveSlideEnchantments(slide(board, "left"), mintLayer);
+assert.equal(minted.board[0].gold, 2);
+assert.equal(minted.enchantments[0], null, "Single use mint expires after merge");
+assert.equal(minted.enchantmentEvents[0].type, "twin-mint");
+assert.equal(previewEnchantedBank(mintLayer, 0, tile(2, 2)).spend, null,
+  "A correct bank alone cannot activate Twin Mint");
+const goldenInputs = empty(); goldenInputs[0] = { ...tile(2), gold: 1 };
+goldenInputs[1] = tile(2);
+minted = resolveSlideEnchantments(slide(goldenInputs, "left"), mintLayer);
+assert.equal(minted.board[0].gold, 2, "Twin Mint upgrades ordinary gold to double");
+const bothGold = empty(); bothGold[0] = { ...tile(2), gold: 1 };
+bothGold[1] = { ...tile(2), gold: 1 };
+minted = resolveSlideEnchantments(slide(bothGold, "left"), mintLayer);
+assert.equal(minted.board[0].gold, 2);
+assert.equal(minted.enchantments[0].chargesLeft, 1,
+  "A naturally double-gold merge must not waste the Mint");
+
+// Echo requires a banked combination, a valid power, and a correct answer.
+const echoLayer = placeEnchantment(empty(), board, noHazard, 0, "echo-seal");
+const { isBankable, attemptBank, blocker } = await import("./engine.mjs");
+const previouslyBanked = new Set(["3-2"]);
+const repeatedTile = tile(3, 2);
+assert.equal(isBankable(repeatedTile, previouslyBanked, 0), false);
+assert.equal(isBankable(repeatedTile, previouslyBanked, 0,
+  new Set(), noHazard, echoLayer), true);
+assert.equal(isBankable(repeatedTile, previouslyBanked, 1,
+  new Set(), noHazard, echoLayer), false);
+assert.equal(isBankable(repeatedTile, previouslyBanked, 0,
+  new Set([0]), noHazard, echoLayer), false);
+const echoPreview = previewEnchantedBank(echoLayer, 0, repeatedTile,
+  { alreadyBanked: true });
+assert.equal(echoPreview.repeatBank, true);
+assert.equal(previewEnchantedBank(echoLayer, 0, repeatedTile,
+  { alreadyBanked: false }).spend, null);
+const echoBoard = empty(); echoBoard[0] = repeatedTile;
+assert.equal(attemptBank(echoBoard, 0, "8", {
+  banked: previouslyBanked, enchantments: echoLayer
+}).status, "incorrect", "Incorrect repeat banks never score");
+const repeated = attemptBank(echoBoard, 0, "9", {
+  banked: previouslyBanked, enchantments: echoLayer
+});
+assert.equal(repeated.status, "success");
+assert.equal(repeated.repeatedBank, true);
+assert.equal(redeemEnchantedBank(echoLayer, 0, echoPreview,
+  { repeatBanked: false }).used, false);
+const echoSpent = redeemEnchantedBank(echoLayer, 0, echoPreview,
+  { repeatBanked: repeated.repeatedBank });
+assert.equal(echoSpent.enchantments[0], null);
+assert.equal(isBankable(repeatedTile, previouslyBanked, 0,
+  new Set(), noHazard, echoSpent.enchantments), false);
+
+// Sanctuary spends a charge when the question OPENS, not when it scores.
+const sanctuary = placeEnchantment(empty(), board, noHazard, 0, "time-sanctuary");
+const stageTwo = previewEnchantedBank(sanctuary, 0, repeatedTile,
+  { baseSeconds: 50 });
+assert.equal(stageTwo.extraSeconds, 10);
+assert.equal(previewEnchantedBank(sanctuary, 0, repeatedTile,
+  { baseSeconds: 40 }).extraSeconds, 10);
+assert.equal(previewEnchantedBank(sanctuary, 0, repeatedTile,
+  { baseSeconds: 30 }).extraSeconds, 10);
+const atCap = previewEnchantedBank(sanctuary, 0, repeatedTile,
+  { baseSeconds: 60 });
+assert.equal(atCap.extraSeconds, 0);
+assert.equal(atCap.spend, null);
+assert.equal(redeemEnchantedBank(sanctuary, 0, stageTwo).used, false);
+let timed = redeemEnchantedBank(sanctuary, 0, stageTwo, { trigger: "open" });
+assert.equal(timed.used, true);
+assert.equal(timed.enchantments[0].chargesLeft, 1);
+timed = redeemEnchantedBank(timed.enchantments, 0, stageTwo, { trigger: "open" });
+assert.equal(timed.enchantments[0], null);
+assert.equal(redeemEnchantedBank(timed.enchantments, 0, stageTwo,
+  { trigger: "open" }).used, false);
+
+// Shatter requires a bankable merged power plus an adjacent blocker.
+const blockBoard = empty(); blockBoard[0] = tile(3, 2);
+blockBoard[1] = blocker(0, 3);
+const shatter = placeEnchantment(empty(), blockBoard, noHazard, 0, "shatter-crest");
+const shatterPreview = previewEnchantedBank(shatter, 0, blockBoard[0],
+  { merged: true, adjacentBlocker: true });
+assert.equal(shatterPreview.extraBlockerHit, true);
+assert.equal(previewEnchantedBank(shatter, 0, blockBoard[0],
+  { merged: false, adjacentBlocker: true }).spend, null);
+assert.equal(previewEnchantedBank(shatter, 0, blockBoard[0],
+  { merged: true, adjacentBlocker: false }).spend, null);
+const mergeReady = new Set([0]);
+assert.equal(attemptBank(blockBoard, 0, "8", {
+  mergeReady, blockerDamage: 2
+}).status, "incorrect", "Wrong answers cannot trigger Shatter");
+const shatterSuccess = attemptBank(blockBoard, 0, "9", {
+  mergeReady, blockerDamage: 2
+});
+assert.equal(shatterSuccess.status, "success");
+assert.equal(shatterSuccess.board[1].hits, 2, "Base hit + Shatter extra hit");
+const tripleHit = attemptBank(blockBoard, 0, "9", {
+  mergeReady, blockerDamage: 3
+});
+assert.deepEqual(tripleHit.destroyed, [1], "Blockbuster + Shatter can total 3 hits");
+assert.equal(redeemEnchantedBank(shatter, 0, shatterPreview,
+  { blockerApplied: false }).used, false);
+assert.equal(redeemEnchantedBank(shatter, 0, shatterPreview,
+  { blockerApplied: true }).enchantments[0].chargesLeft, 1);
+assert.throws(() => attemptBank(blockBoard, 0, "9", {
+  mergeReady, blockerDamage: 4
+}), RangeError);
+
+// All four new items use the same inventory/placement contract and preserve
+// one-vs-two charge counts in saved games, with existing round cleanup.
+for (const [id, type, unlock, charges] of [
+  ["sanctuary-runestone", "time-sanctuary", 4, 2],
+  ["echo-runestone", "echo-seal", 7, 1],
+  ["shatter-runestone", "shatter-crest", 7, 2],
+  ["mint-runestone", "twin-mint", 10, 1]
+]) {
+  let trial = newRogueliteRun(0, () => 0);
+  trial.run.round = unlock;
+  trial.board = board;
+  trial.run.inventory.consumables = [{ id, pricePaid: 8 }, null];
+  assert.equal(canActivateConsumable(trial, 0), true);
+  trial = useConsumable(trial, 0, [3]);
+  assert.equal(trial.run.inventory.consumables[0], null);
+  assert.equal(trial.enchantments[3].type, type);
+  assert.equal(trial.enchantments[3].chargesLeft, charges);
+  assert.deepEqual(restoreEnchantmentLayer(trial.enchantments,
+    trial.board, trial.hazards), trial.enchantments);
+  trial.run.phase = "shop";
+  assert.equal(activeEnchantmentCount(
+    advanceRogueliteRound(trial, () => .5).enchantments), 0);
+}
+assert.match(app, /enchantedPreview\(i, t\)/);
+assert.match(app, /repeatBanked: outcome.repeatedBank/);
+assert.match(app, /blockerDamage: \(bonuses\?\.blockerHits \?\? 1\)/);
+assert.match(app, /bankLimitMs = remainingMs/);
+assert.match(app, /trigger: "open"/);
+assert.match(app, /lockPending\("cancel"\)/);
+
+console.log("Enchanted squares Passes 1 and 2 tests passed.");

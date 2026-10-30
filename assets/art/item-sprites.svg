@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" aria-labelledby="title description">
   <title id="title">Index Shuffle shop item icon library</title>
-  <desc id="description">Thirty-three original illustrated emblems for persistent upgrades, hazard defences and single-use items.</desc>
+  <desc id="description">Thirty-seven original illustrated emblems for persistent upgrades, hazard defences and single-use items.</desc>
   <defs>
   <symbol id="item-opening-act" viewBox="0 0 100 100">
     <circle cx="50" cy="50" r="45" fill="#f4cf86" opacity=".16"/>
@@ -172,6 +172,44 @@
     <path d="M50 17 76 35 68 71 50 83 32 71 24 35Z" fill="#8266cb" stroke="#f7eaff" stroke-width="2"/>
     <path d="M50 18v65M24 35l26 18 26-18M32 71l18-18 18 18" stroke="#e8dfff" fill="none" stroke-width="3"/>
     <text x="50" y="63" text-anchor="middle" font-family="system-ui,Arial" font-weight="900" font-size="25" fill="#fff5df">×2</text>
+  </symbol>
+  <symbol id="item-echo-runestone" viewBox="0 0 100 100">
+    <circle cx="50" cy="50" r="45" fill="#c7b0f3" opacity=".19"/>
+    <path d="M50 8 87 30 80 73 50 91 20 73 13 30Z" fill="#453868" stroke="#e1c7ff" stroke-width="5"/>
+    <path d="M24 47a27 27 0 0 1 46-18" fill="none" stroke="#f8dc9f" stroke-width="9" stroke-linecap="round"/>
+    <path d="m69 16 9 18-22 1" fill="none" stroke="#f8dc9f" stroke-width="8" stroke-linejoin="round"/>
+    <path d="M76 54a27 27 0 0 1-46 19" fill="none" stroke="#b4f2e4" stroke-width="9" stroke-linecap="round"/>
+    <path d="m31 85-9-18 22-1" fill="none" stroke="#b4f2e4" stroke-width="8" stroke-linejoin="round"/>
+    <rect x="38" y="37" width="24" height="24" rx="5" fill="#fff1c7" stroke="#342d49" stroke-width="3"/>
+    <text x="50" y="55" font-family="system-ui,Arial" font-weight="900" font-size="22" text-anchor="middle" fill="#342d49">3</text>
+  </symbol>
+  <symbol id="item-mint-runestone" viewBox="0 0 100 100">
+    <circle cx="50" cy="50" r="45" fill="#f7d88b" opacity=".19"/>
+    <path d="M50 8 85 30 84 71 50 93 16 71 15 30Z" fill="#674a27" stroke="#ffdc82" stroke-width="5"/>
+    <circle cx="38" cy="53" r="25" fill="#e2a73f" stroke="#fff4bc" stroke-width="4"/>
+    <circle cx="61" cy="45" r="25" fill="#ffc764" stroke="#fff4bc" stroke-width="4"/>
+    <circle cx="61" cy="45" r="15" fill="none" stroke="#b87929" stroke-width="4"/>
+    <circle cx="38" cy="53" r="13" fill="none" stroke="#9e6827" stroke-width="3"/>
+    <path d="M61 32v26m-12-13h24" stroke="#a76c2e" stroke-width="5"/>
+    <path d="m19 18 3 7 7 3-7 3-3 7-3-7-7-3 7-3Z" fill="#fff4bd"/>
+  </symbol>
+  <symbol id="item-sanctuary-runestone" viewBox="0 0 100 100">
+    <circle cx="50" cy="50" r="45" fill="#a6e9dd" opacity=".18"/>
+    <path d="M50 7 85 28 85 72 50 94 15 72 15 28Z" fill="#27545d" stroke="#b6fce9" stroke-width="5"/>
+    <path d="M31 25h38m-38 50h38" stroke="#fff0c7" stroke-width="7" stroke-linecap="round"/>
+    <path d="M34 29c0 15 14 18 16 21-2 3-16 6-16 21h32c0-15-14-18-16-21 2-3 16-6 16-21Z" fill="#bde5f4" stroke="#f1f7ff" stroke-width="3"/>
+    <path d="M40 37 50 48l10-11M38 66l12-12 12 12" fill="#f4d48c" stroke="#eac575" stroke-width="2"/>
+    <circle cx="74" cy="24" r="16" fill="#fff0b4" stroke="#31525b" stroke-width="3"/>
+    <path d="M74 16v16M66 24h16" stroke="#31525b" stroke-width="4" stroke-linecap="round"/>
+  </symbol>
+  <symbol id="item-shatter-runestone" viewBox="0 0 100 100">
+    <circle cx="50" cy="50" r="45" fill="#f2a7a0" opacity=".18"/>
+    <path d="M50 8 87 30 80 74 50 92 20 74 13 30Z" fill="#533945" stroke="#ffc2a0" stroke-width="5"/>
+    <path d="M32 25h28v16H32Z" fill="#e4b8a7" stroke="#fff1d3" stroke-width="4"/>
+    <path d="m55 42 7 7-30 33-8-7Z" fill="#f2cd89" stroke="#6f4050" stroke-width="4"/>
+    <path d="m65 34 6-6 11 4-5 10m-20-23 1-11m-8 31-12 2" fill="none" stroke="#ffe09c" stroke-width="4" stroke-linecap="round"/>
+    <path d="M73 57 84 68 68 78 58 66Z" fill="#d7796f" stroke="#ffe09c" stroke-width="3"/>
+    <path d="m73 57-4 10 7 5-8 6" fill="none" stroke="#fff1c2" stroke-width="3"/>
   </symbol>
   <symbol id="item-generic" viewBox="0 0 100 100">
     <circle cx="50" cy="50" r="45" fill="#9bc6e9" opacity=".16"/>

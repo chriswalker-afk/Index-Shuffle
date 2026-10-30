@@ -1551,6 +1551,57 @@ details[open] > summary .chevron { transform: rotate(180deg); }
 .enchantment-status[hidden] { display:none; }
 @media(max-width:580px) { .enchantment-layer { inset:8px; gap:6px; }
   .enchantment-mark { font-size:9px; } .enchantment-remaining { font-size:9px; } }
+/* Pass 2 Runestones: each square type has a legible, distinct outline.
+   Symbols are text-visible and never intercept touch or keyboard banking. */
+.enchantment-slot[data-enchantment="echo-seal"] {
+  border-color: #d3b6ff; background: #8a67cd24;
+  box-shadow: inset 0 0 0 2px #ede3ff8f,0 0 14px #b296ed88;
+}
+.enchantment-slot[data-enchantment="twin-mint"] {
+  border-color: #ffd17a; background: #e3ad4030;
+  box-shadow: inset 0 0 0 2px #fff2be9b,0 0 16px #ffe19988;
+}
+.enchantment-slot[data-enchantment="time-sanctuary"] {
+  border-color: #8fe9dc; background: #4aacb428;
+  box-shadow: inset 0 0 0 2px #ccfff38c,0 0 15px #8ef1de78;
+}
+.enchantment-slot[data-enchantment="shatter-crest"] {
+  border-color: #ffab9d; background: #dd6b6630;
+  box-shadow: inset 0 0 0 2px #ffe6d58a,0 0 14px #ffb09a77;
+}
+.enchantment-slot[data-enchantment="echo-seal"] .enchantment-mark {
+  background: #3b295c; color: #e8d4ff;
+}
+.enchantment-slot[data-enchantment="time-sanctuary"] .enchantment-mark {
+  background: #1f5a5b; color: #d2fff0;
+}
+.enchantment-slot[data-enchantment="shatter-crest"] .enchantment-mark {
+  background: #602e39; color: #ffe6d6;
+}
+.prism-power-mark {
+  position: absolute; left: 5px; bottom: 5px; z-index: 3;
+  padding: 2px 4px; border-radius: 5px;
+  font-size: 11px; line-height: 1; font-weight: 950;
+  color: #fff4ff; background: #55328f;
+  border: 1px solid #ebd3ff; box-shadow: 0 2px 5px #261a4266;
+  pointer-events: none;
+}
+.cell.prism-charged { box-shadow: inset 0 0 0 2px #ae88f2, 0 0 9px #aa82ed44; }
+.shop-offer-card.runestone-offer {
+  border-color: #c3a7f0; border-top: 3px solid #ffe19b;
+  background: linear-gradient(145deg, #36324e, #253449);
+}
+.shop-offer-card.runestone-offer .shop-offer-type {
+  color: #ffe3ac; letter-spacing: .04em; font-weight: 900;
+}
+@media (max-width: 580px) {
+  .prism-power-mark { left: 3px; bottom: 3px; font-size: 9px; }
+  .enchantment-slot[data-enchantment] { border-width: 2px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .enchantment-slot, .cell.prism-charged { animation: none; }
+}
+
 /* Hazard-defence permanents share the two standard permanent slots.
    The shop distinguishes them from scoring and economy items. */
 .shop-offer-card.hazard-counter-offer {

@@ -4,31 +4,31 @@ import {
   mergeReadyAfterSlide, attemptBank, adjacentIndices, activeBases, BASE_UNLOCKS,
   INITIAL_MOVES_LEFT, MERGES_PER_BONUS_MOVE, BUDGET_RULES_VERSION,
   restoreMoveBudget, spendMove, slideCost, creditCorrectBank, gameEnded
-} from "./engine.mjs?v=hazard-counter-v1";
+} from "./engine.mjs?v=runestones-pass2";
 import { newRogueliteRun, targetForRound, stageForRound, isBossRound,
   recordRogueliteBank, advanceRogueliteRound, validRogueliteRun,
   restoreRogueliteRun, markGoldSpawns, goldTier, goldForBank,
   bankSecondsForRound, INITIAL_BANK_SECONDS
-} from "./roguelite.mjs?v=bank-timer-v1";
+} from "./roguelite.mjs?v=runestones-pass2";
 import {
   restoreShopState, enterRogueliteShop, rerollRogueliteShop
-} from "./shop.mjs?v=frostlock-v1";
+} from "./shop.mjs?v=runestones-pass2";
 import {
   renderRogueliteInventory, renderRogueliteShop
-} from "./shop-ui.mjs?v=frostlock-v1";
+} from "./shop-ui.mjs?v=runestones-pass2";
 import { bossPortraitFor } from "./art-catalog.mjs?v=frostlock-v1";
 import { bossSceneFor } from "./boss-scenes.mjs?v=frostlock-v1";
 import {
   restoreEffectState, bankItemBonuses, goldChancesForRun,
   hazardItemProtection, costOfNextSlide, canActivateConsumable, CONSUMABLE_TARGETS,
   consumableTargets, useConsumable
-} from "./effects.mjs?v=frostlock-v1";
-import { ITEM_BY_ID } from "./shop.mjs?v=frostlock-v1";
+} from "./effects.mjs?v=runestones-pass2";
+import { ITEM_BY_ID } from "./shop.mjs?v=runestones-pass2";
 import {
   bossForRound, bossTargetFor, bossPointsFor, bossMovementRules, bossId,
   bossAllowsMoveRestoration, applyThreeCurse,
   frozenControl, nextFrozenDirection, restoreFrozenDirection
-} from "./bosses.mjs?v=frostlock-v1";
+} from "./bosses.mjs?v=runestones-pass2";
 import {
   ACHIEVEMENTS, ACHIEVEMENT_BY_ID, emptyRunStats, restoreRunStats,
   restoreAchievementProfile, recordRunStats, recordSuccessfulSlide,
@@ -45,11 +45,11 @@ import {
   restoreHazardLayer, hazardAt, activeHazardCount, MAX_ACTIVE_HAZARDS,
   restoreHazardPressure, progressHazardRound, resolveSlideHazards,
   HAZARD_DEFINITIONS, canRescueHazardLock
-} from "./hazards.mjs?v=hazard-counter-v1";
+} from "./hazards.mjs?v=runestones-pass2";
 import { ENCHANTMENT_DEFINITIONS, emptyEnchantmentLayer,
   restoreEnchantmentLayer, activeEnchantmentCount, previewEnchantedBank,
-  redeemEnchantedBank, resolveSlideEnchantments } from "./enchantments.mjs?v=runestones-pass1";
-import { renderEnchantmentLayer } from "./enchantment-ui.mjs?v=runestones-pass1";
+  redeemEnchantedBank, resolveSlideEnchantments } from "./enchantments.mjs?v=runestones-pass2";
+import { renderEnchantmentLayer } from "./enchantment-ui.mjs?v=runestones-pass2";
 import {
   renderHazardLayer, hazardTileDescription
 } from "./hazard-ui.mjs?v=hazard-counter-v1-art-pass4";
@@ -120,6 +120,7 @@ if (!state || !Array.isArray(state.board) || state.board.length !== 16) {
 let pending = null;
 let bankTimer = null;
 let remainingMs = INITIAL_BANK_SECONDS * 1000;
+let bankLimitMs = INITIAL_BANK_SECONDS * 1000;
 let deadline = 0;
 let animating = false;
 let animationToken = 0;
@@ -158,7 +159,8 @@ function currentBankSeconds() {
 function currentMovementRules() {
   return mode === "roguelite"
     ? { ...(bossMovementRules(state.run) || {}), hazards: state.hazards,
-      greedyLandingOnly: hazardItemProtection(state.run).greedyLandingOnly }
+      greedyLandingOnly: hazardItemProtection(state.run).greedyLandingOnly,
+      enchantments: state.enchantments }
     : null;
 }
 function currentGameEnded() {
@@ -231,7 +233,9 @@ function render() {
   if (rogue) $("enchantmentStatus").textContent = "Enchanted squares: " +
     enchants.map((entry, i) => entry ? ENCHANTMENT_DEFINITIONS[entry.type].name +
       " (row " + (Math.floor(i / 4) + 1) + ", col " + (i % 4 + 1) +
-      "; " + entry.chargesLeft + " charges)" : null).filter(Boolean).join(" · ");
+      "; " + entry.chargesLeft +
+      (entry.chargesLeft === 1 ? " charge)" : " charges)") : null)
+      .filter(Boolean).join(" · ");
   const stageScene = currentStage ? stageArtFor(currentStage) : null;
   $("gameScreen").dataset.stage = stageScene ? String(currentStage) : "classic";
   $("stageScene").hidden = !stageScene;
@@ -479,12 +483,14 @@ function render() {
     } else if (t) {
       const gold = rogue ? goldTier(t) : 0;
       const available = isBankable(t, banked, i, locked,
-        rogue ? state.hazards : null);
+        rogue ? state.hazards : null, rogue ? enchants : null);
       const alreadyBanked = banked.has(key(t));
       const blocked = (t.exp >= 2 || gold > 0) && locked.has(i) &&
         (gold > 0 || !banked.has(key(t)));
       const strike = available && mergeReady.has(i) &&
         adjacentIndices(i).some(j => isBlocker(state.board[j]));
+      const prismBadge = rogue && t.prism === 1
+        ? '<small class="prism-power-mark" aria-hidden="true">×2</small>' : "";
       const coinBadge = gold
         ? '<small class="tile-gold-mark" aria-hidden="true">◉' +
           (gold === 2 ? '×2' : '') + '</small>'
@@ -492,17 +498,20 @@ function render() {
       const curseBadge = rogue && Number.isInteger(t.curseLeft) && t.curseLeft > 0
         ? '<small class="tile-curse-mark" aria-hidden="true">3 · ' + t.curseLeft + '</small>'
         : "";
-      button.innerHTML = tileContent(t, coinBadge + curseBadge + (available
+      button.innerHTML = tileContent(t, coinBadge + curseBadge + prismBadge + (available
         ? '<i aria-hidden="true">' + (strike ? '⚡' : '✦') + '</i>'
         : blocked ? '<i aria-hidden="true">⌛</i>' : ""));
       const description = t.base + " to the power " + t.exp;
       const goldCoins = gold ? goldForBank(t, mergeReady.has(i)) : 0;
-      if (t.prism === 1) button.classList.add("prism-charged");
+      if (t.prism === 1) {
+        button.classList.add("prism-charged");
+      }
       const goldHint = !gold || alreadyBanked ? "" :
         ". Golden tile: a correct bank earns " + goldCoins +
         (goldCoins === 1 ? " coin. Merge first to earn more." : " coins.");
-      button.title = (alreadyBanked
-        ? description + " was already banked this round. Gold does not allow it again."
+      button.title = (alreadyBanked && available
+        ? "Echo Seal: repeat-bank " + description + " correctly once"
+        : alreadyBanked ? description + " was already banked this round. Gold does not allow it again."
         : blocked ? "Wait one slide before retrying " + description
         : strike ? "Bank " + description + " correctly to damage adjacent blocker"
         : available ? "Bank " + description : description) + goldHint +
@@ -511,7 +520,7 @@ function render() {
       if (gold) {
         button.classList.add("gold-tile");
         if (gold === 2) button.classList.add("gold-double");
-        if (alreadyBanked) button.classList.add("already-banked");
+        if (alreadyBanked && !available) button.classList.add("already-banked");
       }
       button.setAttribute("aria-label", button.title);
       if (blocked) button.classList.add("locked");
@@ -794,6 +803,7 @@ function move(direction) {
     // A Three Curse may have turned a previously hazardous number into
     // a blocker; no board hazard is allowed to remain under that obstacle.
     state.hazards = restoreHazardLayer(state.hazards, state.board);
+    state.enchantments = restoreEnchantmentLayer(state.enchantments, state.board, state.hazards);
   } else {
     state.board = spawned.board;
   }
@@ -887,7 +897,7 @@ function updateClock() {
   const seconds = Math.ceil(remainingMs / 1000);
   $("timeLeft").textContent = Math.floor(seconds / 60) + ":"
     + String(seconds % 60).padStart(2, "0");
-  $("timeProgress").style.width = (remainingMs / (currentBankSeconds() * 1000) * 100) + "%";
+  $("timeProgress").style.width = (remainingMs / bankLimitMs * 100) + "%";
   $("clock").classList.toggle("running-low", remainingMs <= 15000);
 }
 function pauseClock() {
@@ -931,14 +941,38 @@ function focusAfterBank(index) {
   const cell = $("board").children[index];
   (cell && !cell.disabled ? cell : $("board")).focus({ preventScroll: true });
 }
+// One shared preview drives board eligibility, the answer prompt, scoring,
+// and charge redemption. No power, score or currency changes occur on preview.
+function enchantedPreview(index, power) {
+  return mode === "roguelite" ? previewEnchantedBank(
+    state.enchantments, index, power, {
+      alreadyBanked: state.banked.includes(key(power)),
+      merged: state.mergeReady.includes(index),
+      adjacentBlocker: adjacentIndices(index).some(j => isBlocker(state.board[j])),
+      baseSeconds: currentBankSeconds()
+    }) : null;
+}
+
 function openBank(i) {
   if (screen !== "game" || pendingItem !== null || state.over || animating || pending !== null || (mode === "roguelite" && state.run.phase !== "playing")) return;
   const t = state.board[i];
   if (!isBankable(t, new Set(state.banked), i, new Set(state.locked),
-      mode === "roguelite" ? state.hazards : null)) return;
+      mode === "roguelite" ? state.hazards : null,
+      mode === "roguelite" ? state.enchantments : null)) return;
+  const enchanted = enchantedPreview(i, t);
+  const bankLimit = Math.min(60, currentBankSeconds() +
+    (enchanted?.extraSeconds || 0));
   pending = { i, t };
-  const bankLimit = currentBankSeconds();
   remainingMs = bankLimit * 1000;
+  bankLimitMs = remainingMs;
+  // The bonus time is purchased when the question opens. The charge is
+  // never returned by cancelling, submitting a wrong answer or timing out.
+  if (mode === "roguelite" && enchanted?.extraSeconds > 0) {
+    const paid = redeemEnchantedBank(state.enchantments, i, enchanted,
+      { trigger: "open" });
+    state.enchantments = paid.enchantments;
+    if (paid.used) render();
+  }
   // Use the same mathematical exponent markup as board tiles, not a
   // Unicode superscript approximation. Announce the full phrase in speech.
   const heading = $("promptTitle");
@@ -951,8 +985,6 @@ function openBank(i) {
   $("feedback").textContent = "";
   $("answer").value = "";
   document.querySelector(".bank-hint").open = false;
-  const enchanted = mode === "roguelite" ?
-    previewEnchantedBank(state.enchantments, i, t) : null;
   const effectivePower = enchanted?.power || t;
   const canStrike = state.mergeReady.includes(i) &&
     adjacentIndices(i).some(j => isBlocker(state.board[j]));
@@ -971,7 +1003,11 @@ function openBank(i) {
     : "Calculate its exact value to bank this power.") + goldHelp +
     (bonuses ? " Correct bank scores " + previewScore + " points." +
       (previewScore === 0 && bonuses.score > 0
-        ? " The boss prevents this power from scoring." : "") : "");
+        ? " The boss prevents this power from scoring." : "") : "") +
+    (enchanted?.repeatBank ? " Echo Seal permits one repeat bank here." : "") +
+    (enchanted?.extraBlockerHit ? " Shatter Crest adds one blocker hit." : "") +
+    (enchanted?.extraSeconds ? " Time Sanctuary granted +10 seconds." : "") +
+    (enchanted?.prism ? " Power Prism doubles the scoring component." : "");
   if (!$("modal").open) $("modal").showModal();
   if (!document.hidden) resumeClock();
   $("answer").focus();
@@ -985,7 +1021,9 @@ function lockPending(reason) {
   }
   state.notice = reason === "time"
     ? "Time's up. Slide the board once before retrying that tile."
-    : "Not quite. That tile is locked until your next successful slide.";
+    : reason === "cancel"
+      ? "Banking cancelled. Slide once before retrying that tile."
+      : "Not quite. That tile is locked until your next successful slide.";
   state.over = currentGameEnded();
   render();
   focusAfterBank(i);
@@ -1000,8 +1038,7 @@ $("bankForm").addEventListener("submit", event => {
   if (!pending) return;
   const { i, t } = pending;
   if (!state.board[i] || key(state.board[i]) !== key(t)) return;
-  const enchanted = mode === "roguelite" ?
-    previewEnchantedBank(state.enchantments, i, t) : null;
+  const enchanted = enchantedPreview(i, t);
   const effectivePower = enchanted?.power || t;
   const bonuses = mode === "roguelite"
     ? bankItemBonuses(state.run, effectivePower, state.mergeReady.includes(i)) : null;
@@ -1010,8 +1047,10 @@ $("bankForm").addEventListener("submit", event => {
     banked: new Set(state.banked),
     locked: new Set(state.locked),
     mergeReady: new Set(state.mergeReady),
-    blockerDamage: bonuses?.blockerHits ?? 1,
-    hazards: mode === "roguelite" ? state.hazards : null
+    blockerDamage: (bonuses?.blockerHits ?? 1) +
+      (enchanted?.extraBlockerHit ? 1 : 0),
+    hazards: mode === "roguelite" ? state.hazards : null,
+    enchantments: mode === "roguelite" ? state.enchantments : null
   });
   if (outcome.status === "incorrect") {
     lockPending("wrong");
@@ -1025,7 +1064,8 @@ $("bankForm").addEventListener("submit", event => {
   // A correctly banked power becomes a smaller replacement in the same
   // square, with the existing one-successful-slide banking cooldown.
   if (!state.locked.includes(i)) state.locked.push(i);
-  state.banked.push(outcome.powerKey);
+  // Echo banks score once more but do not create duplicate discoveries.
+  if (!outcome.repeatedBank) state.banked.push(outcome.powerKey);
   // Correct answers for genuinely merged tiles are the ONLY source of
   // extra moves. A correctly banked random-spawn power earns score only.
   const canRestore = mode !== "roguelite" || bossAllowsMoveRestoration(state.run);
@@ -1047,7 +1087,10 @@ $("bankForm").addEventListener("submit", event => {
   if (mode === "roguelite") {
     state.run = points.run;
     const redeemed = redeemEnchantedBank(state.enchantments, i, enchanted,
-      { prismApplied: enchanted.prism, pointsAwarded: points.points });
+      { prismApplied: enchanted.prism, pointsAwarded: points.points,
+        repeatBanked: outcome.repeatedBank,
+        blockerApplied: outcome.creditedMerge &&
+          (outcome.damaged.length + outcome.destroyed.length > 0) });
     state.enchantments = redeemed.enchantments;
   }
   // Bank success may change which slides are possible. Switch the freeze
@@ -1088,7 +1131,7 @@ $("bankForm").addEventListener("submit", event => {
   // an award from merely spawning, merging, or an incorrect answer.
   const bankEvent = {
     type: "bank", points: points.points, exponent: t.exp,
-    goldTier: mode === "roguelite" ? goldTier(t) : 0,
+    goldTier: mode === "roguelite" ? goldTier(effectivePower) : 0,
     goldCoins: mode === "roguelite" ? points.bankGold : 0,
     blockersDestroyed: destroyed.length
   };
@@ -1119,14 +1162,16 @@ $("bankForm").addEventListener("submit", event => {
   }
 });
 
-$("close").addEventListener("click", closeBank);
-$("cancel").addEventListener("click", closeBank);
+// Cancelling is a failed opportunity rather than a free timer reset.
+// The mathematical tile remains, but it is locked until a successful slide.
+$("close").addEventListener("click", () => lockPending("cancel"));
+$("cancel").addEventListener("click", () => lockPending("cancel"));
 $("modal").addEventListener("click", event => {
-  if (event.target === $("modal")) closeBank();
+  if (event.target === $("modal")) lockPending("cancel");
 });
 $("modal").addEventListener("cancel", event => {
   event.preventDefault();
-  closeBank();
+  lockPending("cancel");
 });
 function closeNavigationDialogs() {
   stopMotion();

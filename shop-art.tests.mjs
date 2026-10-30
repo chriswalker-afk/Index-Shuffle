@@ -7,7 +7,7 @@ import { SHOP_ICON_IDS, ITEM_SPRITE_URL, itemIconHref, itemArtKind } from "./sho
 
 const ids = ITEM_CATALOG.map(item => item.id);
 const imageIDs = new Set(SHOP_ICON_IDS);
-assert.equal(ids.length, 33, "Update count if shop catalogue expands");
+assert.equal(ids.length, 37, "Update count if shop catalogue expands");
 assert.equal(imageIDs.size, ids.length, "No duplicate art IDs");
 assert.deepEqual([...imageIDs].sort(), [...ids].sort(),
   "Each purchasable item must have an original emblem");
@@ -24,7 +24,7 @@ assert.match(sprite, /<title/);
 assert.match(sprite, /<desc/);
 assert.doesNotMatch(sprite, /<script|<foreignObject|<image|onload=|(?:href|src)="https?:\/\//i);
 const spriteIDs = [...sprite.matchAll(/<symbol id="item-([a-z-]+)"/g)].map(m => m[1]);
-assert.equal(spriteIDs.length, 34, "33 items plus a fallback symbol");
+assert.equal(spriteIDs.length, 38, "37 items plus a fallback symbol");
 assert.equal(new Set(spriteIDs).size, spriteIDs.length);
 assert.deepEqual(spriteIDs.filter(id => id !== "generic").sort(), ids.sort());
 assert.ok(sprite.length < 44000, "Keep sprite compact");
@@ -46,9 +46,9 @@ assert.match(html, /<details class="shop-guide">/);
 assert.match(html, /id="shopCoins"/);
 assert.match(html, /id="shopReroll"/);
 assert.match(html, /id="shopContinue"/);
-assert.match(html, /styles\.css\?v=frostlock-v1/);
-assert.match(html, /app\.mjs\?v=runestones-pass1/);
-assert.match(app, /shop-ui\.mjs\?v=frostlock-v1/);
+assert.match(html, /styles\.css\?v=runestones-pass2/);
+assert.match(html, /app\.mjs\?v=runestones-pass2/);
+assert.match(app, /shop-ui\.mjs\?v=runestones-pass2/);
 for (const selector of [".shop-offer-pair", ".shop-item-art--ward",
   ".shop-item-art--consumable", ".shop-price-original",
   ".shop-inventory-slot", ".equip-chip--illustrated"]) {

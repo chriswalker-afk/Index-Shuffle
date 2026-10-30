@@ -148,7 +148,7 @@ assert.match(html, /id="roundScoreProgress"/);
 assert.match(html, /id="helpBankSeconds"/);
 assert.match(html, /id="mathsBankSeconds"/);
 assert.match(app, /remainingMs = bankLimit \* 1000/);
-assert.match(app, /remainingMs \/ \(currentBankSeconds\(\) \* 1000\)/);
+assert.match(app, /remainingMs \/ bankLimitMs/);
 assert.match(app, /"You have " \+ bankLimit \+ " seconds\. "/);
 assert.match(app, /bankSecondsForRound\(state\.run\.round \+ 1\)/);
 

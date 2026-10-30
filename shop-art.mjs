@@ -34,9 +34,13 @@ export const SHOP_ICON_IDS = Object.freeze([
   "clear-space",
   "second-chance",
   "foundry-runestone",
-  "prism-runestone"
+  "prism-runestone",
+  "echo-runestone",
+  "mint-runestone",
+  "sanctuary-runestone",
+  "shatter-runestone"
 ]);
-export const ITEM_SPRITE_URL = "assets/art/item-sprites.svg?v=runestones-pass1";
+export const ITEM_SPRITE_URL = "assets/art/item-sprites.svg?v=runestones-pass2";
 const available = new Set(SHOP_ICON_IDS);
 
 // Unmapped items render a neutral numbered tile instead of a broken image.

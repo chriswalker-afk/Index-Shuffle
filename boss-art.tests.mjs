@@ -62,8 +62,8 @@ assert.match(resultsUI, /finalBoss = rogue && summary\.won \? bossForRound\(stat
 assert.match(resultsUI, /\$\("resultsBossVictory"\)\.hidden = !finalBoss/);
 assert.match(shopUI, /\$\("shopBossPreview"\)\.dataset\.boss = boss\?\.id/);
 assert.match(app, /\$\("bossRule"\)\.dataset\.boss = boss\?\.id/);
-assert.match(html, /styles\.css\?v=frostlock-v1/);
-assert.match(html, /app\.mjs\?v=runestones-pass1/);
+assert.match(html, /styles\.css\?v=runestones-pass2/);
+assert.match(html, /app\.mjs\?v=runestones-pass2/);
 assert.match(gallery, /BOSS_CATALOG/);
 assert.match(gallery, /bossPortraitFor\(boss\.id\)/);
 assert.match(gallery, /dialog\.showModal\(\)/);

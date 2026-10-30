@@ -143,7 +143,7 @@ const globalLucky = markGoldSpawns(rateBoard, [0, 1], 0, () => 0.20,
 assert.deepEqual(globalLucky.board.map(t => t?.gold), [1, 1, ...Array(14).fill(undefined)]);
 
 // All eleven consumables are usable under the right conditions.
-assert.equal(Object.keys(CONSUMABLE_TARGETS).length, 13);
+assert.equal(Object.keys(CONSUMABLE_TARGETS).length, 17);
 const blockerBoard = grid([0, tile(2)], [5, blocker(0, 1)], [6, warning(2)]);
 let st = setup({ consumables: ["block-breaker"], board: blockerBoard });
 assert.deepEqual(consumableTargets(st, 0), [5]);
@@ -310,7 +310,7 @@ const app = readFileSync("app.mjs", "utf8");
 const html = readFileSync("index.html", "utf8");
 const shopUI = readFileSync("shop-ui.mjs", "utf8");
 const css = readFileSync("styles.css", "utf8");
-assert.match(app, /blockerDamage: bonuses\?\.blockerHits \?\? 1/);
+assert.match(app, /blockerDamage: \(bonuses\?\.blockerHits \?\? 1\)/);
 assert.match(app, /scoreOverride: bonuses\.score/);
 assert.match(app, /extraCoins: bonuses\.extraCoins/);
 assert.match(app, /counters: bonuses\.counters/);

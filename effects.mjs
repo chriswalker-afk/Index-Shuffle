@@ -3,15 +3,15 @@
 import {
   tile, key, isObstacle, isBlocker, blockerStrength, canMove,
   MAX_MOVES_LEFT
-} from "./engine.mjs?v=hazard-counter-v1";
-import { goldTier } from "./roguelite.mjs?v=frostlock-v1";
+} from "./engine.mjs?v=runestones-pass2";
+import { goldTier } from "./roguelite.mjs?v=runestones-pass2";
 import { ENCHANTMENT_ITEMS, canPlaceEnchantment, placeEnchantment,
-  restoreEnchantmentLayer } from "./enchantments.mjs?v=runestones-pass1";
-import { ITEM_BY_ID } from "./shop.mjs?v=frostlock-v1";
-import { bossId, bossMovementRules } from "./bosses.mjs?v=frostlock-v1";
+  restoreEnchantmentLayer } from "./enchantments.mjs?v=runestones-pass2";
+import { ITEM_BY_ID } from "./shop.mjs?v=runestones-pass2";
+import { bossId, bossMovementRules } from "./bosses.mjs?v=runestones-pass2";
 import {
   hazardAt, restoreHazardLayer, removeHazard
-} from "./hazards.mjs?v=hazard-counter-v1";
+} from "./hazards.mjs?v=runestones-pass2";
 
 const whole = n => Number.isSafeInteger(n) && n >= 0;
 const numericTile = t => Boolean(t && !isObstacle(t) &&
@@ -132,7 +132,9 @@ export const CONSUMABLE_TARGETS = Object.freeze({
   "alchemist": 1, "protection": 0, "gold-touch": 1,
   "position-swap": 2, "delay-tactics": 0, "clear-space": 1,
   "second-chance": 1, "hazard-eraser": 1,
-  "foundry-runestone": 1, "prism-runestone": 1
+  "foundry-runestone": 1, "prism-runestone": 1,
+  "echo-runestone": 1, "mint-runestone": 1,
+  "sanctuary-runestone": 1, "shatter-runestone": 1
 });
 
 function itemInSlot(state, slot) {
@@ -228,11 +230,17 @@ export function useConsumable(state, slot, selections = []) {
   switch (id) {
     case "foundry-runestone":
     case "prism-runestone":
+    case "echo-runestone":
+    case "mint-runestone":
+    case "sanctuary-runestone":
+    case "shatter-runestone":
       enchantments = placeEnchantment(enchantments, board, hazards, index,
         ENCHANTMENT_ITEMS[id], state.run.hazardWarning?.index);
       notice = ITEM_BY_ID[id].name + " enchanted row " +
         (Math.floor(index / 4) + 1) + ", column " + (index % 4 + 1) +
-        ". Two charges remain this round.";
+        ". " + enchantments[index].chargesLeft + " " +
+        (enchantments[index].chargesLeft === 1 ? "charge remains" : "charges remain") +
+        " this round.";
       break;
     case "block-breaker":
       board[index] = null;

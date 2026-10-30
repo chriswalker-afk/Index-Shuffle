@@ -2,11 +2,11 @@
 // reroll effects remain in shop.mjs; this module changes presentation only.
 import {
   ITEM_BY_ID, INVENTORY_SLOTS, shopItemPrice, purchaseShopOffer, sellPermanent, discardConsumable
-} from "./shop.mjs?v=frostlock-v1";
-import { targetForRound } from "./roguelite.mjs?v=frostlock-v1";
-import { bossForRound, bossTargetFor } from "./bosses.mjs?v=frostlock-v1";
+} from "./shop.mjs?v=runestones-pass2";
+import { targetForRound } from "./roguelite.mjs?v=runestones-pass2";
+import { bossForRound, bossTargetFor } from "./bosses.mjs?v=runestones-pass2";
 import { bossPortraitFor } from "./art-catalog.mjs?v=frostlock-v1";
-import { itemIconHref, itemArtKind } from "./shop-art.mjs?v=hazard-counter-v1-art-pass2";
+import { itemIconHref, itemArtKind } from "./shop-art.mjs?v=runestones-pass2";
 
 const $ = id => document.getElementById(id);
 const SVG_NS = "http://www.w3.org/2000/svg";
@@ -105,12 +105,14 @@ function offerCard(type, itemId, slotIndex, state, dispatch) {
   const kind = itemArtKind(item);
   card.classList.add("shop-offer-card--" + kind);
   if (item.hazardCounter) card.classList.add("hazard-counter-offer");
+  if (item.rare) card.classList.add("runestone-offer");
 
   const top = element("div", "shop-offer-feature");
   top.append(itemArtwork(itemId, kind));
   const info = element("div", "shop-offer-info");
   info.append(element("div", "shop-offer-type",
-    item.hazardCounter ? "Permanent · Hazard defence" : labelFor(type)));
+    item.hazardCounter ? "Permanent · Hazard defence"
+      : item.rare ? "Single use · Rare Runestone" : labelFor(type)));
   info.append(element("strong", "shop-item-name", item.name));
   const priceLabel = element("p", "shop-price");
   priceLabel.append(element("span", "shop-price-coin", "●"),
