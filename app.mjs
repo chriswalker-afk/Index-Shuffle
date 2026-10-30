@@ -324,12 +324,8 @@ function openBank(i) {
   const canStrike = state.mergeReady.includes(i) &&
     adjacentIndices(i).some(j => isBlocker(state.board[j]));
   $("promptHelp").textContent = canStrike
-    ? "Bank this merged power correctly to damage the nearby blocker. "
-      + "You have 60 seconds; an incorrect answer or timeout locks this tile "
-      + "until your next valid slide."
-    : "You have 60 seconds to enter the exact value. "
-      + "Only correctly banking a merged power beside a blocker can damage it. "
-      + "An incorrect answer or timeout locks this tile until your next valid slide.";
+    ? "Correct answer: bank this power and damage the nearby blocker."
+    : "Calculate its exact value to bank this power.";
   $("modal").hidden = false;
   if (!document.hidden) resumeClock();
   $("answer").focus();
@@ -387,7 +383,7 @@ $("bankForm").addEventListener("submit", event => {
   const { replacement, damaged, destroyed } = outcome;
   state.notice = "Banked " + t.base + glyph(t.exp) + " · +" + outcome.points
     + " points. " + replacement.base + glyph(replacement.exp)
-    + " remains until your next slide.";
+    + " stays on the board.";
   if (outcome.creditedMerge) {
     if (award.earned) {
       state.notice += " +1 move earned for two correctly banked merges!";
