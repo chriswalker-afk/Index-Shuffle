@@ -174,6 +174,7 @@ function render() {
   $("currentModeName").textContent = MODE_LABELS[mode];
   $("gameAchievements").hidden = !rogue;
   $("hazardSummary").hidden = !rogue;
+  $("hazardNext").hidden = !rogue;
   if (rogue) {
     $("hazardCount").textContent = activeHazardCount(state.hazards) +
       " / " + MAX_ACTIVE_HAZARDS;
