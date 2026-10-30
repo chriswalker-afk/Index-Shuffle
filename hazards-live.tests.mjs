@@ -293,7 +293,7 @@ assert.match(ui, /square\.classList\.add\("hazard-incoming"\)/);
 assert.match(html, /id="hazardAlert"/);
 assert.match(html, /id="hazardNext"/);
 assert.match(html, /Hazard Eraser/);
-assert.match(html, /styles\.css\?v=frostlock-v1/);
+assert.match(html, /styles\.css\?v=runestones-pass2/);
 assert.match(css, /\.hazard-slot\.hazard-incoming/);
 assert.match(css, /\.hazard-alert/);
 console.log("All Index Shuffle live hazards, staged spawning and Hazard Eraser tests passed.");
