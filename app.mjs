@@ -32,8 +32,10 @@ import {
   progressForAchievement, isFinishedRun, finalScoreSummary
 } from "./milestones.mjs?v=mode-results-v1";
 import {
-  renderAchievementCount, openAchievementGallery, renderFinalScreen
-} from "./results-ui.mjs?v=mode-results-v1";
+  openAchievementGallery, renderFinalScreen
+} from "./results-ui.mjs?v=title-flow-v1";
+import { MODE_LABELS, resumableSave } from "./navigation.mjs?v=title-flow-v1";
+import { renderNavigation } from "./title-ui.mjs?v=title-flow-v1";
 
 const $ = id => document.getElementById(id);
 const glyph = n => String(n).replace(/\d/g, d => "⁰¹²³⁴⁵⁶⁷⁸⁹"[+d]);
@@ -99,6 +101,9 @@ let deadline = 0;
 let animating = false;
 let animationToken = 0;
 let pendingItem = null;
+// Always open on the title screen. Starting, continuing, and playing are
+// explicit navigation decisions; loading the title never writes a fake save.
+let screen = "title";
 
 function currentGameEnded() {
   return gameEnded(state.board, new Set(state.banked), new Set(state.locked),
@@ -144,9 +149,12 @@ function tileContent(t, badge = "") {
   return "<span>" + t.base + (t.exp === 1 ? "" : "<sup>" + t.exp + "</sup>") + "</span>" + badge;
 }
 function render() {
+  renderNavigation(screen, saved("classic"), saved("roguelite"),
+    mode, achievementProfile, resumeSavedGame);
+  if (screen !== "game") return;
   const rogue = mode === "roguelite";
+  $("currentModeName").textContent = MODE_LABELS[mode];
   finalizeGameIfNeeded();
-  renderAchievementCount(achievementProfile, rogue);
   $("achievementToast").hidden = !rogue || !recentAchievementIds.length;
   if (rogue && recentAchievementIds.length) {
     const names = recentAchievementIds.map(id =>
@@ -155,8 +163,6 @@ function render() {
       (names.length > 1 ? "Achievements unlocked: " : "Achievement unlocked: ") +
       names.join(", ") + "!";
   }
-  $("modeClassic").setAttribute("aria-pressed", String(!rogue));
-  $("modeRoguelite").setAttribute("aria-pressed", String(rogue));
   $("rogueProgress").hidden = !rogue;
   $("helpRogueBlock").hidden = !rogue;
   $("rogueEndSummary").hidden = !rogue || state.run.phase !== "victory";
@@ -448,7 +454,7 @@ function animateSlide(before, motions, mergedDestinations, spawned, damaged, des
 }
 
 function move(direction) {
-  if (pendingItem !== null || state.over || pending !== null || animating || (mode === "roguelite" && state.run.phase !== "playing")) return;
+  if (screen !== "game" || pendingItem !== null || state.over || pending !== null || animating || (mode === "roguelite" && state.run.phase !== "playing")) return;
   const before = state.board.slice();
   const result = slide(before, direction,
     mode === "roguelite" ? bossMovementRules(state.run) : null);
@@ -562,7 +568,7 @@ function closeBank() {
   $("modal").hidden = true;
 }
 function openBank(i) {
-  if (pendingItem !== null || state.over || animating || pending !== null || (mode === "roguelite" && state.run.phase !== "playing")) return;
+  if (screen !== "game" || pendingItem !== null || state.over || animating || pending !== null || (mode === "roguelite" && state.run.phase !== "playing")) return;
   const t = state.board[i];
   if (!isBankable(t, new Set(state.banked), i, new Set(state.locked))) return;
   pending = { i, t };
@@ -761,7 +767,7 @@ function activateConsumable(slot, targets) {
 }
 
 function beginConsumable(slot) {
-  if (mode !== "roguelite" || pending !== null || animating ||
+  if (screen !== "game" || mode !== "roguelite" || pending !== null || animating ||
       pendingItem !== null || !canActivateConsumable(state, slot)) return;
   const item = state.run.inventory.consumables[slot];
   const required = CONSUMABLE_TARGETS[item.id];
@@ -907,8 +913,8 @@ const keys = {
 document.addEventListener("keydown", event => {
   if (event.key === "Escape" && pending !== null) { closeBank(); return; }
   // Let arrow keys scroll the modal shop instead of swallowing them as slides.
-  if ($("shopDialog").open || $("achievementsDialog").open ||
-      $("resultsDialog").open) return;
+  if (screen !== "game" || $("shopDialog").open ||
+      $("achievementsDialog").open || $("resultsDialog").open) return;
   if (pendingItem !== null) {
     if (event.key === "Escape") { event.preventDefault(); cancelConsumable(); }
     return;
