@@ -47,7 +47,7 @@ for (const name of ["bossIntroDialog", "bossIntroName", "bossIntroRound",
   assert.match(html, new RegExp('id="' + name + '"'), "Missing boss scene: " + name);
 }
 assert.match(app, /function showBossIntro\(boss\)/);
-assert.match(app, /\$\("bossIntroDialog"\)\.showModal/); // static guard below checks showModal safely
+assert.match(app, /const dialog = \$\("bossIntroDialog"\)/);
 assert.match(app, /if \(!dialog\.open\) dialog\.showModal\(\)/);
 assert.match(app, /\$\("bossIntroSkip"\)\.addEventListener\("click", dismissBossIntro\)/);
 assert.match(app, /\$\("bossIntroStart"\)\.addEventListener\("click", dismissBossIntro\)/);
