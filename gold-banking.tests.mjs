@@ -148,6 +148,6 @@ assert.match(app, /const blocked = \(t\.exp >= 2 \|\| gold > 0\)/);
 assert.match(app, /mode-results-v1/);
 assert.match(html, /golden 3¹/i);
 assert.match(html, /<b>◉<\/b>/);
-assert.match(html, /styles\.css\?v=hazard-layer-v1/);
-assert.match(html, /app\.mjs\?v=hazard-layer-v1/);
+assert.match(html, /styles\.css\?v=hazard-pass3-v1/);
+assert.match(html, /app\.mjs\?v=hazard-pass3-v1/);
 console.log("All Index Shuffle gold-banking and metallic-tile regression tests passed.");
