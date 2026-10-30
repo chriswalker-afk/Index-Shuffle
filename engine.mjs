@@ -169,6 +169,13 @@ export function slide(board, direction) {
         const to = segment[out.length];
         if (b && a.value.base === b.value.base) {
           const merged = tile(a.value.base, a.value.exp + b.value.exp);
+          // Gold is tile metadata in Roguelite. It moves with a tile and
+          // survives merging; two golden inputs produce a double-gold tile.
+          // Classic tiles have no gold metadata, so Classic is unchanged.
+          const goldA = [1, 2].includes(a.value.gold) ? a.value.gold : 0;
+          const goldB = [1, 2].includes(b.value.gold) ? b.value.gold : 0;
+          const gold = Math.min(2, goldA + goldB);
+          if (gold) merged.gold = gold;
           out.push(merged);
           merges.push(merged);
           mergeDestinations.push(to);
