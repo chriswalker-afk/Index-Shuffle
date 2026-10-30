@@ -7,6 +7,7 @@ import {
   bossTargetFor, startBossBoard
 } from "./bosses.mjs?v=mode-results-v1";
 import { emptyRunStats, restoreRunStats } from "./milestones.mjs?v=mode-results-v1";
+import { emptyHazardLayer } from "./hazards.mjs?v=hazard-layer-v1";
 
 export const ROUND_TARGETS = Object.freeze([
   8, 11, 14, 17, 20, 24, 28, 33, 39, 45, 52, 60
@@ -164,7 +165,8 @@ export function restoreRogueliteRun(run, movesLeft = 0) {
 export function newRogueliteRun(best = 0, rng = Math.random) {
   return {
     mode: "roguelite",
-    board: startingBoard(rng), discovered: [], banked: [], locked: [], mergeReady: [],
+    board: startingBoard(rng), hazards: emptyHazardLayer(),
+    discovered: [], banked: [], locked: [], mergeReady: [],
     score: 0, best: Number.isSafeInteger(best) && best > 0 ? best : 0,
     moves: 0, movesLeft: INITIAL_MOVES_LEFT, mergeCredit: 0,
     budgetRulesVersion: BUDGET_RULES_VERSION, over: false, notice: "",
@@ -242,6 +244,7 @@ export function advanceRogueliteRound(state, rng = Math.random, rates = null) {
   return {
     ...state,
     board: nextBoard,
+    hazards: emptyHazardLayer(),
     discovered: [...state.discovered],
     banked: [], locked: [], mergeReady: [],
     score: 0, moves: 0, movesLeft: INITIAL_MOVES_LEFT, mergeCredit: 0,
