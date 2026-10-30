@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import {
   tile, key, slide, spawn, canMove, isBankable,
   bankReplacement, checkAnswer, answerFor, scoreFor, initial,
@@ -326,5 +327,24 @@ assert.deepEqual(restoreMoveBudget({ budgetRulesVersion: 2,
 assert.deepEqual(restoreMoveBudget({ budgetRulesVersion: 2,
   movesLeft: -4, mergeCredit: 7 }), { movesLeft: 0, mergeCredit: 0,
   budgetRulesVersion: BUDGET_RULES_VERSION });
+
+// Browser wiring regression: the earlier bug could leave the visible
+// counter at ten even when the pure engine tests passed. Protect both
+// the slide debit and the correctly banked-only credit pathways, and
+// verify the HTML requests fresh versioned modules rather than stale JS.
+const uiSource = readFileSync("app.mjs", "utf8");
+const page = readFileSync("index.html", "utf8");
+assert.match(uiSource,
+  /spendMove\(state\.movesLeft, activeBlockers\)/,
+  "the live slide handler must debit the move budget");
+assert.match(uiSource,
+  /creditCorrectBank\(state\.movesLeft, state\.mergeCredit,\s*outcome\.creditedMerge\)/,
+  "the correct-bank handler is the only source of bonus moves");
+assert.match(uiSource, /\$\("movesLeft"\)\.textContent = state\.movesLeft/,
+  "the counter in the UI must be updated after each render");
+assert.match(page, /id="movesLeft"/);
+assert.match(page, /app\.mjs\?v=banked-moves-v2/);
+assert.match(uiSource, /engine\.mjs\?v=banked-moves-v2/);
+assert.match(page, /correctly banked merges/);
 
 console.log("All Index Shuffle engine tests passed.");
