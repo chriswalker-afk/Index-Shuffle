@@ -202,9 +202,15 @@ export function slide(board, direction, rules = null) {
   };
 }
 
+// Golden number cards are cashable even at exponent 1. Unlike ordinary
+// powers, a new golden copy of a previously banked base/exponent remains
+// worth banking: the gold status is a new, one-time opportunity. The
+// replacement always loses gold, so it cannot be banked again for free.
 export function isBankable(t, banked, index, locked = new Set()) {
-  return Boolean(t && !isObstacle(t) &&
-    t.exp >= 2 && !banked.has(key(t)) && !locked.has(index));
+  if (!t || isObstacle(t) || locked.has(index)) return false;
+  const golden = t.gold === 1 || t.gold === 2;
+  return Number.isSafeInteger(t.exp) && (t.exp >= 2 || (golden && t.exp === 1)) &&
+    (golden || !banked.has(key(t)));
 }
 
 export function canMove(board, banked, locked = new Set(), rules = null) {
@@ -225,7 +231,13 @@ export function gameEnded(board, banked, locked, movesLeft, rules = null) {
 // randomly chosen smaller power that has actually been discovered this game.
 // An exponent of 1 is always eligible: base tiles are available from the start.
 export function bankReplacement(t, discovered, rng = Math.random) {
-  if (!t || isObstacle(t) || t.exp < 2) throw new RangeError("Banking requires a power");
+  if (!t || isObstacle(t) || (t.exp < 2 &&
+      !(t.exp === 1 && [1, 2].includes(t.gold)))) {
+    throw new RangeError("Banking requires a power or a golden number");
+  }
+  // A golden base tile can be banked correctly for its face value;
+  // converting it to a normal base tile consumes its one-off gold.
+  if (t.exp === 1) return tile(t.base);
   const exponents = new Set([1]);
   for (const value of discovered) {
     const [base, exp] = value.split("-").map(Number);
