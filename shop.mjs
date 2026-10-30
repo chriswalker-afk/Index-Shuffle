@@ -1,6 +1,6 @@
 // Roguelite shop and two-slot inventory system. Gameplay effects are applied in effects.mjs.
 // Pure reducers make purchases, resale, replacement and rerolls testable.
-import { validRogueliteRun } from "./roguelite.mjs?v=mode-results-v1";
+import { validRogueliteRun } from "./roguelite.mjs?v=hazard-pass3-v1";
 
 export const INVENTORY_SLOTS = 2;
 export const SHOP_OFFERS_PER_TYPE = 2;
