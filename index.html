@@ -52,7 +52,7 @@
           <span id="blockerNext" class="pressure-help">First: move 10 · tier 1</span>
         </div>
         <p class="tip">Use arrow keys, WASD or swipe. ✦ means bankable;
-          ⌛ means wait one slide; ▦ is a fixed blocker.</p>
+          ⌛ means wait one slide; ! marks the next blocker square; ▦ is a fixed blocker.</p>
       </div>
 
       <aside class="side">
@@ -78,11 +78,15 @@
           <h2>How to survive</h2>
           <p>Each valid slide spawns a new tile. From move 40, every tenth
              slide can add a <b>second tile</b> when space is available.</p>
-          <p>The first <b>easy blocker</b> appears at move 10 and needs just
-             <b>one adjacent merge</b>. Another is attempted every 10
-             successful slides: the strength rises to 2, 3, 4 and then 5
-             merges (the maximum). At most <b>two blockers</b> can be active
-             at once, and a blocker needs an empty square to appear.</p>
+          <p>At move <b>9</b>, an empty square is <b>highlighted as a warning</b>.
+             On your next successful slide (move 10), that exact square
+             becomes a <b>tier 1 blocker</b>, requiring just one adjacent
+             merge to destroy. The marked square is temporarily reserved,
+             so tiles cannot slide through it or overwrite it.</p>
+          <p>A new warning is attempted every ten moves (19, 29, 39, …),
+             leading to blockers with 2, 3, 4 and then 5 hits (the maximum).
+             At most <b>two blockers</b> can be active at once. If no safe
+             square is available, that warning and blocker are skipped.</p>
           <p>Blockers stay fixed and divide rows and columns. Merges must
              finish <b>directly beside</b> them—not diagonally—to deal damage.
              Breaking a blocker opens its square for future turns.</p>
