@@ -52,7 +52,8 @@
           <span id="blockerNext" class="pressure-help">First: move 10 · tier 1</span>
         </div>
         <p class="tip">Use arrow keys, WASD or swipe. ✦ means bankable;
-          ⌛ means wait one slide; ! marks the next blocker square; ▦ is a fixed blocker.</p>
+          ⚡ means a correct bank will hit a nearby blocker; ⌛ means wait one slide;
+          ! marks the next blocker square; ▦ is a fixed blocker.</p>
       </div>
 
       <aside class="side">
@@ -87,9 +88,15 @@
              leading to blockers with 2, 3, 4 and then 5 hits (the maximum).
              At most <b>two blockers</b> can be active at once. If no safe
              square is available, that warning and blocker are skipped.</p>
-          <p>Blockers stay fixed and divide rows and columns. Merges must
-             finish <b>directly beside</b> them—not diagonally—to deal damage.
-             Breaking a blocker opens its square for future turns.</p>
+          <p>Blockers stay fixed and divide rows and columns. <b>Merging
+             alone does not damage a blocker.</b> Make a power by merging
+             matching bases, then <b>bank that merged power correctly
+             while it is directly beside a blocker</b> to deal one hit.
+             Diagonal squares do not count; a power spawned randomly must
+             first be merged before it can damage anything. Look for the
+             <b>⚡</b> symbol on powers that can damage a blocker when banked.</p>
+          <p>Breaking a blocker opens its square for future turns.
+             Incorrect or timed-out banking attempts never damage blockers.</p>
           <p>New bases unlock at moves 15, 35 and 60. You lose when
              no legal slides or banking actions remain.</p>
         </section>

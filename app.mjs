@@ -1,7 +1,7 @@
 import {
   key, slide, turnSpawns, initial, canMove, isBankable, isBlocker, isWarning,
   blockerStrength, blockerHitsForMove, BLOCKER_START, BLOCKER_INTERVAL, MAX_BLOCKERS,
-  bankReplacement, checkAnswer, scoreFor, activeBases, BASE_UNLOCKS
+  mergeReadyAfterSlide, attemptBank, adjacentIndices, activeBases, BASE_UNLOCKS
 } from "./engine.mjs";
 
 const $ = id => document.getElementById(id);
@@ -11,7 +11,7 @@ const SLIDE_MS = 170;
 const prefersReducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 function fresh(best = 0) {
-  return { board: initial(), discovered: [], banked: [], locked: [],
+  return { board: initial(), discovered: [], banked: [], locked: [], mergeReady: [],
     score: 0, best, moves: 0, over: false, notice: "" };
 }
 function saved() {
@@ -26,6 +26,9 @@ if (!state || !Array.isArray(state.board) || state.board.length !== 16) {
   state.locked = Array.isArray(state.locked) ? state.locked : [];
   state.discovered = Array.isArray(state.discovered) ? state.discovered : [];
   state.banked = Array.isArray(state.banked) ? state.banked : [];
+  // Earlier saves never recorded which tiles came from genuine merges.
+  // They remain playable; new merges earn bank-triggered blocker hits.
+  state.mergeReady = Array.isArray(state.mergeReady) ? state.mergeReady : [];
   state.notice = "";
   state.over = !canMove(state.board, new Set(state.banked), new Set(state.locked));
 }
@@ -47,6 +50,7 @@ function tileContent(t, badge = "") {
 function render() {
   const banked = new Set(state.banked);
   const locked = new Set(state.locked);
+  const mergeReady = new Set(state.mergeReady);
   $("score").textContent = state.score;
   $("best").textContent = state.best;
   $("count").textContent = state.banked.length;
@@ -88,14 +92,18 @@ function render() {
     } else if (t) {
       const available = isBankable(t, banked, i, locked);
       const blocked = t.exp >= 2 && locked.has(i) && !banked.has(key(t));
+      const strike = available && mergeReady.has(i) &&
+        adjacentIndices(i).some(j => isBlocker(state.board[j]));
       button.innerHTML = tileContent(t, available
-        ? '<i aria-hidden="true">✦</i>'
+        ? '<i aria-hidden="true">' + (strike ? '⚡' : '✦') + '</i>'
         : blocked ? '<i aria-hidden="true">⌛</i>' : "");
       const description = t.base + " to the power " + t.exp;
       button.title = blocked ? "Wait one slide before retrying " + description
+        : strike ? "Bank " + description + " correctly to damage adjacent blocker"
         : available ? "Bank " + description : description;
       button.setAttribute("aria-label", button.title);
       if (blocked) button.classList.add("locked");
+      if (strike) button.classList.add("block-strike");
       if (available) {
         button.classList.add("bankable");
         button.addEventListener("click", () => openBank(i));
@@ -206,10 +214,11 @@ function move(direction) {
     if (t.exp >= 2 && !state.discovered.includes(key(t))) state.discovered.push(key(t));
   }
   const nextMove = state.moves + 1;
-  // The hole made by destroying a blocker stays clear for this entire
-  // swipe. New number tiles may enter that space on a later turn.
+  // Keep merge provenance attached to its tile as it slides, and mark
+  // newly merged powers. Spawned powers never inherit that provenance.
+  state.mergeReady = mergeReadyAfterSlide(state.mergeReady, result.motions);
   const spawned = turnSpawns(result.board, new Set(state.discovered),
-    nextMove, Math.random, new Set(result.destroyed));
+    nextMove, Math.random);
   state.board = spawned.board;
   const unlockedNow = activeBases(nextMove)
     .filter(base => !activeBases(state.moves).includes(base));
@@ -218,8 +227,8 @@ function move(direction) {
   state.locked = [];
   const news = [];
   if (unlockedNow.length) news.push("Unlocked base " + unlockedNow.join(", ") + "!");
-  if (result.destroyed.length) news.push("Blocker broken — space freed!");
-  else if (result.damaged.length) news.push("Merge near a blocker to damage it.");
+  // Merging next to a blocker does not cause damage: students must bank
+  // the merged power correctly while it is adjacent to the blocker.
   if (spawned.blockerAt >= 0) {
     const strength = blockerStrength(state.board[spawned.blockerAt]);
     news.push("Tier " + strength + " blocker arrived in the highlighted square!");
@@ -277,6 +286,15 @@ function openBank(i) {
   $("promptTitle").textContent = t.base + glyph(t.exp) + " = ?";
   $("feedback").textContent = "";
   $("answer").value = "";
+  const canStrike = state.mergeReady.includes(i) &&
+    adjacentIndices(i).some(j => isBlocker(state.board[j]));
+  $("promptHelp").textContent = canStrike
+    ? "Bank this merged power correctly to damage the nearby blocker. "
+      + "You have 60 seconds; an incorrect answer or timeout locks this tile "
+      + "until your next valid slide."
+    : "You have 60 seconds to enter the exact value. "
+      + "Only correctly banking a merged power beside a blocker can damage it. "
+      + "An incorrect answer or timeout locks this tile until your next valid slide.";
   $("modal").hidden = false;
   if (!document.hidden) resumeClock();
   $("answer").focus();
@@ -303,27 +321,48 @@ $("bankForm").addEventListener("submit", event => {
   event.preventDefault();
   if (!pending) return;
   const { i, t } = pending;
-  if (!checkAnswer(t, $("answer").value)) {
+  if (!state.board[i] || key(state.board[i]) !== key(t)) return;
+  const outcome = attemptBank(state.board, i, $("answer").value, {
+    discovered: new Set(state.discovered),
+    banked: new Set(state.banked),
+    locked: new Set(state.locked),
+    mergeReady: new Set(state.mergeReady)
+  });
+  if (outcome.status === "incorrect") {
     lockPending("wrong");
     return;
   }
-  if (!state.board[i] || key(state.board[i]) !== key(t)) return;
-  const replacement = bankReplacement(t, new Set(state.discovered));
+  if (outcome.status !== "success") return;
   closeBank();
-  state.board[i] = replacement; // Banking retains a tile in the occupied square.
-  // Prevent immediately banking the replacement, even when its power is new.
-  // The position unlocks only after the next valid board slide.
+  state.board = outcome.board;
+  state.mergeReady = state.mergeReady.filter(index => index !== i);
+  // A correctly banked power becomes a smaller replacement in the same
+  // square, with the existing one-successful-slide banking cooldown.
   if (!state.locked.includes(i)) state.locked.push(i);
-  state.banked.push(key(t));
-  const points = scoreFor(t);
-  state.score += points;
+  state.banked.push(outcome.powerKey);
+  state.score += outcome.points;
   state.best = Math.max(state.best, state.score);
-  state.notice = "Banked " + t.base + glyph(t.exp) + " for " + points
+  const { replacement, damaged, destroyed } = outcome;
+  state.notice = "Banked " + t.base + glyph(t.exp) + " for " + outcome.points
     + " points. " + replacement.base + glyph(replacement.exp)
     + " remains. Slide once before banking that replacement.";
+  if (destroyed.length) {
+    state.notice += " " + destroyed.length
+      + (destroyed.length === 1 ? " blocker destroyed!" : " blockers destroyed!");
+  } else if (damaged.length) {
+    state.notice += " Blocker damaged by your correct bank!";
+  }
   state.over = !canMove(state.board, new Set(state.banked), new Set(state.locked));
   render();
-  if (!prefersReducedMotion()) $("board").children[i]?.classList.add("bank-flash");
+  if (!prefersReducedMotion()) {
+    $("board").children[i]?.classList.add("bank-flash");
+    for (const index of damaged) {
+      $("board").children[index]?.classList.add("block-hit-flash");
+    }
+    for (const index of destroyed) {
+      $("board").children[index]?.classList.add("block-break-flash");
+    }
+  }
 });
 
 $("close").addEventListener("click", closeBank);
