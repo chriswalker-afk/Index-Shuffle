@@ -788,6 +788,33 @@ function selectConsumableTarget(index) {
 }
 $("new").addEventListener("click", startNewGame);
 $("newFromEnd").addEventListener("click", startNewGame);
+$("resultsPlayAgain").addEventListener("click", startNewGame);
+
+function dismissResults() {
+  state.resultsDismissed = true;
+  if ($("resultsDialog").open) $("resultsDialog").close();
+  persist();
+}
+$("resultsClose").addEventListener("click", dismissResults);
+$("resultsBack").addEventListener("click", dismissResults);
+$("resultsDialog").addEventListener("cancel", () => {
+  state.resultsDismissed = true;
+  persist();
+});
+$("viewResults").addEventListener("click", () => {
+  if (!isFinishedRun(mode, state)) return;
+  state.resultsDismissed = false;
+  render();
+});
+function showAchievements() {
+  if (mode !== "roguelite") return;
+  openAchievementGallery(achievementProfile);
+}
+$("achievementOpen").addEventListener("click", showAchievements);
+$("achievementToastView").addEventListener("click", showAchievements);
+$("resultsAllAchievements").addEventListener("click", showAchievements);
+$("achievementsClose").addEventListener("click",
+  () => $("achievementsDialog").close());
 $("nextRound").addEventListener("click", () => {
   if (mode !== "roguelite" || state.run.phase !== "round-clear") return;
   stopMotion();
