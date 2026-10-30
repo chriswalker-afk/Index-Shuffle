@@ -233,6 +233,12 @@ const failedResult = finalScoreSummary("roguelite", failed);
 assert.equal(failedResult.score, 45);
 assert.equal(failedResult.roundsCleared, 3);
 assert.equal(failedResult.won, false);
+const legacyRunResult = finalScoreSummary("roguelite", {
+  ...failed, run: { ...failed.run, round: 7, stats: undefined }
+});
+assert.equal(legacyRunResult.roundsCleared, 6);
+assert.equal(legacyRunResult.bossesDefeated, 2,
+  "A pre-achievement save in round 7 must show the two bosses already cleared");
 assert.equal(isFinishedRun("roguelite", { ...game, over: false,
   run: { ...game.run, phase: "round-clear", round: 5 } }), false);
 
