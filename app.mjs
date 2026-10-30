@@ -12,10 +12,10 @@ import { newRogueliteRun, targetForRound, stageForRound, isBossRound,
 } from "./roguelite.mjs?v=runestones-pass2";
 import {
   restoreShopState, enterRogueliteShop, rerollRogueliteShop
-} from "./shop.mjs?v=runestones-pass3";
+} from "./shop.mjs?v=runestones-pass4";
 import {
   renderRogueliteInventory, renderRogueliteShop
-} from "./shop-ui.mjs?v=runestones-pass3";
+} from "./shop-ui.mjs?v=runestones-pass4";
 import { bossPortraitFor } from "./art-catalog.mjs?v=frostlock-v1";
 import { bossSceneFor } from "./boss-scenes.mjs?v=frostlock-v1";
 import {
@@ -23,7 +23,7 @@ import {
   hazardItemProtection, costOfNextSlide, canActivateConsumable, CONSUMABLE_TARGETS,
   consumableTargets, useConsumable
 } from "./effects.mjs?v=runestones-pass4";
-import { ITEM_BY_ID } from "./shop.mjs?v=runestones-pass3";
+import { ITEM_BY_ID } from "./shop.mjs?v=runestones-pass4";
 import {
   bossForRound, bossTargetFor, bossPointsFor, bossMovementRules, bossId,
   bossAllowsMoveRestoration, applyThreeCurse,
