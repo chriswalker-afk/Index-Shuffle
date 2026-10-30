@@ -22,6 +22,30 @@ export function permanentIds(run) {
 }
 export const hasPermanent = (run, id) => permanentIds(run).has(id);
 
+// Pure defensive configuration. The hazard engine receives these values
+// explicitly; it never imports the shop or item engine (no circular graph).
+// Rates are multipliers, NOT complete immunity. At most two items can be
+// equipped simultaneously under the existing permanent-slot rules.
+export function hazardItemProtection(run) {
+  const equipped = permanentIds(run);
+  const has = id => equipped.has(id);
+  return {
+    warningMultiplier: has("storm-shelter") ? 0.70 : 1,
+    weightMultipliers: {
+      cloudy: has("mist-filter") ? 0.35 : 1,
+      void: 1,
+      cracked: has("fracture-ward") ? 0.40 : 1,
+      greedy: has("gilded-compass") ? 0.30 : 1,
+      null: has("fracture-ward") ? 0.40 : 1
+    },
+    downgrade: has("hazard-tamer"),
+    cloudySlides: has("fog-lantern") ? 2 : 3,
+    voidFloor: has("void-cushion") ? 2 : 1,
+    greedyLandingOnly: has("gilded-soles")
+  };
+}
+
+
 export function restoreEffectState(run) {
   if (!run || typeof run !== "object") throw new RangeError("Invalid run");
   return {
