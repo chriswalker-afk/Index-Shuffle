@@ -4,9 +4,9 @@ import {
   ACHIEVEMENTS, ACHIEVEMENT_BY_ID, countUnlocked,
   progressForAchievement, isFinishedRun, finalScoreSummary
 } from "./milestones.mjs?v=hazard-counter-v1";
-import { bossForRound } from "./bosses.mjs?v=hazard-counter-v1";
-import { bossPortraitFor } from "./art-catalog.mjs?v=hazard-counter-v1-art-pass3";
-import { bossSceneFor } from "./boss-scenes.mjs?v=hazard-counter-v1-art-pass3";
+import { bossForRound } from "./bosses.mjs?v=frostlock-v1";
+import { bossPortraitFor } from "./art-catalog.mjs?v=frostlock-v1";
+import { bossSceneFor } from "./boss-scenes.mjs?v=frostlock-v1";
 import { achievementMedalHref, achievementVisualTheme } from "./achievement-art.mjs?v=hazard-counter-v1-art-pass4";
 
 const $ = id => document.getElementById(id);

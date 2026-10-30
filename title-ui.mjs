@@ -1,7 +1,7 @@
 // Screen presentation for the title, new-game choice and Continue slots.
 // Save eligibility and descriptions are pure functions in navigation.mjs.
-import { continueOptions } from "./navigation.mjs?v=hazard-counter-v1";
-import { renderAchievementCount } from "./results-ui.mjs?v=hazard-counter-v1-art-pass4";
+import { continueOptions } from "./navigation.mjs?v=frostlock-v1";
+import { renderAchievementCount } from "./results-ui.mjs?v=frostlock-v1";
 
 const $ = id => document.getElementById(id);
 

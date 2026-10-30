@@ -5,7 +5,7 @@ import {
 import {
   createBossSchedule, restoreBossSchedule, bossPointsFor,
   bossTargetFor, startBossBoard, nextFrozenDirection, validFrozenDirection
-} from "./bosses.mjs?v=hazard-counter-v1";
+} from "./bosses.mjs?v=frostlock-v1";
 import { emptyRunStats, restoreRunStats } from "./milestones.mjs?v=hazard-counter-v1";
 import { emptyHazardLayer } from "./hazards.mjs?v=hazard-counter-v1";
 

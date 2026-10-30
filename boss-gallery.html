@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#152337">
   <title>Boss gallery · Index Shuffle</title>
-  <link rel="stylesheet" href="styles.css?v=hazard-counter-v1-art-pass4">
+  <link rel="stylesheet" href="styles.css?v=frostlock-v1">
   <style>
     body { background:
       radial-gradient(circle at 91% 0,#51345450,transparent 38%),
@@ -67,12 +67,12 @@
     </nav>
     <p class="boss-gallery-eyebrow">The Curious Numberworld · Boss art · Pass 3</p>
     <h1>Meet your mathematical nightmares.</h1>
-    <p class="boss-gallery-intro">Seven opponents, four encounters per Roguelike run.
+    <p class="boss-gallery-intro">Eight possible opponents, four encounters per Roguelike run.
       Each portrait has its own silhouette and colour story. The game always explains
       the boss's actual effect; no one needs to guess the rules from the artwork.
       Select <strong>Preview encounter</strong> to inspect the in-game introduction
       without starting a game or altering any saved progress.</p>
-    <div class="boss-gallery-grid" id="bossGallery" aria-label="Seven Index Shuffle bosses"></div>
+    <div class="boss-gallery-grid" id="bossGallery" aria-label="Eight Index Shuffle bosses"></div>
     <p class="boss-gallery-note">Every preview here is cosmetic. The actual bosses
       appear on rounds 3, 6, 9 and 12 and are revealed in the previous shop.
       Boss introductions can be skipped immediately and never change moves or scoring.</p>
@@ -106,9 +106,9 @@
     </div>
   </dialog>
   <script type="module">
-    import { BOSS_CATALOG } from "./bosses.mjs?v=hazard-counter-v1";
-    import { bossPortraitFor } from "./art-catalog.mjs?v=hazard-counter-v1-art-pass3";
-    import { bossSceneFor } from "./boss-scenes.mjs?v=hazard-counter-v1-art-pass3";
+    import { BOSS_CATALOG } from "./bosses.mjs?v=frostlock-v1";
+    import { bossPortraitFor } from "./art-catalog.mjs?v=frostlock-v1";
+    import { bossSceneFor } from "./boss-scenes.mjs?v=frostlock-v1";
 
     const gallery = document.getElementById("bossGallery");
     const dialog = document.getElementById("previewDialog");
