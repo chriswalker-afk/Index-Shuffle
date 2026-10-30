@@ -21,6 +21,7 @@ jobs:
           node gold-banking.tests.mjs
           node milestones.tests.mjs
           node navigation.tests.mjs
+          node hazard-layer.tests.mjs
       - name: Check JavaScript syntax
         run: |
           node --check engine.mjs
@@ -43,6 +44,9 @@ jobs:
           node --check navigation.mjs
           node --check title-ui.mjs
           node --check navigation.tests.mjs
+          node --check hazards.mjs
+          node --check hazard-ui.mjs
+          node --check hazard-layer.tests.mjs
       - name: Verify Pages static files
         run: |
           test -f .nojekyll
@@ -59,3 +63,5 @@ jobs:
           test -f results-ui.mjs
           test -f navigation.mjs
           test -f title-ui.mjs
+          test -f hazards.mjs
+          test -f hazard-ui.mjs
