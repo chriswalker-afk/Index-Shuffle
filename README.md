@@ -20,9 +20,9 @@
 - Moves animate briefly (170 ms). System **reduced motion** preferences disable animations. Banking timers pause while the browser tab is hidden.
 - Game state, correctly banked merge credit, remaining moves and high score are saved locally in the browser. New games start with 10 moves. **Existing saved games created under the earlier automatic-merge-reward rule** keep their board, score, discoveries and historical slide count but receive a fresh ten-move balance and zero correct-bank credit; this upgrade occurs once.
 
-## Roguelite — Passes 2–3 (Gold economy and shop)
+## Roguelite — Passes 2–4 (Gold, shop and active items)
 
-Select **Roguelite** for a separate 12-round run. Correctly banking a power earns **exactly its exponent in points** (for example, 7² earns 2 points). Classic scoring is unchanged. Each round has a rising target: **8, 11, 14, 17, 20, 24, 28, 33, 39, 45, 52, 60**. Every third round is labelled as a boss milestone; actual boss effects arrive in a later pass. These targets are intentionally harder than the Pass 1 values and will require balancing once items are available.
+Select **Roguelite** for a separate 12-round run. Correctly banking a power earns **exactly its exponent in points** (for example, 7² earns 2 points). Classic scoring is unchanged. Each round has a rising target: **8, 11, 14, 17, 20, 24, 28, 33, 39, 45, 52, 60**. Every third round is labelled as a boss milestone; actual boss effects arrive in a later pass. These targets are provisional and will need balancing with the now-active item combinations.
 
 **Gold rules (Roguelite only):**
 
@@ -36,14 +36,21 @@ Select **Roguelite** for a separate 12-round run. Correctly banking a power earn
 **The shop (Pass 3):**
 
 - Clearing a non-final round reveals its gold breakdown and a **Visit shop** button. You must visit the shop before advancing to the next round, but you may continue without purchasing anything. The final round ends in victory instead of a shop.
-- Each visit offers exactly **two permanent upgrades** and **two single-use items**. The initial catalogue includes 12 permanent and 10 single-use options with distinct names, future effects and coin prices. Purchasing deducts coins immediately; a purchased offer becomes sold out until rerolled.
+- Each visit offers exactly **two permanent upgrades** and **two single-use items**. The catalogue contains 12 permanent and 10 single-use options with distinct active effects and coin prices. Purchasing deducts coins immediately; a purchased offer becomes sold out until rerolled.
 - There are **two permanent slots** and **two single-use slots**, which persist through subsequent rounds and browser restarts. With space available, buying fills the first free slot. When both slots are occupied, the player must choose which one to replace. A permanent replacement returns half the original purchase price (rounded down), which can help finance the replacement. Consumable replacements have no refund.
 - In the shop, owned permanents can be **sold for half their purchase price**; held consumables can be discarded with confirmation and no refund. Equipment is not removed at the end of the round.
 - **Rerolling costs 1 coin initially**, increasing to 2, 3, etc. during that same shop visit. The cost resets on the next visit. Rerolls replace all four offer slots, including sold-out ones. Current equipped permanent upgrades will not reappear in shop stock; rerolls attempt to show different items from the previous offers.
 - Coins, owned items, purchased-item prices, open shop stock, sold-out offers and reroll prices are saved locally. Existing Pass 1/2 runs are migrated without losing their boards, scores or coins.
-- **Important:** Pass 3 implements inventory and purchasing only. The advertised gameplay effects of equipped items are **not active until Pass 4**. The shop and HUD explicitly show this limitation so players do not mistake inventory for active bonuses.
+**Active items (Pass 4):**
 
-**Still to build:** Pass 4 item effects; Pass 5 boss constraints; Pass 6 scoring, blocker balance and presentation tuning. Round targets remain provisional.
+- **Permanent items apply automatically** as soon as purchased and equipped, for every remaining round until sold or replaced. Each bank starts with its exponent as the base score. Matching multipliers apply first (Opening Act, Twin Twos, Five Alive), then additive effects (Big Powers, Square Specialist, Variety Bonus). The banking prompt previews the total score and the confirmation explains the bonuses used.
+- Golden Calculator adds **1 coin** only for correctly banked **merged** gold; Lucky Spawn increases general gold spawn probability to **27%**, and Lucky Sevens adds **30 percentage points** for base 7. Three's Company delays the next blocker by one slide after a correct bank of a genuinely merged base-3 power. Blockbuster makes genuinely merged correctly banked powers damage neighbouring blockers for two hits instead of one. Bulk Discount reduces item purchase prices by one coin, to a minimum of one, while it is equipped (not reroll fees).
+- The 10 consumables are now actionable from the **two single-use slots in the Roguelite HUD**. Block Breaker destroys a selected blocker; Power Surge raises one exponent (without generating genuine merge credit); Second Wind restores two moves (up to ten); Alchemist changes a base-3 tile to base 5; Protection ignores blocker surcharges for the next two actual slides; Gold Touch gilds a tile; Position Swap exchanges two number tiles; Delay Tactics delays hazards by two slides; Clear Space removes a number tile without scoring; Second Chance unlocks a temporarily locked banking opportunity.
+- Targeted consumables **highlight valid squares**. Swapping requires selecting two distinct number tiles. The Cancel button or Escape abandons the selection without losing the item. Non-targeted effects apply immediately on use. Invalid targets cannot be selected, and items cannot be spent in the shop or after game over.
+- Consuming an item does **not** itself count as a swipe, a merge or a correct bank: it never directly awards exponent points, gold, correct-bank move credit or blocker strike credit. Correct banking remains required for those rewards. Swaps carry gold, merge provenance and banking locks with their tiles. Transformations preserve existing banking cooldowns while removing merge provenance.
+- Temporary effects, last-bank base and per-round scoring bonus counters **reset each new round**, while equipped permanent bonuses, remaining consumables, coins and discoveries persist. Earlier Pass 1–3 saves receive safe defaults for the new counters without losing their existing run.
+
+**Still to build:** Pass 5 boss constraints and Pass 6 score, shop economy and blocker balance, together with visual polish and gameplay validation. Round targets remain provisional.
 
 ## Interface
 
@@ -58,7 +65,7 @@ The panel layout is deliberately compact: a player should not need to read instr
 
 ## Tests
 
-Run **node tests.mjs**, **node hazards.tests.mjs**, **node roguelite.tests.mjs** and **node shop.tests.mjs** (Node 18+). GitHub Actions runs all four test suites, JavaScript syntax checks and static entrypoint verification on pushes and pull requests.
+Run **node tests.mjs**, **node hazards.tests.mjs**, **node roguelite.tests.mjs**, **node shop.tests.mjs** and **node effects.tests.mjs** (Node 18+). GitHub Actions runs all five test suites, JavaScript syntax checks and static entrypoint verification on pushes and pull requests.
 
 The engine and hazard regression tests cover the **ten-move budget**, blocker slide costs, the maximum of 10, the rule that slides and unbanked merges never restore moves, and the rule that **only two correctly banked powers created by merging** earn one move. They also test save migration, banking lockouts, blocker mechanics, and zero-move loss conditions. The answer timer and visual effects should be manually checked on desktop and mobile.
 
@@ -69,7 +76,8 @@ The game is plain HTML, CSS, and native JavaScript modules, with no external run
 - **engine.mjs:** deterministic game rules, sliding segments, blocker damage, gold metadata propagation during merges, dual spawning, power replacement and question validation.
 - **roguelite.mjs:** exponent-only scoring, 12-round progression, golden spawns, coin payouts, leftover-move rewards and saved-state migration.
 - **shop.mjs:** data-driven item catalogue, four-offer shop generation, purchases, permanent resale, consumable discards, rising-price rerolls and inventory/save validation.
-- **shop-ui.mjs:** accessible shop offer and equipment controls, plus compact inventory display in the Roguelite HUD.
+- **shop-ui.mjs:** accessible shop offer and equipment controls, plus active consumable buttons in the Roguelite HUD.
+- **effects.mjs:** pure bonus calculations, protected slides, hazard delays, gold rates, and ten targeted or immediate consumable effects, with independent tests.
 - **app.mjs:** browser interaction, banking timer, accessible help dialog, persistent state, move-cost display and short tile animations. The HTML uses versioned script and stylesheet URLs to prevent stale modules from keeping the old layout or obsolete move rules after deployment.
 - **styles.css:** responsive visual design, including reduced-motion support.
 
