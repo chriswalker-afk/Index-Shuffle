@@ -3,7 +3,7 @@
 import {
   blocker, isBlocker, isObstacle, isWarning, canMove, isBankable,
   MAX_BLOCKERS, adjacentIndices
-} from "./engine.mjs?v=hazard-pass4-v1";
+} from "./engine.mjs?v=hazard-counter-v1";
 
 export const BOSS_ROUNDS = Object.freeze([3, 6, 9, 12]);
 export const BOSS_CATALOG = Object.freeze([
