@@ -31,6 +31,9 @@ import {
   addEarnedToRunStats, recordAchievementEvent, countUnlocked,
   progressForAchievement, isFinishedRun, finalScoreSummary
 } from "./milestones.mjs?v=mode-results-v1";
+import {
+  renderAchievementCount, openAchievementGallery, renderFinalScreen
+} from "./results-ui.mjs?v=mode-results-v1";
 
 const $ = id => document.getElementById(id);
 const glyph = n => String(n).replace(/\d/g, d => "⁰¹²³⁴⁵⁶⁷⁸⁹"[+d]);
@@ -140,6 +143,16 @@ function tileContent(t, badge = "") {
 }
 function render() {
   const rogue = mode === "roguelite";
+  finalizeGameIfNeeded();
+  renderAchievementCount(achievementProfile, rogue);
+  $("achievementToast").hidden = !rogue || !recentAchievementIds.length;
+  if (rogue && recentAchievementIds.length) {
+    const names = recentAchievementIds.map(id =>
+      ACHIEVEMENT_BY_ID[id]?.name).filter(Boolean);
+    $("achievementToastText").textContent =
+      (names.length > 1 ? "Achievements unlocked: " : "Achievement unlocked: ") +
+      names.join(", ") + "!";
+  }
   $("modeClassic").setAttribute("aria-pressed", String(!rogue));
   $("modeRoguelite").setAttribute("aria-pressed", String(rogue));
   $("rogueProgress").hidden = !rogue;
@@ -367,6 +380,7 @@ function render() {
   renderRogueliteInventory(state, rogue, beginConsumable, slot =>
     canActivateConsumable(state, slot));
   renderRogueliteShop(state, mode, applyShopAction);
+  renderFinalScreen(mode, state, achievementProfile);
   persist();
 }
 
@@ -437,6 +451,7 @@ function move(direction) {
   const result = slide(before, direction,
     mode === "roguelite" ? bossMovementRules(state.run) : null);
   if (!result.changed) return;
+  recentAchievementIds = [];
   for (const t of result.merges) {
     if (t.exp >= 2 && !state.discovered.includes(key(t))) state.discovered.push(key(t));
   }
@@ -481,6 +496,11 @@ function move(direction) {
   const unlockedNow = activeBases(progression)
     .filter(base => !activeBases(previousProgression).includes(base));
   state.moves = nextMove;
+  if (mode === "roguelite") {
+    state.run.stats = recordSuccessfulSlide(state.run.stats);
+  } else {
+    state.stats = recordSuccessfulSlide(state.stats);
+  }
   // A successful slide clears the incorrect-attempt and banking cooldowns.
   state.locked = [];
   const news = [];
