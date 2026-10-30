@@ -1,8 +1,8 @@
 // Release reliability: a held consumable must be usable before declaring
 // a board mechanically lost. Only real, legal, one-use item actions count.
 // This module never mutates the run and never grants a free item or move.
-import { gameEnded } from "./engine.mjs?v=hazard-counter-v1";
-import { bossMovementRules } from "./bosses.mjs?v=frostlock-v1";
+import { gameEnded } from "./engine.mjs?v=runestones-pass2";
+import { bossMovementRules } from "./bosses.mjs?v=runestones-pass2";
 import {
   canActivateConsumable, consumableTargets, useConsumable,
   CONSUMABLE_TARGETS, hazardItemProtection
