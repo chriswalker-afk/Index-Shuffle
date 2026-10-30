@@ -779,6 +779,9 @@ function move(direction) {
   if (mode === "roguelite" && state.run.hazardWarning) {
     hazardAvoid.add(state.run.hazardWarning.index);
   }
+  if (mode === "roguelite") state.enchantments.forEach((entry, index) => {
+    if (entry) hazardAvoid.add(index);
+  });
   const spawned = turnSpawns(curse.board, new Set(state.discovered),
     hazardMoves, Math.random, hazardAvoid,
     mode === "roguelite" ? state.run.totalSlides : nextMove,
