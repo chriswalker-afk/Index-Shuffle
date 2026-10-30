@@ -85,9 +85,15 @@ function drawOffers(type, inventory, rng, previous = []) {
 }
 
 function makeShop(inventory, rng, previous = null) {
+  // Remember the ORIGINAL offer IDs even after a purchase empties a slot.
+  // Otherwise, rerolling two sold-out cards could immediately offer the
+  // exact same items the player just bought.
+  const priorIds = previous?.lastOffers || previous;
+  const permanents = drawOffers("permanents", inventory, rng, priorIds?.permanents);
+  const consumables = drawOffers("consumables", inventory, rng, priorIds?.consumables);
   return {
-    permanents: drawOffers("permanents", inventory, rng, previous?.permanents),
-    consumables: drawOffers("consumables", inventory, rng, previous?.consumables),
+    permanents, consumables,
+    lastOffers: { permanents: [...permanents], consumables: [...consumables] },
     rerolls: previous ? previous.rerolls + 1 : 0,
     rerollCost: previous ? previous.rerolls + 2 : INITIAL_REROLL_COST,
     notice: previous ? "New stock is ready." : "Welcome! Choose your upgrades or keep your coins."
@@ -100,9 +106,14 @@ function validShop(shop, inventory) {
       typeof shop.notice !== "string") return false;
   return SHOP_TYPES.every(type => {
     const offers = shop[type];
+    const lastOffers = shop.lastOffers?.[type];
     const ids = (offers || []).filter(Boolean);
     return Array.isArray(offers) && offers.length === SHOP_OFFERS_PER_TYPE &&
+      Array.isArray(lastOffers) && lastOffers.length === SHOP_OFFERS_PER_TYPE &&
+      lastOffers.every(id => ITEM_BY_ID[id]?.type === type) &&
+      lastOffers.length === new Set(lastOffers).size &&
       ids.length === new Set(ids).size &&
+      offers.every((id, i) => id === null || id === lastOffers[i]) &&
       ids.every(id => ITEM_BY_ID[id]?.type === type &&
         (type !== "permanents" ||
           !inventory.permanents.some(entry => entry?.id === id)));
@@ -123,7 +134,10 @@ export function restoreShopState(run, rng = Math.random) {
   if (run.phase === "shop") {
     shop = validShop(run.shop, inventory)
       ? { ...run.shop, permanents: [...run.shop.permanents],
-        consumables: [...run.shop.consumables], notice: run.shop.notice.slice(0, 200) }
+        consumables: [...run.shop.consumables],
+        lastOffers: { permanents: [...run.shop.lastOffers.permanents],
+          consumables: [...run.shop.lastOffers.consumables] },
+        notice: run.shop.notice.slice(0, 200) }
       : makeShop(inventory, rng);
   }
   return { ...run, inventory, shop };
