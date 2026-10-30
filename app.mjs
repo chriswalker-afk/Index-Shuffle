@@ -730,19 +730,95 @@ $("cancel").addEventListener("click", closeBank);
 $("modal").addEventListener("click", event => {
   if (event.target === $("modal")) closeBank();
 });
-function startNewGame() {
-  if (!isFinishedRun(mode, state) &&
-      !confirm("Start a new game? Your current run will be replaced.")) return;
-  const best = state.best;
+function closeNavigationDialogs() {
   stopMotion();
   closeBank();
-  if ($("resultsDialog").open) $("resultsDialog").close();
-  if ($("achievementsDialog").open) $("achievementsDialog").close();
   pendingItem = null;
   recentAchievementIds = [];
-  state = mode === "roguelite" ? newRogueliteRun(best) : fresh(best);
-  render();
+  for (const id of ["shopDialog", "resultsDialog", "achievementsDialog"]) {
+    if ($(id).open) $(id).close();
+  }
 }
+
+function rememberMode(selected) {
+  try { localStorage.setItem(MODE_SAVE, selected); }
+  catch { /* Game still works when browser storage is disabled. */ }
+}
+
+function loadSavedGame(snapshot) {
+  state = snapshot;
+  Object.assign(state, restoreMoveBudget(state));
+  state.resultsFinalized = state.resultsFinalized === true;
+  state.resultsDismissed = state.resultsDismissed === true;
+  state.locked = Array.isArray(state.locked) ? state.locked : [];
+  state.mergeReady = Array.isArray(state.mergeReady) ? state.mergeReady : [];
+  state.discovered = Array.isArray(state.discovered) ? state.discovered : [];
+  state.banked = Array.isArray(state.banked) ? state.banked : [];
+  if (mode === "roguelite") {
+    state.run = restoreEffectState(restoreShopState(
+      restoreRogueliteRun(state.run, state.movesLeft)));
+    state.over = state.run.phase === "playing" ? currentGameEnded() : false;
+  } else {
+    state.stats = restoreRunStats(state.stats);
+    state.over = currentGameEnded();
+  }
+}
+
+function beginNewMode(selected, skipConfirmation = false) {
+  if (!Object.hasOwn(MODE_LABELS, selected)) return;
+  const previous = saved(selected);
+  if (!skipConfirmation && resumableSave(selected, previous) &&
+      !window.confirm("Start a new " + MODE_LABELS[selected] +
+        " game? This will replace your unfinished " + MODE_LABELS[selected] +
+        " save. The other game and achievements will be kept.")) return;
+  if (screen === "game") persist();
+  closeNavigationDialogs();
+  mode = selected;
+  rememberMode(mode);
+  const best = Number.isSafeInteger(previous?.best) ? previous.best : 0;
+  state = mode === "roguelite" ? newRogueliteRun(best) : fresh(best);
+  screen = "game";
+  render();
+  $("headerTitle").focus();
+}
+
+function resumeSavedGame(selected) {
+  const snapshot = saved(selected);
+  if (!resumableSave(selected, snapshot)) {
+    screen = "continue";
+    render();
+    return;
+  }
+  if (screen === "game") persist();
+  closeNavigationDialogs();
+  mode = selected;
+  rememberMode(mode);
+  loadSavedGame(snapshot);
+  screen = "game";
+  render();
+  // A Roguelike shop resumes in its modal, including its existing stock.
+  if (!$("shopDialog").open) $("headerTitle").focus();
+}
+
+function returnToTitle() {
+  if (screen === "game") {
+    if (isFinishedRun(mode, state)) state.resultsDismissed = true;
+    persist();
+  }
+  closeNavigationDialogs();
+  screen = "title";
+  render();
+  $("titleNew").focus();
+}
+
+function navigateTo(scene) {
+  if (!["title", "new", "continue"].includes(scene)) return;
+  if (scene === "title") { returnToTitle(); return; }
+  screen = scene;
+  render();
+  (scene === "new" ? $("modeClassic") : $("continueBack")).focus();
+}
+
 // Single-use items never score or advance the board. A targeted item
 // waits for one or two deliberate board clicks; Escape cancels safely.
 function cancelConsumable() {
@@ -792,9 +868,15 @@ function selectConsumableTarget(index) {
     render();
   }
 }
-$("new").addEventListener("click", startNewGame);
-$("newFromEnd").addEventListener("click", startNewGame);
-$("resultsPlayAgain").addEventListener("click", startNewGame);
+$("titleNew").addEventListener("click", () => navigateTo("new"));
+$("titleContinue").addEventListener("click", () => navigateTo("continue"));
+$("newGameBack").addEventListener("click", returnToTitle);
+$("continueBack").addEventListener("click", returnToTitle);
+$("headerTitle").addEventListener("click", returnToTitle);
+$("returnTitleFromEnd").addEventListener("click", returnToTitle);
+$("modeClassic").addEventListener("click", () => beginNewMode("classic"));
+$("modeRoguelite").addEventListener("click", () => beginNewMode("roguelite"));
+$("resultsPlayAgain").addEventListener("click", () => beginNewMode(mode, true));
 
 function dismissResults() {
   state.resultsDismissed = true;
@@ -802,7 +884,7 @@ function dismissResults() {
   persist();
 }
 $("resultsClose").addEventListener("click", dismissResults);
-$("resultsBack").addEventListener("click", dismissResults);
+$("resultsBack").addEventListener("click", returnToTitle);
 $("resultsDialog").addEventListener("cancel", () => {
   state.resultsDismissed = true;
   persist();
@@ -813,7 +895,6 @@ $("viewResults").addEventListener("click", () => {
   render();
 });
 function showAchievements() {
-  if (mode !== "roguelite") return;
   openAchievementGallery(achievementProfile);
 }
 $("achievementOpen").addEventListener("click", showAchievements);
@@ -854,42 +935,7 @@ $("shopContinue").addEventListener("click", () => {
 // Escape cannot dismiss the modal while the game is in its saved shop phase.
 // The Start round button is always available, even if there are no coins.
 $("shopDialog").addEventListener("cancel", event => event.preventDefault());
-function switchMode(selected) {
-  if (selected === mode || pending !== null) return;
-  if (mode === "roguelite" && state.run.phase === "playing" && !state.over ||
-      mode === "classic" && !state.over) {
-    // Switching does not overwrite or discard either saved game.
-  }
-  stopMotion();
-  pendingItem = null;
-  recentAchievementIds = [];
-  persist();
-  mode = selected;
-  localStorage.setItem(MODE_SAVE, mode);
-  const restored = saved(mode);
-  state = restored && Array.isArray(restored.board) && restored.board.length === 16 &&
-    (mode === "classic" || validRogueliteRun(restored.run))
-    ? restored : mode === "roguelite" ? newRogueliteRun() : fresh();
-  Object.assign(state, restoreMoveBudget(state));
-  state.resultsFinalized = state.resultsFinalized === true;
-  state.resultsDismissed = state.resultsDismissed === true;
-  state.locked = Array.isArray(state.locked) ? state.locked : [];
-  state.mergeReady = Array.isArray(state.mergeReady) ? state.mergeReady : [];
-  state.discovered = Array.isArray(state.discovered) ? state.discovered : [];
-  state.banked = Array.isArray(state.banked) ? state.banked : [];
-  if (mode === "roguelite") {
-    state.run = restoreEffectState(restoreShopState(
-      restoreRogueliteRun(state.run, state.movesLeft)));
-  } else {
-    state.stats = restoreRunStats(state.stats);
-  }
-  state.over = mode === "roguelite" && state.run.phase !== "playing" ? false
-    : currentGameEnded();
-  render();
-}
-$("modeClassic").addEventListener("click", () => switchMode("classic"));
-$("modeRoguelite").addEventListener("click", () => switchMode("roguelite"));
-
+// Title and New Game are the only places to choose a mode.
 // Learning and full instructions are optional. Switching between the
 // two entry points uses one accessible native dialog and never edits
 // the game state or pauses the move budget.
