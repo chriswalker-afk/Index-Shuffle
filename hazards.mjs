@@ -243,6 +243,7 @@ export function progressHazardRound(board, hazards, run, movesInRound,
   const current = restoreHazardPressure(run, board, next);
   const difficulty = hazardDifficulty(current.round);
   let warning = current.hazardWarning;
+  const hadIncoming = Boolean(run.hazardWarning);
   let cooldown = Math.max(0, current.hazardCooldown - 1);
   const events = [];
   if (difficulty.maxActive === 0) {
@@ -267,6 +268,11 @@ export function progressHazardRound(board, hazards, run, movesInRound,
       events.push({ kind: "dispelled", ...candidate });
     }
     warning = null;
+  } else if (hadIncoming) {
+    // A warning may be invalidated by an incoming blocker or a malformed
+    // old save. It fizzles instead of instantly choosing another square
+    // on the same successful slide.
+    cooldown = Math.max(cooldown, 1);
   } else if (movesInRound >= difficulty.firstWarning &&
       activeHazardCount(next) < difficulty.maxActive &&
       cooldown === 0 && rng() < difficulty.chance * (boss ? 0.5 : 1)) {
