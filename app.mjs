@@ -4,23 +4,27 @@ import {
   mergeReadyAfterSlide, attemptBank, adjacentIndices, activeBases, BASE_UNLOCKS,
   INITIAL_MOVES_LEFT, MERGES_PER_BONUS_MOVE, BUDGET_RULES_VERSION,
   restoreMoveBudget, spendMove, slideCost, creditCorrectBank, gameEnded
-} from "./engine.mjs?v=roguelite-pass4-v1";
+} from "./engine.mjs?v=roguelite-pass5-v1";
 import { newRogueliteRun, targetForRound, stageForRound, isBossRound,
   recordRogueliteBank, advanceRogueliteRound, validRogueliteRun,
   restoreRogueliteRun, markGoldSpawns, goldTier, goldForBank
-} from "./roguelite.mjs?v=roguelite-pass4-v1";
+} from "./roguelite.mjs?v=roguelite-pass5-v1";
 import {
   restoreShopState, enterRogueliteShop, rerollRogueliteShop
-} from "./shop.mjs?v=roguelite-pass4-v1";
+} from "./shop.mjs?v=roguelite-pass5-v1";
 import {
   renderRogueliteInventory, renderRogueliteShop
-} from "./shop-ui.mjs?v=roguelite-pass4-v1";
+} from "./shop-ui.mjs?v=roguelite-pass5-v1";
 import {
   restoreEffectState, bankItemBonuses, goldChancesForRun,
   costOfNextSlide, canActivateConsumable, CONSUMABLE_TARGETS,
   consumableTargets, useConsumable
-} from "./effects.mjs?v=roguelite-pass4-v1";
-import { ITEM_BY_ID } from "./shop.mjs?v=roguelite-pass4-v1";
+} from "./effects.mjs?v=roguelite-pass5-v1";
+import { ITEM_BY_ID } from "./shop.mjs?v=roguelite-pass5-v1";
+import {
+  bossForRound, bossTargetFor, bossPointsFor, bossMovementRules,
+  bossAllowsMoveRestoration, applyThreeCurse
+} from "./bosses.mjs?v=roguelite-pass5-v1";
 
 const $ = id => document.getElementById(id);
 const glyph = n => String(n).replace(/\d/g, d => "⁰¹²³⁴⁵⁶⁷⁸⁹"[+d]);
@@ -61,8 +65,7 @@ if (!state || !Array.isArray(state.board) || state.board.length !== 16) {
     if (mode === "roguelite") state.run = restoreEffectState(restoreShopState(
       restoreRogueliteRun(state.run, state.movesLeft)));
     state.over = mode === "roguelite" && state.run.phase !== "playing" ? false
-      : gameEnded(state.board, new Set(state.banked),
-        new Set(state.locked), state.movesLeft);
+      : currentGameEnded();
   }
 }
 let pending = null;
@@ -72,6 +75,11 @@ let deadline = 0;
 let animating = false;
 let animationToken = 0;
 let pendingItem = null;
+
+function currentGameEnded() {
+  return gameEnded(state.board, new Set(state.banked), new Set(state.locked),
+    state.movesLeft, mode === "roguelite" ? bossMovementRules(state.run) : null);
+}
 
 function persist() {
   try { localStorage.setItem(mode === "roguelite" ? ROGUE_SAVE : CLASSIC_SAVE, JSON.stringify(state)); }
@@ -94,8 +102,12 @@ function render() {
     ? "Run completed!" : "Run finished";
   if (rogue) {
     $("rogueRound").textContent = "Stage " + stageForRound(state.run.round) +
-      " · Round " + state.run.round + "/12" + (isBossRound(state.run.round) ? " · Boss milestone" : "");
-    const target = targetForRound(state.run.round);
+      " · Round " + state.run.round + "/12" + (isBossRound(state.run.round) ? " · BOSS" : "");
+    const boss = bossForRound(state.run);
+    $("bossRule").hidden = !boss;
+    $("bossName").textContent = boss ? boss.name : "";
+    $("bossText").textContent = boss ? boss.summary : "";
+    const target = bossTargetFor(state.run, targetForRound(state.run.round));
     $("rogueScore").textContent = state.score + " / " + target;
     $("roundScoreProgress").value = Math.min(state.score, target);
     $("roundScoreProgress").max = target;
@@ -121,12 +133,14 @@ function render() {
   $("count").textContent = state.banked.length;
   $("moves").textContent = state.moves;
   $("movesLeft").textContent = state.movesLeft;
-  $("mergeProgress").textContent = state.mergeCredit + " / " +
-    MERGES_PER_BONUS_MOVE;
-  $("bonusMeter").value = state.mergeCredit;
-  $("bonusMeter").setAttribute("aria-valuetext",
-    state.mergeCredit + " of " + MERGES_PER_BONUS_MOVE +
-    " correctly banked merged powers");
+  const noBonusMoves = rogue && !bossAllowsMoveRestoration(state.run);
+  $("mergeProgress").textContent = noBonusMoves ? "DISABLED" :
+    state.mergeCredit + " / " + MERGES_PER_BONUS_MOVE;
+  $("bonusMeter").value = noBonusMoves ? 0 : state.mergeCredit;
+  $("bonusMeter").setAttribute("aria-valuetext", noBonusMoves
+    ? "The Timekeeper prevents extra moves this round"
+    : state.mergeCredit + " of " + MERGES_PER_BONUS_MOVE +
+      " correctly banked merged powers");
   const currentSlideCost = rogue ? costOfNextSlide(state) : slideCost(state.board);
   $("slideCost").textContent = "−" + currentSlideCost +
     (currentSlideCost === 1 ? " move" : " moves");
@@ -196,7 +210,10 @@ function render() {
       const coinBadge = gold
         ? '<small class="tile-gold-mark" aria-hidden="true">●' + (gold === 2 ? '×2' : '') + '</small>'
         : "";
-      button.innerHTML = tileContent(t, coinBadge + (available
+      const curseBadge = rogue && Number.isInteger(t.curseLeft) && t.curseLeft > 0
+        ? '<small class="tile-curse-mark" aria-hidden="true">3 · ' + t.curseLeft + '</small>'
+        : "";
+      button.innerHTML = tileContent(t, coinBadge + curseBadge + (available
         ? '<i aria-hidden="true">' + (strike ? '⚡' : '✦') + '</i>'
         : blocked ? '<i aria-hidden="true">⌛</i>' : ""));
       const description = t.base + " to the power " + t.exp;
@@ -206,7 +223,9 @@ function render() {
         : ". Golden tile: merge it before banking to earn coins.";
       button.title = (blocked ? "Wait one slide before retrying " + description
         : strike ? "Bank " + description + " correctly to damage adjacent blocker"
-        : available ? "Bank " + description : description) + goldHint;
+        : available ? "Bank " + description : description) + goldHint +
+        (curseBadge ? ". Three Curse: " + t.curseLeft +
+          " successful slides until it becomes a blocker." : "");
       if (gold) button.classList.add("gold-tile");
       button.setAttribute("aria-label", button.title);
       if (blocked) button.classList.add("locked");
@@ -356,7 +375,8 @@ function animateSlide(before, motions, mergedDestinations, spawned, damaged, des
 function move(direction) {
   if (pendingItem !== null || state.over || pending !== null || animating || (mode === "roguelite" && state.run.phase !== "playing")) return;
   const before = state.board.slice();
-  const result = slide(before, direction);
+  const result = slide(before, direction,
+    mode === "roguelite" ? bossMovementRules(state.run) : null);
   if (!result.changed) return;
   for (const t of result.merges) {
     if (t.exp >= 2 && !state.discovered.includes(key(t))) state.discovered.push(key(t));
@@ -374,12 +394,21 @@ function move(direction) {
   // Keep merge provenance attached to its tile as it slides, and mark
   // newly merged powers. Spawned powers never inherit that provenance.
   state.mergeReady = mergeReadyAfterSlide(state.mergeReady, result.motions);
+  const curse = mode === "roguelite"
+    ? applyThreeCurse(result.board, result.mergeDestinations,
+      state.run, new Set(state.banked))
+    : { board: result.board, expired: [], spared: [] };
+  if (curse.expired.length) {
+    const expired = new Set(curse.expired);
+    state.mergeReady = state.mergeReady.filter(i => !expired.has(i));
+  }
   if (mode === "roguelite") state.run.totalSlides += 1;
   const hazardMoves = mode === "roguelite"
     ? Math.max(0, nextMove - state.run.blockerDelay) : nextMove;
-  const spawned = turnSpawns(result.board, new Set(state.discovered),
+  const spawned = turnSpawns(curse.board, new Set(state.discovered),
     hazardMoves, Math.random, new Set(),
-    mode === "roguelite" ? state.run.totalSlides : nextMove);
+    mode === "roguelite" ? state.run.totalSlides : nextMove,
+    mode === "roguelite" ? bossMovementRules(state.run) : null);
   if (mode === "roguelite") {
     const gold = markGoldSpawns(spawned.board, spawned.spawned,
       state.run.goldDryStreak, Math.random, true, goldChancesForRun(state.run));
@@ -396,6 +425,10 @@ function move(direction) {
   // A successful slide clears the incorrect-attempt and banking cooldowns.
   state.locked = [];
   const news = [];
+  if (curse.expired.length) news.push(curse.expired.length +
+    " cursed base-3 power" + (curse.expired.length === 1 ? " became a blocker!" :
+      "s became blockers!"));
+  if (curse.spared.length) news.push("A base-3 curse expired without blocking a safe path.");
   if (unlockedNow.length) news.push("New base unlocked: " + unlockedNow.join(", ") + ".");
   // Merging next to a blocker does not cause damage: students must bank
   // the merged power correctly while it is adjacent to the blocker.
@@ -410,8 +443,7 @@ function move(direction) {
   }
   if (spawned.extraSpawned) news.push("Extra tile spawned!");
   state.notice = news.slice(0, 2).join(" ");
-  state.over = gameEnded(state.board, new Set(state.banked),
-    new Set(), state.movesLeft);
+  state.over = currentGameEnded();
   render();
   animateSlide(before, result.motions, new Set(result.mergeDestinations),
     spawned.spawned, result.damaged, result.destroyed,
@@ -463,6 +495,8 @@ function openBank(i) {
   const bankGold = mode === "roguelite" ? goldForBank(t, state.mergeReady.includes(i)) : 0;
   const bonuses = mode === "roguelite"
     ? bankItemBonuses(state.run, t, state.mergeReady.includes(i)) : null;
+  const previewScore = bonuses
+    ? bossPointsFor(state.run, t, bonuses.score) : null;
   const goldHelp = mode !== "roguelite" || !goldTier(t) ? ""
     : bankGold ? " Correct banking also earns " +
       (bankGold + (bonuses?.extraCoins ?? 0)) + " coins."
@@ -470,7 +504,9 @@ function openBank(i) {
   $("promptHelp").textContent = (canStrike
     ? "Correct answer: bank this power and damage the nearby blocker."
     : "Calculate its exact value to bank this power.") + goldHelp +
-    (bonuses ? " Correct bank scores " + bonuses.score + " points." : "");
+    (bonuses ? " Correct bank scores " + previewScore + " points." +
+      (previewScore === 0 && bonuses.score > 0
+        ? " The boss prevents this power from scoring." : "") : "");
   $("modal").hidden = false;
   if (!document.hidden) resumeClock();
   $("answer").focus();
@@ -485,8 +521,7 @@ function lockPending(reason) {
   state.notice = reason === "time"
     ? "Time's up. Slide the board once before retrying that tile."
     : "Not quite. That tile is locked until your next successful slide.";
-  state.over = gameEnded(state.board, new Set(state.banked),
-    new Set(state.locked), state.movesLeft);
+  state.over = currentGameEnded();
   render();
 }
 document.addEventListener("visibilitychange", () => {
@@ -522,8 +557,10 @@ $("bankForm").addEventListener("submit", event => {
   state.banked.push(outcome.powerKey);
   // Correct answers for genuinely merged tiles are the ONLY source of
   // extra moves. A correctly banked random-spawn power earns score only.
-  const award = creditCorrectBank(state.movesLeft, state.mergeCredit,
-    outcome.creditedMerge);
+  const canRestore = mode !== "roguelite" || bossAllowsMoveRestoration(state.run);
+  const award = canRestore
+    ? creditCorrectBank(state.movesLeft, state.mergeCredit, outcome.creditedMerge)
+    : { movesLeft: state.movesLeft, mergeCredit: 0, earned: 0 };
   state.movesLeft = award.movesLeft;
   state.mergeCredit = award.mergeCredit;
   const points = mode === "roguelite"
@@ -548,7 +585,9 @@ $("bankForm").addEventListener("submit", event => {
     state.notice += " Round complete: +" + points.moveGold + " coins for unused moves!";
   }
   if (outcome.creditedMerge) {
-    if (award.earned) {
+    if (!canRestore) {
+      state.notice += " The Timekeeper blocks extra moves this round.";
+    } else if (award.earned) {
       state.notice += " +1 move earned for two correctly banked merges!";
     } else if (state.mergeCredit === 1) {
       state.notice += " 1/2 correctly banked merges toward your next move.";
@@ -563,8 +602,7 @@ $("bankForm").addEventListener("submit", event => {
     state.notice += " Blocker damaged by your correct bank!";
   }
   state.over = mode === "roguelite" && state.run.phase !== "playing" ? false :
-    gameEnded(state.board, new Set(state.banked),
-    new Set(state.locked), state.movesLeft);
+    currentGameEnded();
   render();
   if (!prefersReducedMotion()) {
     $("board").children[i]?.classList.add("bank-flash");
@@ -604,8 +642,7 @@ function activateConsumable(slot, targets) {
     const next = useConsumable(state, slot, targets);
     state = next;
     pendingItem = null;
-    state.over = gameEnded(state.board, new Set(state.banked),
-      new Set(state.locked), state.movesLeft);
+    state.over = currentGameEnded();
   } catch (error) {
     pendingItem = null;
     state.notice = error instanceof Error ? error.message : "Unable to use that item.";
