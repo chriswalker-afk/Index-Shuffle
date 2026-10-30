@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" aria-labelledby="title desc">
+ <title id="title">Null</title><desc id="desc">A red barred ring separating two merging tiles.</desc>
+ <defs>
+ <linearGradient id="enamel" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ffb7c0"/><stop offset=".58" stop-color="#d87681"/><stop offset="1" stop-color="#6e3d58"/></linearGradient>
+ </defs>
+ <circle cx="50" cy="50" r="45" fill="url(#enamel)" opacity=".15"/>
+ <circle cx="50" cy="50" r="39" stroke="#ffb7c0" stroke-width="3" fill="none" stroke-dasharray="3 7" opacity=".47"/>
+ <circle cx="50" cy="50" r="29" fill="#532c46" stroke="#f9a2a9" stroke-width="10"/>
+ <path d="M29 30 71 71" stroke="#ffe0dc" stroke-width="11" stroke-linecap="round"/>
+ <rect x="13" y="15" width="19" height="19" rx="6" fill="#eab3ae" stroke="#6d455b" stroke-width="4"/>
+ <rect x="68" y="67" width="19" height="19" rx="6" fill="#eab3ae" stroke="#6d455b" stroke-width="4"/>
+ <path d="M25 67h17m17-33h17" stroke="#f8bebd" stroke-width="4" stroke-linecap="round"/>
+ </svg>

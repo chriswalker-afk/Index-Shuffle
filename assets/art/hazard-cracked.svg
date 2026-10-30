@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" aria-labelledby="title desc">
+ <title id="title">Cracked</title><desc id="desc">An amber stone diamond fractured down the middle.</desc>
+ <defs>
+ <linearGradient id="enamel" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ffdf9e"/><stop offset=".58" stop-color="#e8ac68"/><stop offset="1" stop-color="#86463c"/></linearGradient>
+ </defs>
+ <circle cx="50" cy="50" r="45" fill="url(#enamel)" opacity=".15"/>
+ <circle cx="50" cy="50" r="39" stroke="#ffdf9e" stroke-width="3" fill="none" stroke-dasharray="3 7" opacity=".47"/>
+ <path d="M49 13 82 39 73 79 31 86 15 45Z" fill="#e5a46d" stroke="#6d4050" stroke-width="5" stroke-linejoin="round"/>
+ <path d="M27 42 50 24l23 19-5 28-29 6Z" fill="#ffd4a1" opacity=".72"/>
+ <path d="M55 20 45 44l15 10-17 11 3 16M45 45 29 38m30 16 14-3" stroke="#6b3e47" stroke-width="7" fill="none" stroke-linejoin="round"/>
+ <path d="M20 76l9-7m51 5-10-9" stroke="#f9d5a1" stroke-width="4"/>
+ </svg>
