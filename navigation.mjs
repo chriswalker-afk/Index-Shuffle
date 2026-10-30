@@ -1,6 +1,6 @@
 // Navigation rules for the title screen. The internal "roguelite" save key
 // is intentionally unchanged even though the mode's display name is Roguelike.
-import { validRogueliteRun } from "./roguelite.mjs?v=hazard-counter-v1";
+import { validRogueliteRun } from "./roguelite.mjs?v=frostlock-v1";
 import { isFinishedRun } from "./milestones.mjs?v=hazard-counter-v1";
 
 export const MODE_LABELS = Object.freeze({

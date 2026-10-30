@@ -31,8 +31,8 @@ function encounter(round, id) {
 // Every run has 4 unique encounters on rounds 3,6,9,12; first encounter
 // cannot depend on an as-yet-locked base-7 or difficult later mechanics.
 assert.deepEqual(BOSS_ROUNDS, [3, 6, 9, 12]);
-assert.equal(BOSS_CATALOG.length, 7);
-assert.equal(new Set(BOSS_CATALOG.map(b => b.id)).size, 7);
+assert.equal(BOSS_CATALOG.length, 8);
+assert.equal(new Set(BOSS_CATALOG.map(b => b.id)).size, 8);
 for (const boss of BOSS_CATALOG) {
   assert.equal(BOSS_BY_ID[boss.id], boss);
   assert.ok(boss.name.length > 5 && boss.summary.length > 10 && boss.detail.length > 40);
@@ -278,4 +278,4 @@ assert.match(css, /\.boss-rule/);
 assert.match(css, /\.tile-curse-mark/);
 assert.match(app, /index-shuffle-v1/);
 assert.match(app, /index-shuffle-roguelite-v1/);
-console.log("All Index Shuffle seven-boss encounter tests passed.");
+console.log("All Index Shuffle eight-boss encounter tests passed.");

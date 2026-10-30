@@ -4,9 +4,9 @@ import {
   tile, key, isObstacle, isBlocker, blockerStrength, canMove,
   MAX_MOVES_LEFT
 } from "./engine.mjs?v=hazard-counter-v1";
-import { goldTier } from "./roguelite.mjs?v=hazard-counter-v1";
-import { ITEM_BY_ID } from "./shop.mjs?v=hazard-counter-v1";
-import { bossId, bossMovementRules } from "./bosses.mjs?v=hazard-counter-v1";
+import { goldTier } from "./roguelite.mjs?v=frostlock-v1";
+import { ITEM_BY_ID } from "./shop.mjs?v=frostlock-v1";
+import { bossId, bossMovementRules } from "./bosses.mjs?v=frostlock-v1";
 import {
   hazardAt, restoreHazardLayer, removeHazard
 } from "./hazards.mjs?v=hazard-counter-v1";

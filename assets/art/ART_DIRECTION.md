@@ -64,7 +64,7 @@ These are illustration colours, *not* replacements for accessible UI colours.
 - `art-preview.html` — static concept gallery for reviewing the first pass
 
 Existing boss definitions, item IDs, score logic, saves and economy were not
-changed by Pass 1. All seven current bosses now have portraits (see Pass 3).
+changed by Pass 1. All eight current bosses now have portraits (see Pass 3 and Frostlock addition).
 
 ## Pass 2 · Illustrated shop (complete)
 
@@ -96,7 +96,7 @@ changed by Pass 1. All seven current bosses now have portraits (see Pass 3).
 
 ## Pass 3 · Boss encounters (complete)
 
-- **Seven original characters** in `assets/art/boss-*.svg`, including the
+- **Eight original characters** in `assets/art/boss-*.svg`, including the
   five new portraits for The Scorekeeper, The Silent Seven, The Power Snob,
   The Timekeeper and The Three Curse. All are original 480×480 standalone
   SVGs, with readable silhouettes at HUD scale, meaningful art alt text
@@ -123,7 +123,7 @@ changed by Pass 1. All seven current bosses now have portraits (see Pass 3).
 - Small, decorative reveal animations respect
   `prefers-reduced-motion: reduce`; nothing requires waiting for
   animation to finish, and the playboard remains unillustrated.
-- `boss-gallery.html` offers all seven images and a real live
+- `boss-gallery.html` offers all eight images and a real live
   preview of the encounter dialog **without entering a game**.
 
 ## Pass 4 · The world, hazards and achievement cabinet (complete)
@@ -210,3 +210,28 @@ changed by Pass 1. All seven current bosses now have portraits (see Pass 3).
 Refer to `QA_PASS5.md` for precise test boundaries and a real-device
 review checklist. A physical iOS/Android/Safari screen-reader audit
 still requires manual review; the automated browser smoke is Chrome.
+
+
+## Eighth boss · The Frostlock (October 2026)
+
+- Original `assets/art/boss-frostlock.svg` — a brass-and-ice jailer whose
+  four arrow charms explain the mechanic visually; one is encased in ice.
+  The portrait matches the established 480×480 ink-outline style.
+- Use frost blue `#9ceef2` and slate blue `#2e5873` on the same
+  boss-specific portrait/intro/victory surfaces as other bosses.
+- When active, exactly one on-screen direction button is disabled and
+  visibly frosted; the same direction is stopped for arrow keys, WASD
+  and swipe input. A live labelled message below the board names it,
+  without making colour or imagery the only signal.
+- The freeze is rolled once at the beginning of the encounter, then
+  changes after every successful slide, correct bank or used item.
+  Blocked attempts never spend moves or trigger a reroll.
+- An eligible random control cannot be the board's **sole available slide**.
+  Saved direction state is restored, not rerolled by refreshing the page.
+- Rules and remaining score targets are ordinary readable text in the
+  shop, boss entrance and compact HUD. Art is optional and never
+  overlays numeric powers.
+- Frostlock joins the later-round boss pool (6, 9, 12); the existing
+  introductory boss choices and four unique encounters remain.
+- Dedicated pure rule and Chrome browser tests cover the direction guard,
+  no-cost blocked inputs, action rerolls, restore continuity and art.

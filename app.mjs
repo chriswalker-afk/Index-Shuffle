@@ -8,25 +8,26 @@ import {
 import { newRogueliteRun, targetForRound, stageForRound, isBossRound,
   recordRogueliteBank, advanceRogueliteRound, validRogueliteRun,
   restoreRogueliteRun, markGoldSpawns, goldTier, goldForBank
-} from "./roguelite.mjs?v=hazard-counter-v1";
+} from "./roguelite.mjs?v=frostlock-v1";
 import {
   restoreShopState, enterRogueliteShop, rerollRogueliteShop
-} from "./shop.mjs?v=hazard-counter-v1";
+} from "./shop.mjs?v=frostlock-v1";
 import {
   renderRogueliteInventory, renderRogueliteShop
-} from "./shop-ui.mjs?v=hazard-counter-v1-art-pass3";
-import { bossPortraitFor } from "./art-catalog.mjs?v=hazard-counter-v1-art-pass3";
-import { bossSceneFor } from "./boss-scenes.mjs?v=hazard-counter-v1-art-pass3";
+} from "./shop-ui.mjs?v=frostlock-v1";
+import { bossPortraitFor } from "./art-catalog.mjs?v=frostlock-v1";
+import { bossSceneFor } from "./boss-scenes.mjs?v=frostlock-v1";
 import {
   restoreEffectState, bankItemBonuses, goldChancesForRun,
   hazardItemProtection, costOfNextSlide, canActivateConsumable, CONSUMABLE_TARGETS,
   consumableTargets, useConsumable
-} from "./effects.mjs?v=hazard-counter-v1";
-import { ITEM_BY_ID } from "./shop.mjs?v=hazard-counter-v1";
+} from "./effects.mjs?v=frostlock-v1";
+import { ITEM_BY_ID } from "./shop.mjs?v=frostlock-v1";
 import {
-  bossForRound, bossTargetFor, bossPointsFor, bossMovementRules,
-  bossAllowsMoveRestoration, applyThreeCurse
-} from "./bosses.mjs?v=hazard-counter-v1";
+  bossForRound, bossTargetFor, bossPointsFor, bossMovementRules, bossId,
+  bossAllowsMoveRestoration, applyThreeCurse,
+  frozenControl, nextFrozenDirection, restoreFrozenDirection
+} from "./bosses.mjs?v=frostlock-v1";
 import {
   ACHIEVEMENTS, ACHIEVEMENT_BY_ID, emptyRunStats, restoreRunStats,
   restoreAchievementProfile, recordRunStats, recordSuccessfulSlide,
@@ -35,9 +36,9 @@ import {
 } from "./milestones.mjs?v=hazard-counter-v1";
 import {
   openAchievementGallery, renderFinalScreen
-} from "./results-ui.mjs?v=hazard-counter-v1-art-pass4";
-import { MODE_LABELS, resumableSave } from "./navigation.mjs?v=hazard-counter-v1";
-import { renderNavigation } from "./title-ui.mjs?v=hazard-counter-v1-art-pass4";
+} from "./results-ui.mjs?v=frostlock-v1";
+import { MODE_LABELS, resumableSave } from "./navigation.mjs?v=frostlock-v1";
+import { renderNavigation } from "./title-ui.mjs?v=frostlock-v1";
 import { stageArtFor } from "./stage-art.mjs?v=hazard-counter-v1-art-pass4";
 import {
   restoreHazardLayer, hazardAt, activeHazardCount, MAX_ACTIVE_HAZARDS,
@@ -103,6 +104,7 @@ if (!state || !Array.isArray(state.board) || state.board.length !== 16) {
         restoreRogueliteRun(state.run, state.movesLeft)));
       state.hazards = restoreHazardLayer(state.hazards, state.board);
       state.run = restoreHazardPressure(state.run, state.board, state.hazards);
+      repairFrozenControl();
     } else {
       state.stats = restoreRunStats(state.stats);
     }
@@ -120,6 +122,27 @@ let pendingItem = null;
 // Always open on the title screen. Starting, continuing, and playing are
 // explicit navigation decisions; loading the title never writes a fake save.
 let screen = "title";
+
+const FROST_LABELS = Object.freeze({
+  left: "LEFT ←", up: "UP ↑", down: "DOWN ↓", right: "RIGHT →"
+});
+const frostMessage = direction => "❄ The Frostlock has frozen " +
+  (FROST_LABELS[direction] || "a direction") + ". Try a different slide.";
+
+// Maintain the player's saved freeze during resume. A damaged/old save
+// may need a deterministic safe alternative, but refreshing never rerolls.
+function repairFrozenControl() {
+  if (mode !== "roguelite" || !state?.run) return;
+  state.run.frozenDirection =
+    restoreFrozenDirection(state.board, state.run, currentMovementRules());
+}
+function rollFrostlockAfterAction() {
+  if (mode !== "roguelite" || bossId(state.run) !== "frostlock" ||
+      state.run.phase !== "playing") return null;
+  state.run.frozenDirection = nextFrozenDirection(
+    state.board, state.run, Math.random, currentMovementRules());
+  return state.run.frozenDirection;
+}
 
 function currentMovementRules() {
   return mode === "roguelite"
@@ -267,7 +290,10 @@ function render() {
     $("bossRule").hidden = !boss;
     $("bossRule").dataset.boss = boss?.id ?? "";
     $("bossName").textContent = boss ? boss.name : "";
-    $("bossText").textContent = boss ? boss.summary : "";
+    const activeFreeze = frozenControl(state.run);
+    $("bossText").textContent = boss
+      ? boss.summary + (activeFreeze ? " Frozen now: " +
+        FROST_LABELS[activeFreeze] + "." : "") : "";
     const portrait = boss ? bossPortraitFor(boss.id) : null;
     $("bossPortrait").hidden = !portrait;
     if (portrait) {
@@ -314,6 +340,24 @@ function render() {
   const banked = new Set(state.banked);
   const locked = new Set(state.locked);
   const mergeReady = new Set(state.mergeReady);
+  const frozen = rogue ? frozenControl(state.run) : null;
+  $("frostlockStatus").hidden = !frozen || state.over;
+  if (frozen) $("frostlockDirection").textContent = FROST_LABELS[frozen];
+  document.querySelectorAll(".controls [data-dir]").forEach(button => {
+    const blocked = Boolean(frozen && button.dataset.dir === frozen &&
+      !state.over && state.run.phase === "playing");
+    button.disabled = blocked;
+    button.classList.toggle("frostlock-frozen", blocked);
+    button.setAttribute("aria-label", "Slide " + button.dataset.dir +
+      (blocked ? " — frozen by The Frostlock" : ""));
+    if (blocked) {
+      button.setAttribute("aria-describedby", "frostlockStatus");
+      button.title = "Frozen by The Frostlock: no slide possible";
+    } else {
+      button.removeAttribute("aria-describedby");
+      button.removeAttribute("title");
+    }
+  });
   $("score").textContent = state.score;
   $("best").textContent = state.best;
   $("count").textContent = state.banked.length;
@@ -649,6 +693,13 @@ function animateSlide(before, motions, mergedDestinations, spawned, damaged, des
 
 function move(direction) {
   if (screen !== "game" || pendingItem !== null || state.over || pending !== null || animating || (mode === "roguelite" && state.run.phase !== "playing")) return;
+  // Shared guard for buttons, keyboard shortcuts and touch swipes. A frozen
+  // attempt cannot spawn tiles, consume moves, or advance the ice.
+  if (mode === "roguelite" && frozenControl(state.run) === direction) {
+    state.notice = frostMessage(direction);
+    render();
+    return;
+  }
   const before = state.board.slice();
   const beforeHazards = mode === "roguelite" ? state.hazards.slice() : null;
   let result = slide(before, direction, currentMovementRules());
@@ -780,6 +831,9 @@ function move(direction) {
       + " blocker after your next successful slide.");
   }
   if (spawned.extraSpawned) news.push("Extra tile spawned!");
+  const newFreeze = rollFrostlockAfterAction();
+  if (newFreeze) news.unshift("❄ Frostlock now freezes " +
+    FROST_LABELS[newFreeze] + ". No moves are charged for frozen inputs.");
   state.notice = news.slice(0, 2).join(" ");
   state.over = currentGameEnded();
   render();
@@ -941,6 +995,9 @@ $("bankForm").addEventListener("submit", event => {
     : { points: outcome.points, roundScore: state.score + outcome.points };
   state.score = points.roundScore;
   if (mode === "roguelite") state.run = points.run;
+  // Bank success may change which slides are possible. Switch the freeze
+  // only while the boss is still active, always preserving a legal slide.
+  const newFreeze = rollFrostlockAfterAction();
   state.best = Math.max(state.best, state.score);
   const { replacement, damaged, destroyed } = outcome;
   state.notice = "Banked " + t.base + glyph(t.exp) + " · +" + points.points
@@ -953,6 +1010,7 @@ $("bankForm").addEventListener("submit", event => {
   if (mode === "roguelite" && points.cleared) {
     state.notice += " Round complete: +" + points.moveGold + " coins for unused moves!";
   }
+  if (newFreeze) state.notice += " ❄ Frozen now: " + FROST_LABELS[newFreeze] + ".";
   if (outcome.creditedMerge) {
     if (!canRestore) {
       state.notice += " The Timekeeper blocks extra moves this round.";
@@ -1044,6 +1102,7 @@ function loadSavedGame(snapshot) {
       restoreRogueliteRun(state.run, state.movesLeft)));
     state.hazards = restoreHazardLayer(state.hazards, state.board);
     state.run = restoreHazardPressure(state.run, state.board, state.hazards);
+    repairFrozenControl();
     state.over = state.run.phase === "playing" ? currentGameEnded() : false;
   } else {
     state.stats = restoreRunStats(state.stats);
@@ -1121,6 +1180,8 @@ function activateConsumable(slot, targets) {
     pendingItem = null;
     recentAchievementIds = [];
     awardRunEvent({ type: "consumable" });
+    const newFreeze = rollFrostlockAfterAction();
+    if (newFreeze) state.notice += " ❄ Frozen now: " + FROST_LABELS[newFreeze] + ".";
     state.over = currentGameEnded();
   } catch (error) {
     pendingItem = null;
@@ -1230,7 +1291,9 @@ function showBossIntro(boss) {
     " · ROUND " + state.run.round + " OF 12";
   $("bossIntroName").textContent = boss.name;
   $("bossIntroQuote").textContent = bossSceneFor(boss.id)?.entrance ?? "";
-  $("bossIntroRule").textContent = boss.detail;
+  const frozen = frozenControl(state.run);
+  $("bossIntroRule").textContent = boss.detail +
+    (frozen ? " First frozen direction: " + FROST_LABELS[frozen] + "." : "");
   $("bossIntroTarget").textContent = "Round target: " +
     bossTargetFor(state.run, targetForRound(state.run.round)) + " points";
   if (!dialog.open) dialog.showModal();

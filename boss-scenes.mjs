@@ -28,6 +28,10 @@ export const BOSS_SCENES = Object.freeze({
   "three-curse": Object.freeze({
     entrance: "Three grins. Three tricks. One very troublesome curse.",
     defeated: "All three heads concede defeat."
+  }),
+  frostlock: Object.freeze({
+    entrance: "A cold snap seizes an arrow key. The ice never stays still for long.",
+    defeated: "The ice shatters. Every direction is yours again."
   })
 });
 

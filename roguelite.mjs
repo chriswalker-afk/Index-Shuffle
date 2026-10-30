@@ -4,8 +4,8 @@ import {
 } from "./engine.mjs?v=hazard-counter-v1";
 import {
   createBossSchedule, restoreBossSchedule, bossPointsFor,
-  bossTargetFor, startBossBoard
-} from "./bosses.mjs?v=hazard-counter-v1";
+  bossTargetFor, startBossBoard, nextFrozenDirection, validFrozenDirection
+} from "./bosses.mjs?v=frostlock-v1";
 import { emptyRunStats, restoreRunStats } from "./milestones.mjs?v=hazard-counter-v1";
 import { emptyHazardLayer } from "./hazards.mjs?v=hazard-counter-v1";
 
@@ -146,6 +146,9 @@ export function restoreRogueliteRun(run, movesLeft = 0) {
     .every(key => Number.isSafeInteger(previousReward[key]) && previousReward[key] >= 0);
   const restored = {
     ...run, coins, roundBankCoins, totalCoinsEarned, goldDryStreak,
+    // Preserve a previously rolled freeze; repairs for boards with only
+    // one legal slide happen after the saved board/hazards are restored.
+    frozenDirection: validFrozenDirection(run.frozenDirection) ? run.frozenDirection : null,
     stats: restoreRunStats(run.stats),
     bosses: restoreBossSchedule(run),
     lastRoundReward: validReward ? { ...previousReward } : null
@@ -180,6 +183,7 @@ export function newRogueliteRun(best = 0, rng = Math.random) {
       protectionSlides: 0, blockerDelay: 0,
       hazardWarning: null, hazardCooldown: 0,
       bosses: createBossSchedule(rng),
+      frozenDirection: null,
       inventory: { permanents: [null, null], consumables: [null, null] },
       shop: null
     }
@@ -239,10 +243,13 @@ export function advanceRogueliteRound(state, rng = Math.random, rates = null) {
     roundBankCoins: 0, goldDryStreak: 0, lastRoundReward: null, shop: null,
     scoredBanks: 0, twosBanked: 0, lastBankBase: null,
     protectionSlides: 0, blockerDelay: 0,
-    hazardWarning: null, hazardCooldown: 0
+    hazardWarning: null, hazardCooldown: 0, frozenDirection: null
   };
   const nextBoard = startBossBoard(startingBoard(rng, run.totalSlides, rates),
     nextRun, rng);
+  // A boss round starts with one fair, saved freeze. Ordinary rounds and
+  // other bosses have no frozen movement controls.
+  nextRun.frozenDirection = nextFrozenDirection(nextBoard, nextRun, rng);
   return {
     ...state,
     board: nextBoard,
