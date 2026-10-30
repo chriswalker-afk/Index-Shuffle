@@ -941,14 +941,38 @@ function focusAfterBank(index) {
   const cell = $("board").children[index];
   (cell && !cell.disabled ? cell : $("board")).focus({ preventScroll: true });
 }
+// One shared preview drives board eligibility, the answer prompt, scoring,
+// and charge redemption. No power, score or currency changes occur on preview.
+function enchantedPreview(index, power) {
+  return mode === "roguelite" ? previewEnchantedBank(
+    state.enchantments, index, power, {
+      alreadyBanked: state.banked.includes(key(power)),
+      merged: state.mergeReady.includes(index),
+      adjacentBlocker: adjacentIndices(index).some(j => isBlocker(state.board[j])),
+      baseSeconds: currentBankSeconds()
+    }) : null;
+}
+
 function openBank(i) {
   if (screen !== "game" || pendingItem !== null || state.over || animating || pending !== null || (mode === "roguelite" && state.run.phase !== "playing")) return;
   const t = state.board[i];
   if (!isBankable(t, new Set(state.banked), i, new Set(state.locked),
-      mode === "roguelite" ? state.hazards : null)) return;
+      mode === "roguelite" ? state.hazards : null,
+      mode === "roguelite" ? state.enchantments : null)) return;
+  const enchanted = enchantedPreview(i, t);
+  const bankLimit = Math.min(60, currentBankSeconds() +
+    (enchanted?.extraSeconds || 0));
   pending = { i, t };
-  const bankLimit = currentBankSeconds();
   remainingMs = bankLimit * 1000;
+  bankLimitMs = remainingMs;
+  // The bonus time is purchased when the question opens. The charge is
+  // never returned by cancelling, submitting a wrong answer or timing out.
+  if (mode === "roguelite" && enchanted?.extraSeconds > 0) {
+    const paid = redeemEnchantedBank(state.enchantments, i, enchanted,
+      { trigger: "open" });
+    state.enchantments = paid.enchantments;
+    if (paid.used) render();
+  }
   // Use the same mathematical exponent markup as board tiles, not a
   // Unicode superscript approximation. Announce the full phrase in speech.
   const heading = $("promptTitle");
@@ -961,8 +985,6 @@ function openBank(i) {
   $("feedback").textContent = "";
   $("answer").value = "";
   document.querySelector(".bank-hint").open = false;
-  const enchanted = mode === "roguelite" ?
-    previewEnchantedBank(state.enchantments, i, t) : null;
   const effectivePower = enchanted?.power || t;
   const canStrike = state.mergeReady.includes(i) &&
     adjacentIndices(i).some(j => isBlocker(state.board[j]));
@@ -981,7 +1003,11 @@ function openBank(i) {
     : "Calculate its exact value to bank this power.") + goldHelp +
     (bonuses ? " Correct bank scores " + previewScore + " points." +
       (previewScore === 0 && bonuses.score > 0
-        ? " The boss prevents this power from scoring." : "") : "");
+        ? " The boss prevents this power from scoring." : "") : "") +
+    (enchanted?.repeatBank ? " Echo Seal permits one repeat bank here." : "") +
+    (enchanted?.extraBlockerHit ? " Shatter Crest adds one blocker hit." : "") +
+    (enchanted?.extraSeconds ? " Time Sanctuary granted +10 seconds." : "") +
+    (enchanted?.prism ? " Power Prism doubles the scoring component." : "");
   if (!$("modal").open) $("modal").showModal();
   if (!document.hidden) resumeClock();
   $("answer").focus();
@@ -995,7 +1021,9 @@ function lockPending(reason) {
   }
   state.notice = reason === "time"
     ? "Time's up. Slide the board once before retrying that tile."
-    : "Not quite. That tile is locked until your next successful slide.";
+    : reason === "cancel"
+      ? "Banking cancelled. Slide once before retrying that tile."
+      : "Not quite. That tile is locked until your next successful slide.";
   state.over = currentGameEnded();
   render();
   focusAfterBank(i);
@@ -1010,8 +1038,7 @@ $("bankForm").addEventListener("submit", event => {
   if (!pending) return;
   const { i, t } = pending;
   if (!state.board[i] || key(state.board[i]) !== key(t)) return;
-  const enchanted = mode === "roguelite" ?
-    previewEnchantedBank(state.enchantments, i, t) : null;
+  const enchanted = enchantedPreview(i, t);
   const effectivePower = enchanted?.power || t;
   const bonuses = mode === "roguelite"
     ? bankItemBonuses(state.run, effectivePower, state.mergeReady.includes(i)) : null;
@@ -1020,8 +1047,10 @@ $("bankForm").addEventListener("submit", event => {
     banked: new Set(state.banked),
     locked: new Set(state.locked),
     mergeReady: new Set(state.mergeReady),
-    blockerDamage: bonuses?.blockerHits ?? 1,
-    hazards: mode === "roguelite" ? state.hazards : null
+    blockerDamage: (bonuses?.blockerHits ?? 1) +
+      (enchanted?.extraBlockerHit ? 1 : 0),
+    hazards: mode === "roguelite" ? state.hazards : null,
+    enchantments: mode === "roguelite" ? state.enchantments : null
   });
   if (outcome.status === "incorrect") {
     lockPending("wrong");
@@ -1035,7 +1064,8 @@ $("bankForm").addEventListener("submit", event => {
   // A correctly banked power becomes a smaller replacement in the same
   // square, with the existing one-successful-slide banking cooldown.
   if (!state.locked.includes(i)) state.locked.push(i);
-  state.banked.push(outcome.powerKey);
+  // Echo banks score once more but do not create duplicate discoveries.
+  if (!outcome.repeatedBank) state.banked.push(outcome.powerKey);
   // Correct answers for genuinely merged tiles are the ONLY source of
   // extra moves. A correctly banked random-spawn power earns score only.
   const canRestore = mode !== "roguelite" || bossAllowsMoveRestoration(state.run);
@@ -1057,7 +1087,10 @@ $("bankForm").addEventListener("submit", event => {
   if (mode === "roguelite") {
     state.run = points.run;
     const redeemed = redeemEnchantedBank(state.enchantments, i, enchanted,
-      { prismApplied: enchanted.prism, pointsAwarded: points.points });
+      { prismApplied: enchanted.prism, pointsAwarded: points.points,
+        repeatBanked: outcome.repeatedBank,
+        blockerApplied: outcome.creditedMerge &&
+          (outcome.damaged.length + outcome.destroyed.length > 0) });
     state.enchantments = redeemed.enchantments;
   }
   // Bank success may change which slides are possible. Switch the freeze
@@ -1098,7 +1131,7 @@ $("bankForm").addEventListener("submit", event => {
   // an award from merely spawning, merging, or an incorrect answer.
   const bankEvent = {
     type: "bank", points: points.points, exponent: t.exp,
-    goldTier: mode === "roguelite" ? goldTier(t) : 0,
+    goldTier: mode === "roguelite" ? goldTier(effectivePower) : 0,
     goldCoins: mode === "roguelite" ? points.bankGold : 0,
     blockersDestroyed: destroyed.length
   };
@@ -1129,14 +1162,16 @@ $("bankForm").addEventListener("submit", event => {
   }
 });
 
-$("close").addEventListener("click", closeBank);
-$("cancel").addEventListener("click", closeBank);
+// Cancelling is a failed opportunity rather than a free timer reset.
+// The mathematical tile remains, but it is locked until a successful slide.
+$("close").addEventListener("click", () => lockPending("cancel"));
+$("cancel").addEventListener("click", () => lockPending("cancel"));
 $("modal").addEventListener("click", event => {
-  if (event.target === $("modal")) closeBank();
+  if (event.target === $("modal")) lockPending("cancel");
 });
 $("modal").addEventListener("cancel", event => {
   event.preventDefault();
-  closeBank();
+  lockPending("cancel");
 });
 function closeNavigationDialogs() {
   stopMotion();
