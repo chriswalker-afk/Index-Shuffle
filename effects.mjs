@@ -184,8 +184,8 @@ export function useConsumable(state, slot, selections = []) {
       break;
     case "power-surge":
       board[index] = { ...board[index], exp: board[index].exp + 1 };
+      // A transformation is not a merge and cannot erase a banking cooldown.
       ready = ready.filter(i => i !== index);
-      locked = locked.filter(i => i !== index);
       notice = "Power Surge increased that exponent by one. It is not a merge.";
       break;
     case "second-wind":
@@ -195,7 +195,6 @@ export function useConsumable(state, slot, selections = []) {
     case "alchemist":
       board[index] = { ...board[index], base: 5 };
       ready = ready.filter(i => i !== index);
-      locked = locked.filter(i => i !== index);
       notice = "Alchemist changed base 3 to base 5 without banking.";
       break;
     case "protection":
