@@ -181,7 +181,7 @@ export function restoreHazardPressure(run, board, hazards) {
 // 2. Cracked becomes Null only AFTER a successful merge here.
 // 3. Cloudy loses one duration after every genuine successful slide.
 // These are all independent from bankers, blockers, and coin awards.
-export function resolveSlideHazards(result, hazards) {
+export function resolveSlideHazards(result, hazards, protection = null) {
   if (!result || !isTileBoard(result.board) ||
       !Array.isArray(result.motions) ||
       !Array.isArray(result.mergeDestinations)) {
@@ -204,7 +204,11 @@ export function resolveSlideHazards(result, hazards) {
     if (existing.type === "void" && arrivals.has(index) &&
         board[index] && !isObstacle(board[index])) {
       const before = board[index].exp;
-      board[index] = { ...board[index], exp: Math.max(1, before - 1) };
+      // Void Cushion protects exponent-2 powers from becoming ordinary
+      // exponent-1 numbers; higher powers still lose one exponent.
+      const floor = protection?.voidFloor === 2 ? 2 : 1;
+      board[index] = { ...board[index],
+        exp: Math.max(Math.min(before, floor), before - 1) };
       layer[index] = null;
       hazardEvents.push({ type: "void", index, before,
         after: board[index].exp });
@@ -260,7 +264,7 @@ const chosenIndex = (rng, length) => Math.max(0,
 // create a hazard under an ordinary tile, but never under a blocker.
 export function progressHazardRound(board, hazards, run, movesInRound,
   { rng = Math.random, boss = false, banked = new Set(), locked = new Set(),
-    movementRules = null, movesLeft = null } = {}) {
+    movementRules = null, movesLeft = null, protection = null } = {}) {
   if (!isTileBoard(board) || !Array.isArray(hazards) ||
       hazards.length !== HAZARD_CELLS || !run ||
       !Number.isInteger(movesInRound) || movesInRound < 0 ||
@@ -289,6 +293,9 @@ export function progressHazardRound(board, hazards, run, movesInRound,
         { ...(movementRules || {}), hazards: probe });
       if (legal) {
         next = probe;
+        if (candidate.type === "cloudy" && protection?.cloudySlides === 2) {
+          next[candidate.index] = { type: "cloudy", turnsLeft: 2 };
+        }
         events.push({ kind: "appeared", ...candidate });
         cooldown = difficulty.cooldown;
       } else {
@@ -306,7 +313,8 @@ export function progressHazardRound(board, hazards, run, movesInRound,
   } else if (movesInRound >= difficulty.firstWarning &&
       activeHazardCount(next) < difficulty.maxActive &&
       (movesLeft === null || movesLeft > 3) &&
-      cooldown === 0 && rng() < difficulty.chance * (boss ? 0.5 : 1)) {
+      cooldown === 0 && rng() < difficulty.chance * (boss ? 0.5 : 1) *
+        (protection?.warningMultiplier ?? 1)) {
     // Decide among the actual valid type/position pairs so a randomly
     // chosen unavailable Null never steals the player's warning roll.
     const eligible = [];
@@ -324,7 +332,11 @@ export function progressHazardRound(board, hazards, run, movesInRound,
           { ...(movementRules || {}), hazards: preview })) positions.push(index);
       }
       if (positions.length) {
-        eligible.push({ type, positions, weight: difficulty.weights[type] });
+        // Type-specific wards reduce conditional selection weights, never
+        // to zero. Hazards of other types remain possible.
+        const weight = difficulty.weights[type] *
+          (protection?.weightMultipliers?.[type] ?? 1);
+        if (weight > 0) eligible.push({ type, positions, weight });
       }
     }
     if (eligible.length) {
@@ -335,11 +347,17 @@ export function progressHazardRound(board, hazards, run, movesInRound,
         pick -= option.weight;
         if (pick < 0) { chosen = option; break; }
       }
+      // Hazard Tamer replaces a warning BEFORE revealing it. The warning,
+      // save and eventual hazard always agree, and the downgrade retains a
+      // real penalty: Cracked can still become Null; Void still takes power.
+      const type = protection?.downgrade && chosen.type === "null"
+        ? "cracked" : protection?.downgrade && chosen.type === "cracked"
+          ? "void" : chosen.type;
       warning = {
-        type: chosen.type,
-        index: chosen.positions[chosenIndex(rng, chosen.positions.length)]
+        type, index: chosen.positions[chosenIndex(rng, chosen.positions.length)]
       };
-      events.push({ kind: "warning", ...warning });
+      events.push({ kind: "warning", ...warning,
+        ...(type !== chosen.type ? { downgradedFrom: chosen.type } : {}) });
     }
   }
   return { hazards: next,
