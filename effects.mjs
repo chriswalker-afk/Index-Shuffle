@@ -3,9 +3,10 @@
 import {
   tile, key, isObstacle, isBlocker, blockerStrength, canMove,
   MAX_MOVES_LEFT
-} from "./engine.mjs?v=roguelite-pass4-v1";
-import { goldTier } from "./roguelite.mjs?v=roguelite-pass4-v1";
-import { ITEM_BY_ID } from "./shop.mjs?v=roguelite-pass4-v1";
+} from "./engine.mjs?v=roguelite-pass5-v1";
+import { goldTier } from "./roguelite.mjs?v=roguelite-pass5-v1";
+import { ITEM_BY_ID } from "./shop.mjs?v=roguelite-pass5-v1";
+import { bossId, bossMovementRules } from "./bosses.mjs?v=roguelite-pass5-v1";
 
 const whole = n => Number.isSafeInteger(n) && n >= 0;
 const numericTile = t => Boolean(t && !isObstacle(t) &&
@@ -133,7 +134,8 @@ export function consumableTargets(state, slot, selected = []) {
     if (id === "clear-space") {
       const probe = board.slice();
       probe[i] = null;
-      return canMove(probe, banked, locked) ? i : -1;
+      return canMove(probe, banked, locked,
+        bossMovementRules(state.run)) ? i : -1;
     }
     return -1;
   }).filter(i => i !== -1);
@@ -143,7 +145,9 @@ export function canActivateConsumable(state, slot) {
   const id = itemInSlot(state, slot);
   if (!id) return false;
   if (CONSUMABLE_TARGETS[id] > 0) return consumableTargets(state, slot).length > 0;
-  if (id === "second-wind") return state.movesLeft < MAX_MOVES_LEFT;
+  if (id === "second-wind") {
+    return bossId(state.run) !== "timekeeper" && state.movesLeft < MAX_MOVES_LEFT;
+  }
   if (id === "protection") {
     return restoreEffectState(state.run).protectionSlides === 0;
   }
@@ -192,11 +196,13 @@ export function useConsumable(state, slot, selections = []) {
       movesLeft = Math.min(MAX_MOVES_LEFT, movesLeft + 2);
       notice = "Second Wind restored " + (movesLeft - state.movesLeft) + " moves.";
       break;
-    case "alchemist":
-      board[index] = { ...board[index], base: 5 };
+    case "alchemist": {
+      const { curseLeft, ...original } = board[index];
+      board[index] = { ...original, base: 5 };
       ready = ready.filter(i => i !== index);
       notice = "Alchemist changed base 3 to base 5 without banking.";
       break;
+    }
     case "protection":
       run = { ...run, protectionSlides: 2 };
       notice = "Protection: the next two successful slides ignore blocker surcharges.";
