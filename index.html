@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#0c1428">
   <meta name="description" content="Slide and merge powers, solve banking challenges and stay in the game.">
   <title>Index Shuffle — Make every move count</title>
-  <link rel="stylesheet" href="styles.css?v=hazard-counter-v1-art-pass5-skipfix1">
+  <link rel="stylesheet" href="styles.css?v=frostlock-v1">
 </head>
 <body>
   <main class="shell">
@@ -221,6 +221,13 @@
             <button type="button" data-dir="right" aria-label="Slide right">→</button>
           </div>
         </div>
+        <p id="frostlockStatus" class="frostlock-status" hidden
+          role="status" aria-live="polite" aria-atomic="true">
+          <span class="frostlock-snowflake" aria-hidden="true">❄</span>
+          <span><strong id="frostlockDirection">LEFT ←</strong> is frozen.
+            Use another direction. The ice shifts after a successful slide,
+            correct bank or item use.</span>
+        </p>
       </section>
 
       <section id="movesCard" class="hud" aria-label="Current game status">
@@ -689,6 +696,6 @@
       <button type="button" id="cancel" class="textbtn">Keep this tile</button>
     </div>
   </dialog>
-  <script type="module" src="app.mjs?v=hazard-counter-v1-art-pass5"></script>
+  <script type="module" src="app.mjs?v=frostlock-v1"></script>
 </body>
 </html>
