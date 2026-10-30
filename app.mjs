@@ -14,7 +14,7 @@ import {
 } from "./shop.mjs?v=hazard-counter-v1";
 import {
   renderRogueliteInventory, renderRogueliteShop
-} from "./shop-ui.mjs?v=hazard-counter-v1-art-pass1";
+} from "./shop-ui.mjs?v=hazard-counter-v1-art-pass2";
 import { bossPortraitFor } from "./art-catalog.mjs?v=hazard-counter-v1-art-pass1";
 import {
   restoreEffectState, bankItemBonuses, goldChancesForRun,

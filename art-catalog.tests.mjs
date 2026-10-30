@@ -42,6 +42,6 @@ assert.match(css, /\.shop-merchant-strip/);
 assert.match(css, /\.boss-rule-portrait/);
 assert.ok(existsSync("art-preview.html"));
 assert.ok(existsSync("assets/art/ART_DIRECTION.md"));
-assert.match(html, /styles\.css\?v=hazard-counter-v1-art-pass1/);
-assert.match(html, /app\.mjs\?v=hazard-counter-v1-art-pass1/);
+assert.match(html, /styles\.css\?v=hazard-counter-v1-art-pass2/);
+assert.match(html, /app\.mjs\?v=hazard-counter-v1-art-pass2/);
 console.log("Index Shuffle art direction Pass 1 checks passed.");
