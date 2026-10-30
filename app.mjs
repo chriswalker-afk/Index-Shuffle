@@ -1031,6 +1031,20 @@ function openBank(i) {
     (bankGold + (bonuses?.extraCoins ?? 0)) +
     " " + (bankGold + (bonuses?.extraCoins ?? 0) === 1 ? "coin" : "coins") +
     (bankGold === 1 ? ". Merge it first to earn a bigger reward." : ".");
+  const activeRune = mode === "roguelite" ? state.enchantments[i] : null;
+  const runeName = activeRune && ENCHANTMENT_DEFINITIONS[activeRune.type].name;
+  const runeEffect = enchanted?.spend === "gilded-foundry"
+    ? "Correct answer creates gold."
+    : enchanted?.spend === "power-prism"
+      ? "Correct answer doubles points."
+      : enchanted?.repeatBank ? "One correct repeat bank is permitted."
+        : enchanted?.extraBlockerHit ? "Correct bank adds one blocker hit."
+          : enchanted?.extraSeconds ? "+10 seconds granted for this question."
+            : t.prism === 1 ? "Power carries ×2 scoring from a previous merge."
+              : "";
+  $("bankRuneBonus").hidden = !runeEffect;
+  $("bankRuneBonus").textContent = runeEffect
+    ? "✦ " + (runeName || "Power Prism") + " · " + runeEffect : "";
   $("promptHelp").textContent = "You have " + bankLimit + " seconds. " + (canStrike
     ? "Correct answer: bank this power and damage the nearby blocker."
     : "Calculate its exact value to bank this power.") + goldHelp +
@@ -1117,6 +1131,7 @@ $("bankForm").addEventListener("submit", event => {
       })
     : { points: outcome.points, roundScore: state.score + outcome.points };
   state.score = points.roundScore;
+  let redeemedRuneType = null;
   if (mode === "roguelite") {
     state.run = points.run;
     const redeemed = redeemEnchantedBank(state.enchantments, i, enchanted,
@@ -1125,6 +1140,7 @@ $("bankForm").addEventListener("submit", event => {
         blockerApplied: outcome.creditedMerge &&
           (outcome.damaged.length + outcome.destroyed.length > 0) });
     state.enchantments = redeemed.enchantments;
+    if (redeemed.used) redeemedRuneType = enchanted.spend;
   }
   // Bank success may change which slides are possible. Switch the freeze
   // only while the boss is still active, always preserving a legal slide.
@@ -1135,6 +1151,14 @@ $("bankForm").addEventListener("submit", event => {
     + " points" + (bonuses && bonuses.notes.length
       ? " (" + bonuses.notes.join(", ") + ")" : "") +
     ". " + replacement.base + glyph(replacement.exp) + " stays on the board.";
+  if (redeemedRuneType) {
+    const remaining = state.enchantments[i]?.chargesLeft ?? 0;
+    state.notice += " ✦ " + ENCHANTMENT_DEFINITIONS[redeemedRuneType].name +
+      " activated" + (remaining ? " (" + remaining + " charge" +
+        (remaining === 1 ? "" : "s") + " left)." : " (fully used).");
+  } else if (t.prism === 1 && points.points > 0) {
+    state.notice += " ✦ Power Prism's double-score mark paid off!";
+  }
   if (mode === "roguelite" && points.bankGold) {
     state.notice += " +" + points.bankGold + " gold!";
   }
@@ -1186,6 +1210,9 @@ $("bankForm").addEventListener("submit", event => {
   focusAfterBank(i);
   if (!prefersReducedMotion()) {
     $("board").children[i]?.classList.add("bank-flash");
+    if (redeemedRuneType) {
+      $("board").children[i]?.classList.add("rune-activation-flash");
+    }
     for (const index of damaged) {
       $("board").children[index]?.classList.add("block-hit-flash");
     }
