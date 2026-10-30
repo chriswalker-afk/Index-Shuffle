@@ -22,6 +22,7 @@
       <div id="movesCard" class="stat-budget">
         <small>MOVES LEFT</small><strong id="movesLeft" aria-live="polite">10</strong>
         <span id="mergeProgress" class="merge-progress">0 / 2 merges to +1 move</span>
+        <span id="slideCost" class="slide-cost">Next slide costs 1 move</span>
       </div>
       <div><small>SCORE</small><strong id="score">0</strong></div>
       <div><small>BEST</small><strong id="best">0</strong></div>
@@ -81,11 +82,14 @@
         </section>
         <section class="panel">
           <h2>How to survive</h2>
-          <p><b>Start with 10 moves.</b> Each successful slide uses one move.
-             Every <b>two merges</b> return one move, including merges made
-             on different slides. If your moves left reach <b>zero</b>,
-             the game ends—even if you could still bank a tile. A swipe that
-             does not change the board costs nothing.</p>
+          <p><b>Start with 10 moves.</b> Each successful slide costs
+             <b>1 move, plus 1 for each active blocker</b> already on the board:
+             with one blocker, a slide costs 2 moves; with two, 3 moves.
+             An incoming warning does not count until its blocker appears.</p>
+          <p>Every <b>two merges</b> return one move, including merges from
+             different slides. Earned moves are credited before checking for
+             defeat. If moves left reaches <b>zero</b>, the game ends—even if
+             you could still bank a tile. Swipes that change nothing are free.</p>
           <p>Each valid slide spawns a new tile. From move 40, every tenth
              slide can add a <b>second tile</b> when space is available.</p>
           <p>At move <b>9</b>, an empty square is <b>highlighted as a warning</b>.
