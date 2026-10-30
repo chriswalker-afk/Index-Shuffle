@@ -3,10 +3,10 @@
 import {
   tile, key, isObstacle, isBlocker, blockerStrength, canMove,
   MAX_MOVES_LEFT
-} from "./engine.mjs?v=gold-banking-v2";
-import { goldTier } from "./roguelite.mjs?v=gold-banking-v2";
-import { ITEM_BY_ID } from "./shop.mjs?v=gold-banking-v2";
-import { bossId, bossMovementRules } from "./bosses.mjs?v=gold-banking-v2";
+} from "./engine.mjs?v=mode-results-v1";
+import { goldTier } from "./roguelite.mjs?v=mode-results-v1";
+import { ITEM_BY_ID } from "./shop.mjs?v=mode-results-v1";
+import { bossId, bossMovementRules } from "./bosses.mjs?v=mode-results-v1";
 
 const whole = n => Number.isSafeInteger(n) && n >= 0;
 const numericTile = t => Boolean(t && !isObstacle(t) &&
