@@ -39,8 +39,11 @@ export function renderRogueliteInventory(state, isRoguelite, onUse, canUse) {
       const entry = slots[i];
       const usable = Boolean(entry && type === "consumables" &&
         state.run.phase === "playing" && !state.over);
+      const hazardCounter = Boolean(entry && type === "permanents" &&
+        ITEM_BY_ID[entry.id]?.hazardCounter);
       const chip = element(usable ? "button" : "span",
-        "equip-chip" + (entry ? " equipped" : ""),
+        "equip-chip" + (entry ? " equipped" : "") +
+          (hazardCounter ? " hazard-counter-equipped" : ""),
         entry ? ITEM_BY_ID[entry.id].name : "+ Empty");
       chip.title = entry
         ? ITEM_BY_ID[entry.id].description
@@ -68,7 +71,9 @@ function offerCard(type, itemId, slotIndex, state, dispatch) {
   }
   const item = ITEM_BY_ID[itemId];
   const price = shopItemPrice(state.run, item);
-  card.append(element("div", "shop-offer-type", labelFor(type)));
+  if (item.hazardCounter) card.classList.add("hazard-counter-offer");
+  card.append(element("div", "shop-offer-type",
+    item.hazardCounter ? "Permanent · Hazard defence" : labelFor(type)));
   card.append(element("strong", "shop-item-name", item.name));
   card.append(element("p", "shop-item-description", item.description));
   card.append(element("p", "shop-price", "● " + price + " coins" +
