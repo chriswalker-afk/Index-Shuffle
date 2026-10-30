@@ -1,9 +1,9 @@
 // Roguelite boss encounters. This module is deliberately independent of
 // roguelite.mjs so the round controller can apply boss rules without cycles.
 import {
-  blocker, isBlocker, isObstacle, isWarning, canMove,
+  blocker, isBlocker, isObstacle, isWarning, canMove, isBankable,
   MAX_BLOCKERS, adjacentIndices
-} from "./engine.mjs?v=hazard-pass3-v1";
+} from "./engine.mjs?v=hazard-pass4-v1";
 
 export const BOSS_ROUNDS = Object.freeze([3, 6, 9, 12]);
 export const BOSS_CATALOG = Object.freeze([
@@ -134,9 +134,10 @@ export function applyThreeCurse(board, mergeDestinations, run,
   const next = board.map((t, i) => {
     if (!t || isObstacle(t)) return t;
     if (t.base !== 3) return t;
-    // Void can reduce a freshly merged 3 power to exponent 1. Do not
-    // curse a power that can no longer be banked (unless it remains gold).
-    if (fresh.has(i)) return (t.exp >= 2 || t.gold)
+    // Only curse a power that is currently eligible to bank. This
+    // includes the new once-per-index rule for gold, Void-reduced
+    // exponents and any Cloudy square concealing the power.
+    if (fresh.has(i)) return isBankable(t, banked, i, new Set(), hazards)
       ? { ...t, curseLeft: 3 } : t;
     if (Number.isInteger(t.curseLeft) && t.curseLeft > 0) {
       return { ...t, curseLeft: t.curseLeft - 1 };
@@ -147,6 +148,14 @@ export function applyThreeCurse(board, mergeDestinations, run,
   for (let i = 0; i < next.length; i++) {
     const t = next[i];
     if (!t || isObstacle(t) || t.base !== 3 || t.curseLeft !== 0) continue;
+    // Another bank can invalidate this index before the countdown ends.
+    // Never punish a player for failing an impossible banking question.
+    if (!isBankable(t, banked, i, new Set(), hazards)) {
+      const { curseLeft, ...ordinary } = t;
+      next[i] = ordinary;
+      spared.push(i);
+      continue;
+    }
     const probe = next.slice();
     probe[i] = blocker(0, 1);
     const occupied = next.filter(x => isBlocker(x) || isWarning(x)).length;

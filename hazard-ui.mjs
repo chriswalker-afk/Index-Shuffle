@@ -1,11 +1,11 @@
-// Visual presentation for Roguelike square hazards (Pass 1).
-// No effects, spawning or item activation in this module. Overlay cells
-// stay at their original board coordinates as numbered tiles slide.
+// Stationary hazard and telegraph presentation. Overlays never intercept
+// touches or banking, so a Hazard Eraser can target the tile button below.
 import {
   HAZARD_CELLS, HAZARD_DEFINITIONS, hazardAt, activeHazardCount
-} from "./hazards.mjs?v=hazard-pass3-v1";
+} from "./hazards.mjs?v=hazard-pass4-v1";
 
-export function renderHazardLayer(boardElement, hazards, warning = null) {
+export function renderHazardLayer(boardElement, hazards, warning = null,
+  eraseTargets = []) {
   if (!boardElement || typeof boardElement.appendChild !== "function") {
     throw new RangeError("A board element is required");
   }
@@ -13,7 +13,8 @@ export function renderHazardLayer(boardElement, hazards, warning = null) {
   old?.remove();
   const showWarning = warning && Number.isInteger(warning.index) &&
     warning.index >= 0 && warning.index < HAZARD_CELLS &&
-    HAZARD_DEFINITIONS[warning.type] && !hazards[warning.index];
+    Object.hasOwn(HAZARD_DEFINITIONS, warning.type) &&
+    !hazards[warning.index];
   if (activeHazardCount(hazards) === 0 && !showWarning) return;
 
   const overlay = document.createElement("div");
@@ -30,7 +31,7 @@ export function renderHazardLayer(boardElement, hazards, warning = null) {
       alert.textContent = "!";
       const caption = document.createElement("small");
       caption.className = "hazard-warning-label";
-      caption.textContent = HAZARD_DEFINITIONS[warning.type].name + " NEXT";
+      caption.textContent = "NEXT";
       square.classList.add("hazard-incoming");
       square.dataset.warning = warning.type;
       square.append(alert, caption);
@@ -38,6 +39,13 @@ export function renderHazardLayer(boardElement, hazards, warning = null) {
     if (entry) {
       const definition = HAZARD_DEFINITIONS[entry.type];
       square.classList.add("hazard-" + entry.type);
+      if (eraseTargets.includes(index)) {
+        square.classList.add("hazard-erase-target");
+        const label = document.createElement("small");
+        label.className = "hazard-erase-label";
+        label.textContent = "ERASE";
+        square.append(label);
+      }
       square.dataset.hazard = entry.type;
       const symbol = document.createElement("span");
       symbol.className = "hazard-symbol";
@@ -67,7 +75,7 @@ export function renderHazardLayer(boardElement, hazards, warning = null) {
 }
 
 // Accessible non-revealing label when an occupied square is clouded.
-// This is presentation only. Banking/merge restrictions are Pass 2.
+ // Banking and item interactions are enforced by the engine and app.
 export function hazardTileDescription(entry, tilePresent) {
   if (!entry || !HAZARD_DEFINITIONS[entry.type]) return "";
   if (entry.type === "cloudy") {

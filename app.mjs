@@ -4,46 +4,46 @@ import {
   mergeReadyAfterSlide, attemptBank, adjacentIndices, activeBases, BASE_UNLOCKS,
   INITIAL_MOVES_LEFT, MERGES_PER_BONUS_MOVE, BUDGET_RULES_VERSION,
   restoreMoveBudget, spendMove, slideCost, creditCorrectBank, gameEnded
-} from "./engine.mjs?v=hazard-pass3-v1";
+} from "./engine.mjs?v=hazard-pass4-v1";
 import { newRogueliteRun, targetForRound, stageForRound, isBossRound,
   recordRogueliteBank, advanceRogueliteRound, validRogueliteRun,
   restoreRogueliteRun, markGoldSpawns, goldTier, goldForBank
-} from "./roguelite.mjs?v=hazard-pass3-v1";
+} from "./roguelite.mjs?v=hazard-pass4-v1";
 import {
   restoreShopState, enterRogueliteShop, rerollRogueliteShop
-} from "./shop.mjs?v=hazard-pass3-v1";
+} from "./shop.mjs?v=hazard-pass4-v1";
 import {
   renderRogueliteInventory, renderRogueliteShop
-} from "./shop-ui.mjs?v=hazard-pass3-v1";
+} from "./shop-ui.mjs?v=hazard-pass4-v1";
 import {
   restoreEffectState, bankItemBonuses, goldChancesForRun,
   costOfNextSlide, canActivateConsumable, CONSUMABLE_TARGETS,
   consumableTargets, useConsumable
-} from "./effects.mjs?v=hazard-pass3-v1";
-import { ITEM_BY_ID } from "./shop.mjs?v=hazard-pass3-v1";
+} from "./effects.mjs?v=hazard-pass4-v1";
+import { ITEM_BY_ID } from "./shop.mjs?v=hazard-pass4-v1";
 import {
   bossForRound, bossTargetFor, bossPointsFor, bossMovementRules,
   bossAllowsMoveRestoration, applyThreeCurse
-} from "./bosses.mjs?v=hazard-pass3-v1";
+} from "./bosses.mjs?v=hazard-pass4-v1";
 import {
   ACHIEVEMENTS, ACHIEVEMENT_BY_ID, emptyRunStats, restoreRunStats,
   restoreAchievementProfile, recordRunStats, recordSuccessfulSlide,
   addEarnedToRunStats, recordAchievementEvent, countUnlocked,
   progressForAchievement, isFinishedRun, finalScoreSummary
-} from "./milestones.mjs?v=hazard-pass3-v1";
+} from "./milestones.mjs?v=hazard-pass4-v1";
 import {
   openAchievementGallery, renderFinalScreen
-} from "./results-ui.mjs?v=hazard-pass3-v1";
-import { MODE_LABELS, resumableSave } from "./navigation.mjs?v=hazard-pass3-v1";
-import { renderNavigation } from "./title-ui.mjs?v=hazard-pass3-v1";
+} from "./results-ui.mjs?v=hazard-pass4-v1";
+import { MODE_LABELS, resumableSave } from "./navigation.mjs?v=hazard-pass4-v1";
+import { renderNavigation } from "./title-ui.mjs?v=hazard-pass4-v1";
 import {
   restoreHazardLayer, hazardAt, activeHazardCount, MAX_ACTIVE_HAZARDS,
   restoreHazardPressure, progressHazardRound, resolveSlideHazards,
-  HAZARD_DEFINITIONS
-} from "./hazards.mjs?v=hazard-pass3-v1";
+  HAZARD_DEFINITIONS, canRescueHazardLock
+} from "./hazards.mjs?v=hazard-pass4-v1";
 import {
   renderHazardLayer, hazardTileDescription
-} from "./hazard-ui.mjs?v=hazard-pass3-v1";
+} from "./hazard-ui.mjs?v=hazard-pass4-v1";
 
 const $ = id => document.getElementById(id);
 const glyph = n => String(n).replace(/\d/g, d => "⁰¹²³⁴⁵⁶⁷⁸⁹"[+d]);
@@ -121,8 +121,16 @@ function currentMovementRules() {
     : null;
 }
 function currentGameEnded() {
-  return gameEnded(state.board, new Set(state.banked), new Set(state.locked),
+  const banked = new Set(state.banked), locked = new Set(state.locked);
+  const ended = gameEnded(state.board, banked, locked,
     state.movesLeft, currentMovementRules());
+  if (!ended || state.movesLeft <= 0 || mode !== "roguelite") return ended;
+  // A held Hazard Eraser is a genuine rescue when removing a hazard
+  // restores a bank or slide. Do not end the run before it can be used.
+  return !(state.run.inventory?.consumables?.some(entry =>
+    entry?.id === "hazard-eraser") && canRescueHazardLock(
+      state.board, state.hazards, banked, locked,
+      bossMovementRules(state.run)));
 }
 
 function persist() {
@@ -179,17 +187,36 @@ function render() {
     $("hazardCount").textContent = activeHazardCount(state.hazards) +
       " / " + MAX_ACTIVE_HAZARDS;
     const warning = state.run.hazardWarning;
+    const count = activeHazardCount(state.hazards);
+    const names = state.hazards.filter(Boolean).map(hazard =>
+      HAZARD_DEFINITIONS[hazard.type].name +
+      (hazard.type === "cloudy" ? " (" + hazard.turnsLeft + " slides)" : ""));
+    const coords = warning
+      ? "row " + (Math.floor(warning.index / 4) + 1) +
+        ", column " + (warning.index % 4 + 1) : "";
+    $("boardHazardStatus").hidden =
+      state.run.round <= 3 && !warning && count === 0;
+    $("boardHazardTitle").textContent = warning
+      ? HAZARD_DEFINITIONS[warning.type].name + " incoming"
+      : count ? count + (count === 1 ? " active hazard" : " active hazards")
+      : "Stage " + stageForRound(state.run.round) + " hazards";
+    $("boardHazardDetail").textContent = warning
+      ? "Marked square: " + coords + " · Next successful slide"
+      : count ? names.join(" · ") : "A warning appears before each hazard.";
     $("hazardNext").textContent = warning
-      ? HAZARD_DEFINITIONS[warning.type].name +
-        " square incoming on the next successful slide!"
+      ? HAZARD_DEFINITIONS[warning.type].name + " at " + coords +
+        " after the next successful slide."
       : state.run.round <= 3
         ? "Square hazards begin in Stage 2."
-        : "New hazards may be warned one successful slide in advance.";
+        : "New hazards are warned one successful slide in advance.";
     $("hazardAlert").hidden = !warning;
+    $("hazardAlert").dataset.hazard = warning?.type ?? "";
     $("hazardAlert").textContent = warning
       ? "⚠ " + HAZARD_DEFINITIONS[warning.type].name +
-        " hazard: marked square activates after your next slide." : "";
+        " will appear at " + coords + " after your next successful slide."
+      : "";
   } else {
+    $("boardHazardStatus").hidden = true;
     $("hazardAlert").hidden = true;
   }
   finalizeGameIfNeeded();
@@ -317,6 +344,7 @@ function render() {
       const gold = rogue ? goldTier(t) : 0;
       const available = isBankable(t, banked, i, locked,
         rogue ? state.hazards : null);
+      const alreadyBanked = banked.has(key(t));
       const blocked = (t.exp >= 2 || gold > 0) && locked.has(i) &&
         (gold > 0 || !banked.has(key(t)));
       const strike = available && mergeReady.has(i) &&
@@ -333,10 +361,12 @@ function render() {
         : blocked ? '<i aria-hidden="true">⌛</i>' : ""));
       const description = t.base + " to the power " + t.exp;
       const goldCoins = gold ? goldForBank(t, mergeReady.has(i)) : 0;
-      const goldHint = !gold ? "" :
+      const goldHint = !gold || alreadyBanked ? "" :
         ". Golden tile: a correct bank earns " + goldCoins +
         (goldCoins === 1 ? " coin. Merge first to earn more." : " coins.");
-      button.title = (blocked ? "Wait one slide before retrying " + description
+      button.title = (alreadyBanked
+        ? description + " was already banked this round. Gold does not allow it again."
+        : blocked ? "Wait one slide before retrying " + description
         : strike ? "Bank " + description + " correctly to damage adjacent blocker"
         : available ? "Bank " + description : description) + goldHint +
         (curseBadge ? ". Three Curse: " + t.curseLeft +
@@ -344,6 +374,7 @@ function render() {
       if (gold) {
         button.classList.add("gold-tile");
         if (gold === 2) button.classList.add("gold-double");
+        if (alreadyBanked) button.classList.add("already-banked");
       }
       button.setAttribute("aria-label", button.title);
       if (blocked) button.classList.add("locked");
@@ -374,11 +405,17 @@ function render() {
       const description = hazardTileDescription(squareHazard,
         Boolean(t && !isBlocker(t) && !isWarning(t)));
       if (squareHazard.type === "cloudy") {
-        // Never expose a concealed power through a title, accessible label,
-        // banking click, or bank indicator. Full movement rules follow in Pass 2.
-        button.title = description;
-        button.setAttribute("aria-label", description);
-        button.disabled = true;
+        // A cloud conceals its tile, but Hazard Eraser must remain a valid
+        // target. Never leak base, exponent or gold via title or appearance.
+        const erasing = selection && candidates.includes(i) &&
+          state.run.inventory.consumables[selection.slot]?.id === "hazard-eraser";
+        const label = erasing
+          ? "Remove Cloudy hazard at row " + (Math.floor(i / 4) + 1) +
+            ", column " + (i % 4 + 1) +
+            ". The covered tile will not change." : description;
+        button.title = label;
+        button.setAttribute("aria-label", label);
+        button.disabled = !erasing;
         button.classList.remove("bankable", "block-strike");
         button.replaceChildren();
       } else {
@@ -390,7 +427,9 @@ function render() {
       const type = HAZARD_DEFINITIONS[state.run.hazardWarning.type]?.name;
       if (type) {
         button.title = (button.title ? button.title + ". " : "") +
-          "Incoming " + type + " square after the next slide.";
+          "Incoming " + type + " square after the next successful slide " +
+          "at row " + (Math.floor(i / 4) + 1) + ", column " +
+          (i % 4 + 1) + ".";
         button.setAttribute("aria-label", button.title);
       }
     }
@@ -398,7 +437,12 @@ function render() {
   });
   // Stationary hazard overlay comes after the 16 tiles. It never intercepts
   // banking or slide gestures, and slide animation still uses cells 0..15.
-  if (rogue) renderHazardLayer(board, state.hazards, state.run.hazardWarning);
+  if (rogue) {
+    const eraseTargets = selection &&
+      state.run.inventory.consumables[selection.slot]?.id === "hazard-eraser"
+      ? candidates : [];
+    renderHazardLayer(board, state.hazards, state.run.hazardWarning, eraseTargets);
+  }
   $("blockerCount").textContent =
     state.board.filter(isBlocker).length + " / " + MAX_BLOCKERS;
   const incoming = state.board.find(isWarning);
@@ -489,16 +533,19 @@ function animateSlide(before, motions, mergedDestinations, spawned, damaged, des
     if (!t) continue;
     const from = rects[movement.from], to = rects[movement.to];
     const ghost = document.createElement("div");
-    ghost.className = "tile-ghost base" + t.base +
-      (mode === "roguelite" && goldTier(t) ? " gold-tile" +
-        (goldTier(t) === 2 ? " gold-double" : "") : "");
+    // Neither numbers nor colour/gold frames may leak from Cloudy tiles
+    // during movement. Render all covered origins as a neutral silhouette.
+    const hiddenAtStart = beforeHazards?.[movement.from]?.type === "cloudy";
+    ghost.className = hiddenAtStart ? "tile-ghost ghost-clouded"
+      : "tile-ghost base" + t.base +
+        (mode === "roguelite" && goldTier(t) ? " gold-tile" +
+          (goldTier(t) === 2 ? " gold-double" : "") : "");
     ghost.style.left = (from.left - boardRect.left) + "px";
     ghost.style.top = (from.top - boardRect.top) + "px";
     ghost.style.width = from.width + "px";
     ghost.style.height = from.height + "px";
     // Never leak the identity of a tile emerging from beneath Cloudy via
     // the animation ghost. Once it has left the cloud, the real tile appears.
-    const hiddenAtStart = beforeHazards?.[movement.from]?.type === "cloudy";
     ghost.innerHTML = hiddenAtStart ? '<span class="ghost-cloud-cover">☁ ?</span>'
       : tileContent(t, mode === "roguelite" && goldTier(t)
         ? '<small class="tile-gold-mark" aria-hidden="true">◉' +
@@ -591,6 +638,7 @@ function move(direction) {
     ? progressHazardRound(state.board, state.hazards, state.run, nextMove,
       { rng: Math.random, boss: isBossRound(state.run.round),
         banked: new Set(state.banked), locked: new Set(),
+        movesLeft: state.movesLeft,
         movementRules: bossMovementRules(state.run) })
     : null;
   if (hazardStep) {

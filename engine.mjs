@@ -226,17 +226,17 @@ export function slide(board, direction, rules = null) {
   };
 }
 
-// Golden number cards are cashable even at exponent 1. Unlike ordinary
-// powers, a new golden copy of a previously banked base/exponent remains
-// worth banking: the gold status is a new, one-time opportunity. The
-// replacement always loses gold, so it cannot be banked again for free.
+// Golden number cards are bankable at exponent 1, unlike ordinary tiles.
+// Both golden and ordinary cards obey the SAME once-per-base-and-exponent
+// restriction within a round. A repeated golden copy offers no extra
+// scoring or coins, even when it has just spawned or merged.
 export function isBankable(t, banked, index, locked = new Set(),
   hazards = null) {
   if (!t || isObstacle(t) || locked.has(index) ||
       hazards?.[index]?.type === "cloudy") return false;
   const golden = t.gold === 1 || t.gold === 2;
   return Number.isSafeInteger(t.exp) && (t.exp >= 2 || (golden && t.exp === 1)) &&
-    (golden || !banked.has(key(t)));
+    !banked.has(key(t));
 }
 
 export function canMove(board, banked, locked = new Set(), rules = null) {

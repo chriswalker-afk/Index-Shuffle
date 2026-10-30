@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#0c1428">
   <meta name="description" content="Slide and merge powers, solve banking challenges and stay in the game.">
   <title>Index Shuffle — Make every move count</title>
-  <link rel="stylesheet" href="styles.css?v=hazard-pass3-v1">
+  <link rel="stylesheet" href="styles.css?v=hazard-pass4-v1">
 </head>
 <body>
   <main class="shell">
@@ -136,6 +136,15 @@
         </div>
         <div id="status" class="game-feedback" role="status" aria-live="polite">
           Merge matching bases or bank a glowing power.
+        </div>
+        <div id="boardHazardStatus" class="board-hazard-status" hidden>
+          <span class="board-hazard-icon" aria-hidden="true">◆</span>
+          <span class="board-hazard-info">
+            <strong id="boardHazardTitle">Square hazards</strong>
+            <small id="boardHazardDetail">Hazards begin in Stage 2.</small>
+          </span>
+          <button type="button" id="boardHazardHelp" data-help="rules" aria-label="View the hazard guide"
+            title="View the hazard guide">?</button>
         </div>
         <p id="hazardAlert" class="hazard-alert" hidden role="status"
           aria-live="polite"></p>
@@ -295,9 +304,10 @@
       <div class="help-block">
         <h3>2. Bank a power</h3>
         <p>Select a glowing <b>✦</b> tile and calculate its exact value in 60 seconds.
-           Ordinary powers can be banked once per base–exponent combination.
-           In Roguelike, golden tiles can also be banked immediately, even at
-           exponent 1 or when that power was banked earlier. Banking earns points
+           Every power can be banked only once per base–exponent combination
+           each round, <strong>including golden powers</strong>. In Roguelike,
+           gold allows banking exponent 1 directly, provided that exact power
+           has not already been banked. Banking earns points
            and leaves a non-golden smaller tile behind. A wrong answer or timeout
            locks that tile until another successful slide.</p>
       </div>
@@ -326,7 +336,8 @@
           Or merge it first for a bigger payout: 2 coins for most merged golden
           powers, 3 for exponent 4 or higher, or 4 for double gold.
           Gold survives slides and merges; banking consumes the gold.
-          A new golden copy can be banked even if you already banked that power.</p>
+          A golden copy of an already-banked power cannot be banked again
+          until the next round. Merge it into a different exponent first.</p>
         <p>When you clear a round you also earn 1 coin per unused move
           (up to 5 bonus coins). Your coins carry forward to a shop after each
           cleared round. The shop has two single-use offers and two permanent
@@ -342,7 +353,9 @@
           Cracked becomes Null after a merge; and Greedy strips gold along
           a tile's path. A hazard warning appears one successful slide
           before a hazard activates. Buy a one-use <strong>Hazard Eraser</strong>
-          in the shop to remove any active hazard without using a move.</p>
+          in the shop to remove any active hazard without using a move,
+          including a Cloudy square hiding a tile. Hazard Eraser can also
+          rescue a board that has no other legal actions.</p>
         <section class="hazard-field-guide" aria-labelledby="hazardGuideTitle">
           <div class="hazard-guide-header">
             <div>
@@ -371,7 +384,7 @@
               <div><strong>Cracked</strong><p>Turns into Null after a merge on its square.</p></div>
             </div>
             <div class="hazard-preview-card">
-              <span class="hazard-example hazard-greedy" aria-hidden="true"><b>◉</b><small>◉</small></span>
+              <span class="hazard-example hazard-greedy" aria-hidden="true"><b>⇣</b><small>−◉</small></span>
               <div><strong>Greedy</strong><p>Removes the gold from a tile passing through it.</p></div>
             </div>
           </div>
@@ -381,7 +394,8 @@
         <span><b>✦</b> Bankable</span><span><b>⚡</b> Damages blocker if banked</span>
         <span><b>⌛</b> Banking cooldown</span><span><b>!</b> Incoming blocker</span>
         <span><b>▦</b> Fixed blocker</span>
-        <span><b>◉</b> Golden tile: bank directly or merge for more coins</span>
+        <span><b>◉</b> Golden tile: bank once per base–exponent combination</span>
+        <span><b>✓</b> Golden power already banked this round</span>
         <span><b>✧</b> Roguelike square hazards</span>
         <span><b>!</b> Hazard incoming next slide (with hazard name)</span>
       </div>
@@ -533,6 +547,6 @@
       <button type="button" id="cancel" class="textbtn">Keep this tile</button>
     </div>
   </div>
-  <script type="module" src="app.mjs?v=hazard-pass3-v1"></script>
+  <script type="module" src="app.mjs?v=hazard-pass4-v1"></script>
 </body>
 </html>

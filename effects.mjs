@@ -3,13 +3,13 @@
 import {
   tile, key, isObstacle, isBlocker, blockerStrength, canMove,
   MAX_MOVES_LEFT
-} from "./engine.mjs?v=hazard-pass3-v1";
-import { goldTier } from "./roguelite.mjs?v=hazard-pass3-v1";
-import { ITEM_BY_ID } from "./shop.mjs?v=hazard-pass3-v1";
-import { bossId, bossMovementRules } from "./bosses.mjs?v=hazard-pass3-v1";
+} from "./engine.mjs?v=hazard-pass4-v1";
+import { goldTier } from "./roguelite.mjs?v=hazard-pass4-v1";
+import { ITEM_BY_ID } from "./shop.mjs?v=hazard-pass4-v1";
+import { bossId, bossMovementRules } from "./bosses.mjs?v=hazard-pass4-v1";
 import {
   hazardAt, restoreHazardLayer, removeHazard
-} from "./hazards.mjs?v=hazard-pass3-v1";
+} from "./hazards.mjs?v=hazard-pass4-v1";
 
 const whole = n => Number.isSafeInteger(n) && n >= 0;
 const numericTile = t => Boolean(t && !isObstacle(t) &&
@@ -231,7 +231,9 @@ export function useConsumable(state, slot, selections = []) {
       // Gold applied after a merge cannot claim gold from that earlier merge.
       // The tile must merge again before its golden bank can pay out.
       ready = ready.filter(i => i !== index);
-      notice = "Gold Touch gilded a tile. Bank it for 1 coin, or merge it first for a bigger reward.";
+      notice = state.banked.includes(key(board[index]))
+        ? "Gold Touch gilded this tile, but its power was already banked. Merge to a new exponent before banking."
+        : "Gold Touch gilded a tile. Bank it once for 1 coin, or merge it first for a bigger reward.";
       break;
     case "position-swap": {
       const other = selections[1];

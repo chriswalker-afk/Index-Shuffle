@@ -23,10 +23,10 @@ assert.equal(isBankable(golden3, banked, 0, locked), true,
   "The golden base-1 card must open a banking question");
 assert.equal(isBankable(goldenSquare, banked, 0, locked), true,
   "Golden powers remain bankable");
-assert.equal(isBankable(golden3, new Set(["3-1"]), 0, locked), true,
-  "A new golden copy remains bankable after an earlier copy");
-assert.equal(isBankable(goldenSquare, new Set(["3-2"]), 0, locked), true,
-  "Previously banked power values cannot invalidate newly golden copies");
+assert.equal(isBankable(golden3, new Set(["3-1"]), 0, locked), false,
+  "Gold cannot bypass the one-bank-per-base-and-exponent restriction");
+assert.equal(isBankable(goldenSquare, new Set(["3-2"]), 0, locked), false,
+  "Previously banked powers are unavailable even when newly golden");
 assert.equal(isBankable(tile(3, 2), new Set(["3-2"]), 0, locked), false,
   "Ordinary powers still respect the once-per-base-exponent rule");
 assert.equal(isBankable(golden3, banked, 0, new Set([0])), false,
@@ -54,7 +54,20 @@ assert.equal(creditCorrectBank(8, 0, answer.creditedMerge).earned, 0);
 assert.equal(isBankable(answer.board[0], new Set(), 0), false,
   "Direct banking is one-use only; no repeated free cash");
 const repeated = attemptBank(firstBoard, 0, "3", { banked: new Set(["3-1"]) });
-assert.equal(repeated.status, "success");
+assert.equal(repeated.status, "unavailable");
+const repeatedSquare = attemptBank([goldenSquare, ...blank().slice(1)], 0,
+  "9", { banked: new Set(["3-2"]) });
+assert.equal(repeatedSquare.status, "unavailable",
+  "Repeated merged gold cannot earn score, coins, credit or blocker damage");
+assert.equal(isBankable({ ...tile(5, 2), gold: 2 },
+  new Set(["5-2"]), 0), false,
+  "Double gold also respects one bank per power");
+assert.equal(isBankable({ ...tile(3, 3), gold: 1 },
+  new Set(["3-2"]), 0), true,
+  "The same base with a different exponent remains an eligible new power");
+assert.equal(isBankable({ ...tile(5, 2), gold: 1 },
+  new Set(["3-2"]), 0), true,
+  "The same exponent with a different base is a distinct banking opportunity");
 const lockedBank = attemptBank(firstBoard, 0, "3", { locked: new Set([0]) });
 assert.equal(lockedBank.status, "unavailable");
 
@@ -83,11 +96,10 @@ assert.equal(recorded.run.coins, 1);
 assert.equal(recorded.run.totalScore, 1);
 assert.equal(recorded.run.scoredBanks, 1);
 assert.equal(recorded.cleared, false);
-const secondGold = recordRogueliteBank(recorded.run, 1, golden3,
-  { merged: false, movesLeft: 7 });
-assert.equal(secondGold.points, 1);
-assert.equal(secondGold.run.coins, 2,
-  "A second genuinely golden card can be correctly banked too");
+// A later copy of 3¹ cannot be banked again this round; it cannot call
+// the scoring function through the actual banking gate.
+assert.equal(attemptBank(firstBoard, 0, "3",
+  { banked: new Set([answer.powerKey]) }).status, "unavailable");
 
 run.inventory.permanents[0] = { id: "golden-calculator", pricePaid: 7 };
 const enhanced = bankItemBonuses(run, golden3, false);
@@ -145,9 +157,9 @@ assert.match(app, /const available = isBankable\(t, banked, i, locked,/);
 assert.match(app, /if \(available && !selection\) \{/);
 assert.match(app, /button\.addEventListener\("click", \(\) => openBank\(i\)\)/);
 assert.match(app, /const blocked = \(t\.exp >= 2 \|\| gold > 0\)/);
-assert.match(app, /hazard-pass3-v1/);
+assert.match(app, /hazard-pass4-v1/);
 assert.match(html, /golden 3¹/i);
 assert.match(html, /<b>◉<\/b>/);
-assert.match(html, /styles\.css\?v=hazard-pass3-v1/);
-assert.match(html, /app\.mjs\?v=hazard-pass3-v1/);
+assert.match(html, /styles\.css\?v=hazard-pass4-v1/);
+assert.match(html, /app\.mjs\?v=hazard-pass4-v1/);
 console.log("All Index Shuffle gold-banking and metallic-tile regression tests passed.");

@@ -1,8 +1,6 @@
-// Roguelike square hazards — Pass 1 (data / layout only).
-// Unlike blockers and tiles, hazards are anchored to one of 16 board
-// coordinates. Later passes will add resolution during slides, spawning,
-// difficulty and a one-use Hazard Eraser. NONE is active in Pass 1.
-import { SIZE, isObstacle, canMove } from "./engine.mjs?v=hazard-pass3-v1";
+// Roguelike square hazards — permanent coordinates independent of tile
+// objects. Effects, fair placement, warnings and rescue checks live here.
+import { SIZE, isObstacle, canMove, adjacentIndices } from "./engine.mjs?v=hazard-pass4-v1";
 
 export const HAZARD_CELLS = SIZE * SIZE;
 export const MAX_ACTIVE_HAZARDS = 2;
@@ -26,7 +24,7 @@ export const HAZARD_DEFINITIONS = Object.freeze({
     description: "Turns into Null after a merge finishes here."
   }),
   greedy: Object.freeze({
-    id: "greedy", name: "Greedy", icon: "◉", badge: "◉",
+    id: "greedy", name: "Greedy", icon: "⇣", badge: "−◉",
     description: "Steals gold from a tile travelling through it."
   })
 });
@@ -95,7 +93,7 @@ export function restoreHazardLayer(saved, board = null) {
   return next;
 }
 
-// Pass 2/3 use these pure helpers for placement/removal. They deliberately
+// These pure helpers support placement/removal. They deliberately
 // do not change the number-tile board, move counters or player score.
 export function canPlaceHazard(hazards, board, index, type) {
   if (!isCell(index) || !isTileBoard(board) ||
@@ -125,21 +123,30 @@ export function removeHazard(hazards, index) {
 }
 
 
-// Passes 2–3: actual hazard effects, one-slide warnings and Stage 2–4
-// scheduling. Stage 1 never spawns any hazards. Boss rounds use half the
-// normal warning chance because a boss already constrains the player.
+// Tuned stage tables: warnings are deliberately less frequent than a
+// naïve roll every slide, with a three/four-slide cooldown and a late-round
+// grace period. Stronger persistent hazards (Null/Cracked) are rarer than
+// short-lived Void/Cloudy. Boss rounds halve all warning chances.
 export const HAZARD_DIFFICULTY = Object.freeze({
   1: Object.freeze({ stage: 1, maxActive: 0, firstWarning: Infinity,
-    chance: 0, cooldown: 0, types: Object.freeze([]) }),
+    chance: 0, cooldown: 0, types: Object.freeze([]),
+    weights: Object.freeze({}) }),
   2: Object.freeze({ stage: 2, maxActive: 1, firstWarning: 3,
-    chance: 0.24, cooldown: 4,
-    types: Object.freeze(["cloudy", "void", "cracked"]) }),
+    chance: 0.21, cooldown: 4,
+    types: Object.freeze(["cloudy", "void", "cracked"]),
+    weights: Object.freeze({ cloudy: 45, void: 38, cracked: 17 }) }),
   3: Object.freeze({ stage: 3, maxActive: 2, firstWarning: 2,
-    chance: 0.28, cooldown: 3,
-    types: Object.freeze(["cloudy", "void", "cracked", "greedy", "null"]) }),
+    chance: 0.27, cooldown: 3,
+    types: Object.freeze(["cloudy", "void", "cracked", "greedy", "null"]),
+    weights: Object.freeze({
+      cloudy: 32, void: 26, cracked: 18, greedy: 16, null: 8
+    }) }),
   4: Object.freeze({ stage: 4, maxActive: 2, firstWarning: 2,
-    chance: 0.36, cooldown: 3,
-    types: Object.freeze(["cloudy", "void", "cracked", "greedy", "null"]) })
+    chance: 0.32, cooldown: 3,
+    types: Object.freeze(["cloudy", "void", "cracked", "greedy", "null"]),
+    weights: Object.freeze({
+      cloudy: 24, void: 22, cracked: 20, greedy: 20, null: 14
+    }) })
 });
 
 export function hazardDifficulty(round) {
@@ -223,6 +230,27 @@ export function resolveSlideHazards(result, hazards) {
   return { ...result, board, merges, hazards: layer, hazardEvents };
 }
 
+// An Eraser can save a mathematically locked board if removing ONE
+// existing hazard reveals a bankable power or enables a real slide. The
+// player must hold that item and still have moves left; the app enforces
+// those conditions. No free Eraser or extra move is granted.
+export function canRescueHazardLock(board, hazards, banked = new Set(),
+  locked = new Set(), movementRules = null) {
+  if (!isTileBoard(board) || !(banked instanceof Set) ||
+      !(locked instanceof Set)) {
+    throw new RangeError("Invalid hazard-rescue board or bank status");
+  }
+  const current = restoreHazardLayer(hazards, board);
+  if (canMove(board, banked, locked,
+    { ...(movementRules || {}), hazards: current })) return false;
+  return current.some((hazard, index) => {
+    if (!hazard) return false;
+    const without = removeHazard(current, index);
+    return canMove(board, banked, locked,
+      { ...(movementRules || {}), hazards: without });
+  });
+}
+
 const chosenIndex = (rng, length) => Math.max(0,
   Math.min(length - 1, Math.floor(rng() * length)));
 
@@ -232,11 +260,13 @@ const chosenIndex = (rng, length) => Math.max(0,
 // create a hazard under an ordinary tile, but never under a blocker.
 export function progressHazardRound(board, hazards, run, movesInRound,
   { rng = Math.random, boss = false, banked = new Set(), locked = new Set(),
-    movementRules = null } = {}) {
+    movementRules = null, movesLeft = null } = {}) {
   if (!isTileBoard(board) || !Array.isArray(hazards) ||
       hazards.length !== HAZARD_CELLS || !run ||
       !Number.isInteger(movesInRound) || movesInRound < 0 ||
-      typeof rng !== "function" || typeof boss !== "boolean") {
+      typeof rng !== "function" || typeof boss !== "boolean" ||
+      (movesLeft !== null && (!Number.isSafeInteger(movesLeft) ||
+        movesLeft < 0))) {
     throw new RangeError("Invalid hazard progression inputs");
   }
   let next = restoreHazardLayer(hazards, board);
@@ -275,22 +305,40 @@ export function progressHazardRound(board, hazards, run, movesInRound,
     cooldown = Math.max(cooldown, 1);
   } else if (movesInRound >= difficulty.firstWarning &&
       activeHazardCount(next) < difficulty.maxActive &&
+      (movesLeft === null || movesLeft > 3) &&
       cooldown === 0 && rng() < difficulty.chance * (boss ? 0.5 : 1)) {
     // Decide among the actual valid type/position pairs so a randomly
     // chosen unavailable Null never steals the player's warning roll.
     const eligible = [];
     for (const type of difficulty.types) {
+      const positions = [];
       for (let index = 0; index < HAZARD_CELLS; index++) {
         if (board[index] || !canPlaceHazard(next, board, index, type)) continue;
+        // Null/Cracked next to a fixed obstacle can remove the only viable
+        // merge needed to break that obstacle. Keep those square types away
+        // from live blockers and pending blocker warnings.
+        if (["null", "cracked"].includes(type) &&
+            adjacentIndices(index).some(j => isObstacle(board[j]))) continue;
         const preview = placeHazard(next, board, index, type);
         if (canMove(board, banked, locked,
-          { ...(movementRules || {}), hazards: preview })) {
-          eligible.push({ index, type });
-        }
+          { ...(movementRules || {}), hazards: preview })) positions.push(index);
+      }
+      if (positions.length) {
+        eligible.push({ type, positions, weight: difficulty.weights[type] });
       }
     }
     if (eligible.length) {
-      warning = eligible[chosenIndex(rng, eligible.length)];
+      const total = eligible.reduce((sum, option) => sum + option.weight, 0);
+      let pick = rng() * total;
+      let chosen = eligible[eligible.length - 1];
+      for (const option of eligible) {
+        pick -= option.weight;
+        if (pick < 0) { chosen = option; break; }
+      }
+      warning = {
+        type: chosen.type,
+        index: chosen.positions[chosenIndex(rng, chosen.positions.length)]
+      };
       events.push({ kind: "warning", ...warning });
     }
   }

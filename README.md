@@ -35,14 +35,14 @@ a new one instead.
 - **Escalating blockers** begin at **move 10** (tier 1, one required hit), then progressively at **20** (two hits), **30** (three), **40** (four) and **50 onward** (five, the maximum). The game allows **at most two active blockers**, and only schedules another when a suitable empty square is available.
 - **Next-turn warning:** at **move 9, 19, 29, 39, …**, an eligible empty square is highlighted with a yellow **! NEXT** marker. That square is reserved for one turn, cannot be entered or crossed by number tiles, and changes into the advertised blocker **on the next successful slide**. The marked square is guaranteed to be the blocker's location; if no safe place exists or the blocker cap is reached, that warning/blocker pair is skipped. Warning squares cannot be banked or damaged. Scheduling the warning preserves at least one possible swipe.
 - **Breaking blockers requires a correct bank:** once active, blockers stay fixed and split rows/columns into sliding segments. **Merging alone never removes blocker health.** A genuine merged power must be **correctly banked while directly adjacent** (up/down/left/right, not diagonally) to damage a blocker by **one hit**. Bankable powers that will strike a neighbour show a distinctive **⚡** indicator. Failed answers, timeouts, ordinary slides, or banking a higher power that appeared as a random spawn do **not** cause damage. A spawned power must first be merged to become eligible for a blocker hit. A merged power retains its eligibility as it slides; the banked tile's smaller replacement does not inherit the eligibility. A single correct bank may strike two blockers if both border the banked square. Older blockers retain their original durability tier, and breaking a blocker frees its square for later turns. Existing saved three-hit blockers remain at their original difficulty.
-- A glowing **✦** tile can be banked by calculating its exact value within **60 seconds**. Ordinary powers need exponent 2 or higher and can be banked only once per base–exponent combination. **Roguelite golden tiles are an exception:** even an exponent-1 golden number (such as 3¹) can be banked, and a newly golden copy can be banked even if the same power was already banked earlier this round.
+- A glowing **✦** tile can be banked by calculating its exact value within **60 seconds**. **Every power, including gold, can be banked only once per base–exponent combination each round.** Ordinary powers require exponent 2 or higher; Roguelike gold may also bank exponent 1 (such as 3¹). A newly golden copy of an already-banked power is **not** another banking opportunity until the next round. Other bases or exponents remain distinct.
 - **Banking does not empty a square.** Banking **5⁷**, for example, scores the original power but replaces that square with a randomly selected **smaller, already unlocked power of 5**. A plain **5** (exponent 1) remains the fallback. **The replacement has a one-successful-slide banking cooldown**, so another bank is never available immediately on that tile. Banked powers can still spawn or merge but cannot be banked again.
 - **Banking cooldown:** the replacement tile, an incorrect attempt, or a timeout creates a **⌛** one-slide lock on that square (when the tile is otherwise bankable). One **successful slide** clears all these temporary locks. Other tiles remain bankable, and cancelling an attempt does not impose a penalty.
 - **Game over:** you lose immediately when **Moves Left reaches zero** (balances never go negative), even if the board still has available banking or merging options. You also lose if there are no legal slides or bankable powers. A full board alone is not automatically game over. Incorrect or timed-out banking attempts do not earn moves. Breaking a blocker through correct banking reduces the **cost of later slides**.
 - Moves animate briefly (170 ms). System **reduced motion** preferences disable animations. Banking timers pause while the browser tab is hidden.
 - Game state, correctly banked merge credit, remaining moves and high score are saved locally in the browser. New games start with 10 moves. **Existing saved games created under the earlier automatic-merge-reward rule** keep their board, score, discoveries and historical slide count but receive a fresh ten-move balance and zero correct-bank credit; this upgrade occurs once.
 
-## Square hazards — Passes 1–3 (live difficulty and Hazard Eraser)
+## Square hazards — Passes 1–4 (balance, rescue and visual polish)
 
 Square hazards are anchored to **board positions beneath numbered tiles**,
 not carried by the tiles. They work only in Roguelike; Classic keeps its
@@ -59,12 +59,18 @@ hazards, with at most one **Null or Cracked** simultaneously.
 
 **When they appear:** No square hazards in Stage 1 (rounds 1–3).
 Stage 2 (rounds 4–6) introduces **Cloudy, Void, Cracked** with up to **one**
-active hazard and a 24% chance per eligible slide to schedule a warning.
+active hazard and a **21%** chance per eligible slide to schedule a warning.
 Stage 3 (rounds 7–9) unlocks **all five** and allows two hazards with a
-28% warning chance. Stage 4 (rounds 10–12) uses all five and a 36%
-warning chance. Round beginnings have a short grace period, and a
-cooldown separates appearances. **Boss encounters halve these chances.**
-These are initial tuning values, subject to full-run balancing.
+**27%** warning chance. Stage 4 (rounds 10–12) uses all five and a **32%**
+warning chance. These are chances to *schedule* a warning, not guarantees
+that a hazard will appear. Type selection is weighted: short-lived
+Cloudy and Void are more common early; durable Null and Cracked are rarer.
+Round beginnings have a short grace period, and a cooldown separates
+appearances. **Boss encounters halve warning chances.**
+No new hazard warning begins with three or fewer moves remaining.
+Persistent Null/Cracked cannot spawn next to an active blocker or warning.
+These are automated balance baselines; real-player win rates still need
+manual playtesting.
 
 **One-slide warning:** A highlighted square names the incoming hazard.
 On the **next successful slide**, the hazard activates on that square,
@@ -72,7 +78,9 @@ possibly beneath an ordinary number tile. The warning does not block
 sliding or add a move surcharge. Blocker warnings cannot overlap a hazard
 and an incoming hazard cannot appear on an existing blocker or fixed
 warning. The scheduler checks for at least one legal action before
-placing a hazard; placement fizzles out if unsafe.
+placing a hazard; placement fizzles out if unsafe. The on-board status
+names the hazard and gives its row/column, with an optional guide button.
+Cloudy slide animations conceal both the value and the gold/base colour.
 
 **Shop counter:** **Hazard Eraser** is an 11th single-use consumable costing
 **3 coins** (subject to shop discounts). It removes one selected active
@@ -80,7 +88,10 @@ hazard, whether or not a number tile occupies that square. It uses no
 moves and never changes the underlying number, exponent, bank provenance,
 score, coins or gold status. It occupies one of the existing two
 consumable slots; **Block Breaker** remains the separate tool for actual
-blockers.
+blockers. Cloudy remains selectable while using Hazard Eraser; it never
+reveals the covered tile. If a held Eraser can restore a legal bank/slide,
+that otherwise-locked board is not prematurely declared game over.
+Zero moves still ends the game immediately.
 
 **Persistence:** A separate 16-entry `hazards` array and the pending
 hazard warning/cooldown survive browser refreshes and Continue. Earlier
@@ -88,8 +99,14 @@ saves lacking the new fields migrate safely. Hazards and hazard warnings
 reset when the next round begins, while the player's gold, items, bosses
 and cumulative score remain.
 
-**Remaining:** Pass 4 full-run difficulty/boss balancing, visual/accessibility
-polish and manual desktop/mobile playtesting.
+**Pass 4 validation:** Seeded automated simulations compare hazard warnings
+in representative 10-move Stage 1–4 rounds, including bosses. Regression
+tests cover late-round pressure, blocker adjacency, impossible Three Curse
+banking, unique gold banking, Eraser rescue and Cloudy secrecy. These
+simulations **do not model human strategy or prove 12-round win rates**.
+
+**Remaining after Pass 4:** Manual full-run playtesting (especially boss/shop
+builds), mobile visual review, and subsequent tuning from observed results.
 
 ## Roguelite — Passes 2–5 (Gold, shop, active items and bosses)
 
@@ -98,7 +115,7 @@ Select **Roguelite** for a separate 12-round run. Correctly banking a power earn
 **Gold rules (Roguelite only):**
 
 - Around **12% of ordinary number spawns** receive a full **metallic gold tile treatment** and a **◉ coin marker**. If five successful slides have produced no gold, the next eligible spawned tile is guaranteed gold. The opening board may also contain gold. A gold tile keeps its normal base and exponent, but its metallic appearance takes priority over the ordinary base colour. Regular **base-3** tiles are now coral instead of amber so they cannot be mistaken for gold.
-- Gold follows tiles as they slide. **Any golden tile can be banked directly with a correct mathematical answer**, even if it has exponent 1 or its base/exponent was banked earlier. Direct banking of gold that has not genuinely merged earns **1 coin**. Merging a gold tile makes its resulting power golden; correctly banking a genuinely merged golden power earns **2 coins**, **3 coins** for exponent 4 or higher, or **4 coins** when two gold tiles merged into double gold. Banking also earns points equal to the exponent (subject to boss/item rules). Incorrect answers and timeouts earn no points or coins.
+- Gold follows tiles as they slide. **Golden tiles can be banked directly with a correct mathematical answer**, including at exponent 1, **but only when the same base–exponent has not already been banked in the current round**. An already-banked golden power displays a check mark instead of suggesting another reward; merge it into a different exponent to create a new opportunity. Direct banking of otherwise-unmerged gold earns **1 coin**. Correctly banking merged gold earns **2 coins**, **3 coins** for exponent 4 or higher, or **4 coins** when two gold tiles merged into double gold. Banking also scores the exponent (subject to boss/item rules). Incorrect answers, timeouts and repeated banked values earn no points or coins.
 - Banking replaces the original power with an ordinary, non-gold smaller tile. Coins cannot be collected twice from the same bank.
 - Clearing a round grants **1 extra coin per unused move, capped at 5 coins**. This payout happens once, at the correct-answer bank that clears the round (after any move refund from that bank). No unused-move reward is given when a round is lost.
 - The wallet, cumulative earned gold and per-round bank earnings persist across rounds and browser restarts, independently of Classic. Gold markings, temporary banking locks and the gold drought counter reset for each new round. The round-clear screen displays banked gold, unused-move bonus and their total.
@@ -107,7 +124,7 @@ Select **Roguelite** for a separate 12-round run. Correctly banking a power earn
 **The shop (Pass 3):**
 
 - Clearing a non-final round reveals its gold breakdown and a **Visit shop** button. You must visit the shop before advancing to the next round, but you may continue without purchasing anything. The final round ends in victory instead of a shop.
-- Each visit offers exactly **two permanent upgrades** and **two single-use items**. The catalogue contains 12 permanent and 10 single-use options with distinct active effects and coin prices. Purchasing deducts coins immediately; a purchased offer becomes sold out until rerolled.
+- Each visit offers exactly **two permanent upgrades** and **two single-use items**. The catalogue contains 12 permanent and 11 single-use options with distinct active effects and coin prices. Purchasing deducts coins immediately; a purchased offer becomes sold out until rerolled.
 - There are **two permanent slots** and **two single-use slots**, which persist through subsequent rounds and browser restarts. With space available, buying fills the first free slot. When both slots are occupied, the player must choose which one to replace. A permanent replacement returns half the original purchase price (rounded down), which can help finance the replacement. Consumable replacements have no refund.
 - In the shop, owned permanents can be **sold for half their purchase price**; held consumables can be discarded with confirmation and no refund. Equipment is not removed at the end of the round.
 - **Rerolling costs 1 coin initially**, increasing to 2, 3, etc. during that same shop visit. The cost resets on the next visit. Rerolls replace all four offer slots, including sold-out ones. Current equipped permanent upgrades will not reappear in shop stock; rerolls attempt to show different items from the previous offers.
@@ -116,7 +133,7 @@ Select **Roguelite** for a separate 12-round run. Correctly banking a power earn
 
 - **Permanent items apply automatically** as soon as purchased and equipped, for every remaining round until sold or replaced. Each bank starts with its exponent as the base score. Matching multipliers apply first (Opening Act, Twin Twos, Five Alive), then additive effects (Big Powers, Square Specialist, Variety Bonus). The banking prompt previews the total score and the confirmation explains the bonuses used.
 - Golden Calculator adds **1 coin** to every correctly banked golden tile (including direct banks); Lucky Spawn increases general gold spawn probability to **27%**, and Lucky Sevens adds **30 percentage points** for base 7. Three's Company delays the next blocker by one slide after a correct bank of a genuinely merged base-3 power. Blockbuster makes genuinely merged correctly banked powers damage neighbouring blockers for two hits instead of one. Bulk Discount reduces item purchase prices by one coin, to a minimum of one, while it is equipped (not reroll fees).
-- The 10 consumables are now actionable from the **two single-use slots in the Roguelite HUD**. Block Breaker destroys a selected blocker; Power Surge raises one exponent (without generating genuine merge credit); Second Wind restores two moves (up to ten); Alchemist changes a base-3 tile to base 5; Protection ignores blocker surcharges for the next two actual slides; Gold Touch gilds a tile; Position Swap exchanges two number tiles; Delay Tactics delays hazards by two slides; Clear Space removes a number tile without scoring; Second Chance unlocks a temporarily locked banking opportunity.
+- The 11 consumables are now actionable from the **two single-use slots in the Roguelite HUD**. Block Breaker destroys a selected blocker; Power Surge raises one exponent (without generating genuine merge credit); Second Wind restores two moves (up to ten); Alchemist changes a base-3 tile to base 5; Protection ignores blocker surcharges for the next two actual slides; Gold Touch gilds a tile; Position Swap exchanges two number tiles; Delay Tactics delays blockers by two slides; Clear Space removes a number tile without scoring; Second Chance unlocks a temporarily locked banking opportunity; Hazard Eraser removes one selected square hazard without spending a move.
 - Targeted consumables **highlight valid squares**. Swapping requires selecting two distinct number tiles. The Cancel button or Escape abandons the selection without losing the item. Non-targeted effects apply immediately on use. Invalid targets cannot be selected, and items cannot be spent in the shop or after game over.
 - Consuming an item does **not** itself count as a swipe, a merge or a correct bank: it never directly awards exponent points, gold, correct-bank move credit or blocker strike credit. Correct banking remains required for those rewards. Swaps carry gold, merge provenance and banking locks with their tiles. Transformations preserve existing banking cooldowns while removing merge provenance.
 - Temporary effects, last-bank base and per-round scoring bonus counters **reset each new round**, while equipped permanent bonuses, remaining consumables, coins and discoveries persist. Earlier Pass 1–3 saves receive safe defaults for the new counters without losing their existing run.
