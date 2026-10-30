@@ -70,6 +70,30 @@
           b.getAttribute("aria-label")?.startsWith("Row ") &&
           !b.hasAttribute("role")),
           "all sixteen squares are labelled by position and keep button semantics");
+        // Regression: the skip link must not float into the page title.
+        // It remains keyboard-reachable and reveals in normal flow on focus.
+        const skipLink = doc.querySelector("#gameScreen .skip-game-board");
+        assert(skipLink instanceof win.HTMLAnchorElement,
+          "keyboard shortcut to maths board exists");
+        assert(win.getComputedStyle(skipLink).clipPath !== "none",
+          "unfocused skip link is visually clipped");
+        skipLink.focus();
+        await tick();
+        const skipRect = skipLink.getBoundingClientRect();
+        const headerRect = doc.querySelector(".top").getBoundingClientRect();
+        const gameRect = $("gameScreen").getBoundingClientRect();
+        const playingRect = doc.querySelector(".playing-head").getBoundingClientRect();
+        assert(win.getComputedStyle(skipLink).clipPath === "none",
+          "skip link becomes visible on keyboard focus");
+        assert(skipRect.top >= headerRect.bottom - 1 &&
+          skipRect.top >= gameRect.top - 1,
+          "focused skip link is below the site title");
+        assert(skipRect.bottom <= playingRect.top + 2,
+          "focused skip link does not cover the game heading");
+        skipLink.blur();
+        await tick();
+        assert(win.getComputedStyle(skipLink).clipPath !== "none",
+          "skip link hides again after leaving focus");
         for (const size of [320, 390, 650, 768, 1200]) {
           await width(size);
           const isMobile = size <= 650;

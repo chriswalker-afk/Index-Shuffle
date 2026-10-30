@@ -56,6 +56,12 @@ assert.match(css, /@media \(max-width: 650px\) \{[\s\S]*?grid-template-areas: "b
 assert.match(css, /\.mobile-status\.classic\s*\{[\s\S]*?repeat\(2,/);
 assert.match(css, /\.controls button\s*\{[\s\S]*?min-width: 44px/);
 assert.match(css, /\.skip-game-board:focus-visible/);
+assert.match(css, /\.skip-game-board\s*\{[^}]*clip-path: inset\(50%\)/,
+  "Unfocused keyboard shortcut must be clipped rather than floated over the title");
+assert.match(css, /\.skip-game-board:focus-visible\s*\{[^}]*clip-path: none/,
+  "Keyboard-focused shortcut must appear in normal flow");
+assert.doesNotMatch(css, /\.skip-game-board\s*\{[^}]*translateY\(-180%\)/,
+  "Skip link must never be translated into the site heading");
 assert.match(css, /dialog\.overlay:not\(\[open\]\) \{ display: none !important;/);
 
 // The full game stays static on low-motion preferences. Don't animate
