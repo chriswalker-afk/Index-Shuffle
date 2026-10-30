@@ -126,7 +126,7 @@ assert.match(app, /index-shuffle-roguelite-v1/);
 assert.match(app, /recordRogueliteBank\(state\.run, state\.score, t,\s*\{/);
 assert.match(app, /advanceRogueliteRound\(state, Math\.random, goldChancesForRun\(state\.run\)\)/);
 assert.match(app, /state\.run\.totalSlides\s*\+=\s*1/);
-assert.match(app, /state\.over\s*=\s*gameEnded/);
+assert.match(app, /state\.over\s*=\s*currentGameEnded\(\)/);
 assert.match(html, /id="modeClassic"/);
 assert.match(html, /id="modeRoguelite"/);
 assert.match(html, /id="rogueProgress"[^>]*hidden/);

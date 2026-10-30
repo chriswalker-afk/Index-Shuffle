@@ -20,7 +20,7 @@
 - Moves animate briefly (170 ms). System **reduced motion** preferences disable animations. Banking timers pause while the browser tab is hidden.
 - Game state, correctly banked merge credit, remaining moves and high score are saved locally in the browser. New games start with 10 moves. **Existing saved games created under the earlier automatic-merge-reward rule** keep their board, score, discoveries and historical slide count but receive a fresh ten-move balance and zero correct-bank credit; this upgrade occurs once.
 
-## Roguelite — Passes 2–4 (Gold, shop and active items)
+## Roguelite — Passes 2–5 (Gold, shop, active items and bosses)
 
 Select **Roguelite** for a separate 12-round run. Correctly banking a power earns **exactly its exponent in points** (for example, 7² earns 2 points). Classic scoring is unchanged. Each round has a rising target: **8, 11, 14, 17, 20, 24, 28, 33, 39, 45, 52, 60**. Every third round is labelled as a boss milestone; actual boss effects arrive in a later pass. These targets are provisional and will need balancing with the now-active item combinations.
 
@@ -50,7 +50,19 @@ Select **Roguelite** for a separate 12-round run. Correctly banking a power earn
 - Consuming an item does **not** itself count as a swipe, a merge or a correct bank: it never directly awards exponent points, gold, correct-bank move credit or blocker strike credit. Correct banking remains required for those rewards. Swaps carry gold, merge provenance and banking locks with their tiles. Transformations preserve existing banking cooldowns while removing merge provenance.
 - Temporary effects, last-bank base and per-round scoring bonus counters **reset each new round**, while equipped permanent bonuses, remaining consumables, coins and discoveries persist. Earlier Pass 1–3 saves receive safe defaults for the new counters without losing their existing run.
 
-**Still to build:** Pass 5 boss constraints and Pass 6 score, shop economy and blocker balance, together with visual polish and gameplay validation. Round targets remain provisional.
+**Boss encounters (Pass 5):**
+
+- **Every third round is a boss:** rounds **3, 6, 9 and 12**. A run receives four different bosses, selected in advance and saved. The first encounter uses an earlier, smaller pool; later encounters can include restrictions involving base 7 and timed powers. The upcoming boss, its full condition and any adjusted score target are **revealed in the shop immediately before that round**, allowing purchases and inventory replacements to be strategic.
+- **The Blockade:** starts the round with one extra one-hit blocker, but only in a place that still leaves legal actions. It increases slide cost like other active blockers.
+- **The Five Thief:** correctly banked base-5 powers score zero, regardless of bonuses; gold rewards, merge credit and blocker damage still work.
+- **The Scorekeeper:** score target rises by **40%**, rounded up. The same increased target appears in both the shop preview and the gameplay HUD, and is enforced when banking.
+- **The Silent Seven:** base-7 tiles cannot merge. Correctly answering and banking an existing 7 power still works, and legal-move detection honours the restriction.
+- **The Power Snob:** exponent-2 powers score zero, even with permanent scoring upgrades. Correct answers still yield gold and merge/blocker credit.
+- **The Timekeeper:** no restoring moves through correct-bank merge bonuses or the Second Wind consumable. Second Wind is disabled, rather than consumed uselessly. Protection still reduces blocker slide surcharges.
+- **The Three Curse:** every **newly merged base-3 power** has three more successful slides to be correctly banked. Countdown markers follow the tile through movement and reset if it merges again. If it expires, it becomes a **one-hit blocker**; conversion is waived if it would exceed the two-blocker cap or leave no legal actions. Successfully banking it removes the countdown, and Alchemist can transform it into an uncursed base-5 tile.
+- All boss effects are restricted to **Roguelite boss rounds**. Boss identities and active curse countdowns persist between browser sessions, and earlier Pass 1–4 saves receive a stable, repeatable boss schedule. Classic gameplay is unchanged.
+
+**Still to build:** Pass 6 balance and polish: simulate complete 12-round runs to tune 8–60+ targets, move budgets, boss severity, blocker arrival, gold/shop prices and UI feedback. Round targets remain provisional.
 
 ## Interface
 
@@ -65,7 +77,7 @@ The panel layout is deliberately compact: a player should not need to read instr
 
 ## Tests
 
-Run **node tests.mjs**, **node hazards.tests.mjs**, **node roguelite.tests.mjs**, **node shop.tests.mjs** and **node effects.tests.mjs** (Node 18+). GitHub Actions runs all five test suites, JavaScript syntax checks and static entrypoint verification on pushes and pull requests.
+Run **node tests.mjs**, **node hazards.tests.mjs**, **node roguelite.tests.mjs**, **node shop.tests.mjs**, **node effects.tests.mjs** and **node bosses.tests.mjs** (Node 18+). GitHub Actions runs all six test suites, JavaScript syntax checks and static entrypoint verification on pushes and pull requests.
 
 The engine and hazard regression tests cover the **ten-move budget**, blocker slide costs, the maximum of 10, the rule that slides and unbanked merges never restore moves, and the rule that **only two correctly banked powers created by merging** earn one move. They also test save migration, banking lockouts, blocker mechanics, and zero-move loss conditions. The answer timer and visual effects should be manually checked on desktop and mobile.
 
@@ -78,6 +90,7 @@ The game is plain HTML, CSS, and native JavaScript modules, with no external run
 - **shop.mjs:** data-driven item catalogue, four-offer shop generation, purchases, permanent resale, consumable discards, rising-price rerolls and inventory/save validation.
 - **shop-ui.mjs:** accessible shop offer and equipment controls, plus active consumable buttons in the Roguelite HUD.
 - **effects.mjs:** pure bonus calculations, protected slides, hazard delays, gold rates, and ten targeted or immediate consumable effects, with independent tests.
+- **bosses.mjs:** boss scheduling, restrictions, score/target overrides, extra blockers, timed curses and migration for existing runs.
 - **app.mjs:** browser interaction, banking timer, accessible help dialog, persistent state, move-cost display and short tile animations. The HTML uses versioned script and stylesheet URLs to prevent stale modules from keeping the old layout or obsolete move rules after deployment.
 - **styles.css:** responsive visual design, including reduced-motion support.
 

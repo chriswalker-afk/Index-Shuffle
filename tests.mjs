@@ -343,8 +343,8 @@ assert.match(uiSource,
 assert.match(uiSource, /\$\("movesLeft"\)\.textContent = state\.movesLeft/,
   "the counter in the UI must be updated after each render");
 assert.match(page, /id="movesLeft"/);
-assert.match(page, /app\.mjs\?v=roguelite-pass4-v1/);
-assert.match(uiSource, /engine\.mjs\?v=roguelite-pass4-v1/);
+assert.match(page, /app\.mjs\?v=roguelite-pass5-v1/);
+assert.match(uiSource, /engine\.mjs\?v=roguelite-pass5-v1/);
 assert.match(page, /Correct merged-power banks/);
 
 // Presentation regression checks: learning content is optional and the
@@ -362,13 +362,13 @@ assert.match(page, /data-help="how"/);
 assert.match(page, /data-help="maths"/);
 assert.match(page, /id="bonusMeter"[^>]*max="2"/);
 assert.match(page, /id="endActions"[^>]*hidden/);
-assert.match(page, /styles\.css\?v=roguelite-pass4-v1/);
+assert.match(page, /styles\.css\?v=roguelite-pass5-v1/);
 assert.match(style, /grid-template-areas: "board hud" "board secondary"/);
 assert.match(style, /grid-template-areas: "hud" "board" "secondary"/);
 assert.match(uiSource, /\$\("helpDialog"\)\.showModal\(\)/);
 assert.match(uiSource, /\$\("helpDialog"\)\.open \|\| pending !== null/,
   "swipe/keyboard shortcuts must be disabled while learning help is open");
-assert.match(uiSource, /\$\("bonusMeter"\)\.value = state\.mergeCredit/);
+assert.match(uiSource, /\$\("bonusMeter"\)\.value = noBonusMoves \? 0 : state\.mergeCredit/);
 assert.match(uiSource, /\$\("endActions"\)\.hidden = !state\.over/);
 // No uncollapsed instructions or detailed learning panels remain
 // alongside the game board on initial load.

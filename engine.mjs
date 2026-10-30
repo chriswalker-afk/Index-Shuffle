@@ -132,7 +132,7 @@ const keyOrNull = t => t ? key(t) : "";
 
 // Each input tile maps to its destination, including both halves of a merge.
 // The movements are also used for the optional, reduced-motion-aware UI animation.
-export function slide(board, direction) {
+export function slide(board, direction, rules = null) {
   if (!["left", "right", "up", "down"].includes(direction)) {
     throw new RangeError("Unknown slide direction");
   }
@@ -167,7 +167,8 @@ export function slide(board, direction) {
       for (let i = 0; i < packed.length; i++) {
         const a = packed[i], b = packed[i + 1];
         const to = segment[out.length];
-        if (b && a.value.base === b.value.base) {
+        if (b && a.value.base === b.value.base &&
+            !rules?.noMergeBases?.includes(a.value.base)) {
           const merged = tile(a.value.base, a.value.exp + b.value.exp);
           // Gold is tile metadata in Roguelite. It moves with a tile and
           // survives merging; two golden inputs produce a double-gold tile.
@@ -206,17 +207,18 @@ export function isBankable(t, banked, index, locked = new Set()) {
     t.exp >= 2 && !banked.has(key(t)) && !locked.has(index));
 }
 
-export function canMove(board, banked, locked = new Set()) {
+export function canMove(board, banked, locked = new Set(), rules = null) {
   if (board.some((t, i) => isBankable(t, banked, i, locked))) return true;
   // An empty square is not enough: blockers can isolate it so that no
   // tile can actually move. Check the four legal swipes instead.
-  return ["up", "down", "left", "right"].some(direction => slide(board, direction).changed);
+  return ["up", "down", "left", "right"].some(direction =>
+    slide(board, direction, rules).changed);
 }
 
 // The move budget is an independent loss condition: available banks or
 // merges cannot rescue a game once the balance has reached zero.
-export function gameEnded(board, banked, locked, movesLeft) {
-  return movesLeft <= 0 || !canMove(board, banked, locked);
+export function gameEnded(board, banked, locked, movesLeft, rules = null) {
+  return movesLeft <= 0 || !canMove(board, banked, locked, rules);
 }
 
 // Banking never opens a free square. The same base remains, downgraded to a
@@ -282,15 +284,17 @@ function newlyOccupied(before, after) {
 // Both are fixed movement barriers, but only a mature blocker takes damage.
 // All scheduled blockers MUST have been previewed, so a skipped preview
 // can never surprise the player by spawning a blocker later.
-export function turnSpawns(board, discovered, moves, rng = Math.random, avoid = new Set(), spawnProgressMoves = moves) {
+export function turnSpawns(board, discovered, moves, rng = Math.random,
+  avoid = new Set(), spawnProgressMoves = moves, rules = null) {
   let next = board.slice();
   const spawned = [];
   let blockerAt = -1, warningAt = -1;
 
-  // A warning from the preceding move becomes a solid blocker precisely
-  // on the advertised ten-move milestone, retaining its planned tier.
-  if (moves >= BLOCKER_START &&
-      (moves - BLOCKER_START) % BLOCKER_INTERVAL === 0) {
+  // A warning always becomes a solid blocker on the NEXT successful
+  // slide, even if an item delayed the later warning schedule.
+  // Classic's milestone-based timing is unchanged.
+  const hadWarning = next.some(isWarning);
+  if (hadWarning) {
     next = next.map((value, index) => {
       if (!isWarning(value)) return value;
       blockerAt = index;
@@ -301,7 +305,7 @@ export function turnSpawns(board, discovered, moves, rng = Math.random, avoid = 
   // At moves 9, 19, 29, ... reserve an eligible square for the next
   // successful slide, before number spawning can occupy that square.
   const previewMove = BLOCKER_START - 1;
-  if (moves >= previewMove &&
+  if (!hadWarning && moves >= previewMove &&
       (moves - previewMove) % BLOCKER_INTERVAL === 0 &&
       next.filter(isObstacle).length < MAX_BLOCKERS) {
     const candidates = next.map((value, index) => {
@@ -313,7 +317,8 @@ export function turnSpawns(board, discovered, moves, rng = Math.random, avoid = 
       // The player must retain at least one possible swipe after it is marked.
       const probe = next.slice();
       probe[index] = warning(blockerHitsForMove(moves + 1));
-      return ["left", "right", "up", "down"].some(dir => slide(probe, dir).changed)
+      return ["left", "right", "up", "down"].some(dir =>
+        slide(probe, dir, rules).changed)
         ? index : -1;
     }).filter(index => index >= 0);
     if (candidates.length) {

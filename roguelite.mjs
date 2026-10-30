@@ -1,7 +1,11 @@
 // Roguelite progression and economy. Classic keeps its original scoring and rules.
 import {
   initial, INITIAL_MOVES_LEFT, MAX_MOVES_LEFT, BUDGET_RULES_VERSION
-} from "./engine.mjs?v=roguelite-pass4-v1";
+} from "./engine.mjs?v=roguelite-pass5-v1";
+import {
+  createBossSchedule, restoreBossSchedule, bossPointsFor,
+  bossTargetFor, startBossBoard
+} from "./bosses.mjs?v=roguelite-pass5-v1";
 
 export const ROUND_TARGETS = Object.freeze([
   8, 11, 14, 17, 20, 24, 28, 33, 39, 45, 52, 60
@@ -138,6 +142,7 @@ export function restoreRogueliteRun(run, movesLeft = 0) {
     .every(key => Number.isSafeInteger(previousReward[key]) && previousReward[key] >= 0);
   const restored = {
     ...run, coins, roundBankCoins, totalCoinsEarned, goldDryStreak,
+    bosses: restoreBossSchedule(run),
     lastRoundReward: validReward ? { ...previousReward } : null
   };
   if (run.phase !== "playing" && !restored.lastRoundReward) {
@@ -165,6 +170,7 @@ export function newRogueliteRun(best = 0, rng = Math.random) {
       goldDryStreak: 0, lastRoundReward: null,
       scoredBanks: 0, twosBanked: 0, lastBankBase: null,
       protectionSlides: 0, blockerDelay: 0,
+      bosses: createBossSchedule(rng),
       inventory: { permanents: [null, null], consumables: [null, null] },
       shop: null
     }
@@ -189,10 +195,11 @@ export function recordRogueliteBank(run, previousScore, power,
     throw new RangeError("Cannot score outside an active Roguelite round");
   }
   const current = restoreRogueliteRun(run);
-  const points = scoreOverride ?? scoreForRoguelitePower(power);
+  const points = bossPointsFor(current, power,
+    scoreOverride ?? scoreForRoguelitePower(power));
   const bankGold = goldForBank(power, merged) + extraCoins;
   const roundScore = previousScore + points;
-  const cleared = roundScore >= targetForRound(run.round);
+  const cleared = roundScore >= bossTargetFor(current, targetForRound(run.round));
   const phase = !cleared ? "playing"
     : run.round === TOTAL_ROUNDS ? "victory" : "round-clear";
   const moveGold = cleared ? spareMoveGold(movesLeft) : 0;
@@ -218,21 +225,25 @@ export function advanceRogueliteRound(state, rng = Math.random, rates = null) {
   }
   const nextRound = state.run.round + 1;
   const run = restoreRogueliteRun(state.run, state.movesLeft);
+  const nextRun = {
+    ...run, round: nextRound, phase: "playing",
+    roundBankCoins: 0, goldDryStreak: 0, lastRoundReward: null, shop: null,
+    scoredBanks: 0, twosBanked: 0, lastBankBase: null,
+    protectionSlides: 0, blockerDelay: 0
+  };
+  const nextBoard = startBossBoard(startingBoard(rng, run.totalSlides, rates),
+    nextRun, rng);
   return {
     ...state,
-    board: startingBoard(rng, run.totalSlides, rates),
+    board: nextBoard,
     discovered: [...state.discovered],
     banked: [], locked: [], mergeReady: [],
     score: 0, moves: 0, movesLeft: INITIAL_MOVES_LEFT, mergeCredit: 0,
     budgetRulesVersion: BUDGET_RULES_VERSION,
     over: false,
-    notice: "Round " + nextRound + ". Reach " + targetForRound(nextRound) +
+    notice: "Round " + nextRound + ". Reach " +
+      bossTargetFor(nextRun, targetForRound(nextRound)) +
       " points by banking powers correctly.",
-    run: {
-      ...run, round: nextRound, phase: "playing",
-      roundBankCoins: 0, goldDryStreak: 0, lastRoundReward: null, shop: null,
-      scoredBanks: 0, twosBanked: 0, lastBankBase: null,
-      protectionSlides: 0, blockerDelay: 0
-    }
+    run: nextRun
   };
 }

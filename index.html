@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#0c1428">
   <meta name="description" content="Slide and merge powers, solve banking challenges and stay in the game.">
   <title>Index Shuffle — Make every move count</title>
-  <link rel="stylesheet" href="styles.css?v=roguelite-pass4-v1">
+  <link rel="stylesheet" href="styles.css?v=roguelite-pass5-v1">
 </head>
 <body>
   <main class="shell">
@@ -73,6 +73,11 @@
           <div class="rogue-score-row"><span>Round target</span><strong id="rogueScore">0 / 4</strong></div>
           <progress id="roundScoreProgress" value="0" max="4" aria-label="Score towards round target"></progress>
           <p class="rogue-total">Run score: <strong id="rogueTotal">0</strong></p>
+          <section id="bossRule" class="boss-rule" hidden aria-label="Active boss condition">
+            <div class="boss-rule-heading"><span aria-hidden="true">☠</span>
+              <strong id="bossName">The Boss</strong><span class="boss-label">BOSS RULE</span></div>
+            <p id="bossText">Special round condition</p>
+          </section>
           <p id="rogueEffectStatus" class="rogue-effect-status" hidden></p>
         </div>
         <div class="budget-line">
@@ -92,7 +97,7 @@
             <strong id="mergeProgress">0 / 2</strong>
           </div>
           <progress id="bonusMeter" value="0" max="2" aria-label="Correctly banked merged powers toward one extra move"></progress>
-          <p class="meter-caption">Bank two merged powers correctly to earn +1 move.</p>
+          <p class="meter-caption" id="mergeMeterCaption">Bank two merged powers correctly to earn +1 move.</p>
         </div>
         <div class="hud-score">
           <span>Score</span><strong id="score">0</strong>
@@ -213,7 +218,9 @@
           offers, with two inventory slots for each type. Purchased items are
           saved and their effects are active. Tap a single-use item during a round,
           then choose the highlighted square(s), or cancel without consuming it.
-          Permanent bonuses apply automatically. Boss conditions arrive in Pass 5.</p>
+          Permanent bonuses apply automatically. Every third round brings a
+          different boss rule, revealed in the preceding shop. Correctly bank
+          powers to counter boss obstacles and survive the round.</p>
       </div>
       <div class="symbol-guide" aria-label="Board symbol legend">
         <span><b>✦</b> Bankable</span><span><b>⚡</b> Damages blocker if banked</span>
@@ -264,6 +271,13 @@
         or save coins for a later round. You may leave without buying.
         <strong>Permanent bonuses apply automatically; use consumables from your loadout during rounds.</strong>
       </p>
+      <section id="shopBossPreview" class="shop-boss-preview" hidden
+        aria-label="Next round boss preview">
+        <p class="shop-boss-kicker"><span aria-hidden="true">☠</span> NEXT ROUND: BOSS ENCOUNTER</p>
+        <h3 id="shopBossName">Upcoming boss</h3>
+        <p id="shopBossRule"></p>
+        <p id="shopBossTarget" class="shop-boss-target"></p>
+      </section>
       <p id="shopNotice" class="shop-notice" role="status" aria-live="polite"></p>
       <div class="shop-section-heading">
         <h3>Available offers</h3><span>2 permanent · 2 single use</span>
@@ -307,6 +321,6 @@
       <button type="button" id="cancel" class="textbtn">Keep this tile</button>
     </div>
   </div>
-  <script type="module" src="app.mjs?v=roguelite-pass4-v1"></script>
+  <script type="module" src="app.mjs?v=roguelite-pass5-v1"></script>
 </body>
 </html>
