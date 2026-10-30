@@ -1,10 +1,20 @@
 export const SIZE = 4;
 export const EXTRA_SPAWN_START = 40;
 export const EXTRA_SPAWN_INTERVAL = 10;
-export const BLOCKER_START = 55;
-export const BLOCKER_INTERVAL = 30;
-export const MAX_BLOCKERS = 1;
+export const BLOCKER_START = 10;
+export const BLOCKER_INTERVAL = 10;
+export const MAX_BLOCKERS = 2;
+// A pre-existing saved blocker has no tier and retains its old three-hit rule.
 export const BLOCKER_HITS = 3;
+export const MAX_BLOCKER_HITS = 5;
+
+// Move 10: one hit; 20: two; 30: three; 40: four;
+// 50 onward: five. Never make a blocker impossible to clear.
+export function blockerHitsForMove(moves) {
+  if (moves < BLOCKER_START) return 0;
+  return Math.min(MAX_BLOCKER_HITS,
+    1 + Math.floor((moves - BLOCKER_START) / BLOCKER_INTERVAL));
+}
 export const BASES = [2, 3, 5, 7, 11, 13];
 export const BASE_UNLOCKS = Object.freeze([
   { base: 7, moves: 15 },
@@ -27,9 +37,17 @@ function baseWeight(base, moves) {
 }
 
 export const tile = (base, exp = 1) => ({ base, exp });
-export const blocker = (hits = 0) => ({ kind: "blocker", hits });
+export const blocker = (hits = 0, strength = BLOCKER_HITS) =>
+  ({ kind: "blocker", hits, strength });
 export const isBlocker = t => Boolean(t && t.kind === "blocker");
-export const key = t => isBlocker(t) ? "blocker:" + t.hits : t.base + "-" + t.exp;
+// Legacy saved blockers did not contain strength; keep their existing
+// three-merge durability rather than silently resetting current runs.
+export const blockerStrength = t =>
+  Number.isSafeInteger(t?.strength) && t.strength >= 1
+    ? t.strength : BLOCKER_HITS;
+export const key = t => isBlocker(t)
+  ? "blocker:" + blockerStrength(t) + ":" + t.hits
+  : t.base + "-" + t.exp;
 
 export function adjacentIndices(index) {
   const row = Math.floor(index / SIZE), col = index % SIZE;
@@ -98,8 +116,8 @@ export function slide(board, direction) {
     }
   }
 
-  // A blocker takes one hit PER merger that lands orthogonally beside it,
-  // never from a diagonal merge or a tile merely sliding past.
+  // Each blocker keeps its own durability tier. One hit per merge that
+  // lands orthogonally beside it; diagonal merges and simple slides do nothing.
   const damaged = [], destroyed = [];
   for (let i = 0; i < board.length; i++) {
     if (!isBlocker(board[i])) continue;
@@ -107,11 +125,12 @@ export function slide(board, direction) {
     const hits = mergeDestinations.filter(dest => adjacent.includes(dest)).length;
     if (!hits) continue;
     const totalHits = board[i].hits + hits;
-    if (totalHits >= BLOCKER_HITS) {
+    const strength = blockerStrength(board[i]);
+    if (totalHits >= strength) {
       next[i] = null;
       destroyed.push(i);
     } else {
-      next[i] = blocker(totalHits);
+      next[i] = blocker(totalHits, strength);
       damaged.push(i);
     }
   }
@@ -192,8 +211,9 @@ function newlyOccupied(before, after) {
   return after.findIndex((t, i) => !before[i] && Boolean(t));
 }
 
-// This is a fixed, gentle cadence so games remain reproducible and the
-// balance is easy to adjust after classroom playtesting.
+// New blockers appear at ten-slide milestones, with increasing durability.
+// A one-blocker-at-a-time rule would often suppress later difficulty tiers;
+// two simultaneous blockers are allowed, but never more.
 export function turnSpawns(board, discovered, moves, rng = Math.random, avoid = new Set()) {
   let next = board.slice();
   const spawned = [];
@@ -203,27 +223,36 @@ export function turnSpawns(board, discovered, moves, rng = Math.random, avoid = 
     const index = newlyOccupied(before, next);
     if (index >= 0) spawned.push(index);
   };
+
+  // The regular number spawns first. At a ten-move milestone, reserve an
+  // available blocker square BEFORE adding the optional second number.
   addNumber();
-  if (moves >= EXTRA_SPAWN_START && moves % EXTRA_SPAWN_INTERVAL === 0) addNumber();
 
   let blockerAt = -1;
   if (moves >= BLOCKER_START &&
       (moves - BLOCKER_START) % BLOCKER_INTERVAL === 0 &&
       next.filter(isBlocker).length < MAX_BLOCKERS) {
-    // Only put a blocker in a previously empty square that borders a
-    // movable number tile. A blocker never overwrites an existing tile.
+    // No blocker replaces a number or spawns where a blocker was just
+    // destroyed. Avoid existing blockers' immediate neighbours so that
+    // simultaneous blockers are less likely to form impassable clusters.
     const candidates = next.map((t, i) => {
       if (t || avoid.has(i)) return -1;
       const neighbors = adjacentIndices(i);
+      if (neighbors.some(j => isBlocker(next[j]))) return -1;
       return neighbors.some(j => next[j] && !isBlocker(next[j])) ? i : -1;
     }).filter(i => i >= 0);
     if (candidates.length) {
       const index = Math.min(candidates.length - 1,
         Math.max(0, Math.floor(rng() * candidates.length)));
       blockerAt = candidates[index];
-      next[blockerAt] = blocker();
+      next[blockerAt] = blocker(0, blockerHitsForMove(moves));
     }
   }
+
+  if (moves >= EXTRA_SPAWN_START && moves % EXTRA_SPAWN_INTERVAL === 0) {
+    addNumber();
+  }
+
   return {
     board: next,
     spawned,
