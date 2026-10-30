@@ -121,10 +121,40 @@ Select **Roguelite** for a separate 12-round run. Correctly banking a power earn
 - The wallet, cumulative earned gold and per-round bank earnings persist across rounds and browser restarts, independently of Classic. Gold markings, temporary banking locks and the gold drought counter reset for each new round. The round-clear screen displays banked gold, unused-move bonus and their total.
 - Existing Roguelite saves migrate safely; if a Pass 1 save was already at round-clear or victory, its unused-move reward is credited once on restore.
 
+**Permanent hazard-defence upgrades (new):**
+
+The shop now contains **eight additional permanents** which defend against
+hazards instead of directly improving points, moves or gold. All eight occupy
+the existing **two permanent slots**, so buying hazard protection means
+sacrificing a potential scoring or economy bonus. Their effects combine
+with one another if both slots contain compatible defences.
+
+| Permanent item | Gold | Partial protection |
+| --- | ---: | --- |
+| **Storm Shelter** | 8 | Each eligible slide has 30% less chance of scheduling a hazard warning (also during bosses). |
+| **Mist Filter** | 4 | Cloudy's type-selection weight is 65% lower; Cloudy can still appear. |
+| **Fracture Ward** | 6 | Null and Cracked have 60% lower selection weights; neither is eliminated. |
+| **Gilded Compass** | 5 | Greedy's type-selection weight is 70% lower. |
+| **Hazard Tamer** | 8 | New Null warnings become Cracked, and Cracked warnings become Void. The replacement still has its normal dangerous effect. |
+| **Fog Lantern** | 5 | Newly appearing Cloudy lasts two successful slides, not three. Banking remains prohibited while a tile is covered. |
+| **Void Cushion** | 5 | Void cannot reduce exponent 2 to 1; exponent 3 and higher still lose one, and Void is still consumed. |
+| **Gilded Soles** | 5 | Gold survives travelling *through* Greedy, but not *landing* on it (including as the result of a merge). |
+
+These upgrades are **stage-gated**. Six counters for Cloudy, Void, Cracked
+and general hazard pressure can first appear in the shop **after round 3**
+(ahead of Stage 2). Greedy-specific counters begin in the shop **after round
+6** (ahead of Stage 3). Items are added to the ordinary randomized shop
+pool; four stock positions per shop (two permanents, two consumables)
+and the rising-cost reroll remain unchanged. A saved open shop keeps its
+existing offers across the update, and all items are stored by stable ID.
+A reduced type-selection *weight* is not an identical percentage reduction
+in final probability because the other eligible types are reweighted.
+No counter provides blanket hazard immunity, and none changes Classic mode.
+
 **The shop (Pass 3):**
 
 - Clearing a non-final round reveals its gold breakdown and a **Visit shop** button. You must visit the shop before advancing to the next round, but you may continue without purchasing anything. The final round ends in victory instead of a shop.
-- Each visit offers exactly **two permanent upgrades** and **two single-use items**. The catalogue contains 12 permanent and 11 single-use options with distinct active effects and coin prices. Purchasing deducts coins immediately; a purchased offer becomes sold out until rerolled.
+- Each visit offers exactly **two permanent upgrades** and **two single-use items**. The catalogue contains 20 permanent and 11 single-use options with distinct active effects and coin prices. Purchasing deducts coins immediately; a purchased offer becomes sold out until rerolled.
 - There are **two permanent slots** and **two single-use slots**, which persist through subsequent rounds and browser restarts. With space available, buying fills the first free slot. When both slots are occupied, the player must choose which one to replace. A permanent replacement returns half the original purchase price (rounded down), which can help finance the replacement. Consumable replacements have no refund.
 - In the shop, owned permanents can be **sold for half their purchase price**; held consumables can be discarded with confirmation and no refund. Equipment is not removed at the end of the round.
 - **Rerolling costs 1 coin initially**, increasing to 2, 3, etc. during that same shop visit. The cost resets on the next visit. Rerolls replace all four offer slots, including sold-out ones. Current equipped permanent upgrades will not reappear in shop stock; rerolls attempt to show different items from the previous offers.
@@ -159,7 +189,7 @@ Select **Roguelite** for a separate 12-round run. Correctly banking a power earn
 - Achievements are stored under a **separate local storage key** so starting a new Roguelite run or switching to Classic does not wipe them. Per-run statistics survive round transitions and browser restarts. Existing saves are restored with safe defaults for stats that were not tracked by earlier releases. Awards are granted only on actual completed banking or gameplay actions, never by rereading a saved game.
 - The achievement gallery displays earned badges and readable goals with progress for locked badges, rather than presenting an unexplained row of awards.
 
-**Still to build:** Pass 6 balance and polish: simulate complete 12-round runs to tune 8–60+ targets, move budgets, boss severity, blocker arrival, gold/shop prices and UI feedback. Round targets remain provisional.
+**Still to build:** Full-run balance and polish: simulate complete 12-round runs to tune 8–60+ targets, move budgets, boss severity, blocker arrival, gold/shop prices and UI feedback. Round targets remain provisional.
 
 ## Interface
 
