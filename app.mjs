@@ -317,6 +317,10 @@ function finalizeGameIfNeeded() {
       recentAchievementIds = awarded.unlockedNow;
     }
   }
+  addActivity("system", mode === "roguelite" && state.run.phase === "victory"
+    ? "All 12 rounds complete. Final boss defeated!"
+    : state.movesLeft === 0 ? "Run ended: no moves remaining."
+      : "Run ended: no legal actions remain.");
   state.resultsFinalized = true;
 }
 
@@ -1384,6 +1388,7 @@ function loadSavedGame(snapshot) {
   const previous = state;
   try {
     state = sanitiseSavedGame(snapshot);
+    state.activity = restoreActivity(state.activity);
     Object.assign(state, restoreMoveBudget(state));
     if (mode === "roguelite") {
       state.run = restoreEffectState(restoreShopState(
@@ -1419,6 +1424,10 @@ function beginNewMode(selected, skipConfirmation = false) {
   rememberMode(mode);
   const best = Number.isSafeInteger(previous?.best) ? previous.best : 0;
   state = mode === "roguelite" ? newRogueliteRun(best) : fresh(best);
+  state.activity = [];
+  tourStep = 0;
+  tourVisible = !tourSeen;
+  hideMoment();
   screen = "game";
   render();
   $("headerTitle").focus();
@@ -1442,6 +1451,8 @@ function resumeSavedGame(selected) {
     return;
   }
   rememberMode(mode);
+  tourVisible = false;
+  hideMoment();
   screen = "game";
   render();
   // A Roguelike shop resumes in its modal, including its existing stock.
@@ -1454,6 +1465,8 @@ function returnToTitle() {
     persist();
   }
   closeNavigationDialogs();
+  hideMoment();
+  tourVisible = false;
   screen = "title";
   render();
   $("titleNew").focus();
@@ -1481,6 +1494,7 @@ function activateConsumable(slot, targets) {
     state = next;
     pendingItem = null;
     recentAchievementIds = [];
+    addActivity("item", state.notice);
     awardRunEvent({ type: "consumable" });
     const newFreeze = rollFrostlockAfterAction();
     if (newFreeze) state.notice += " ❄ Frozen now: " + FROST_LABELS[newFreeze] + ".";
@@ -1490,6 +1504,9 @@ function activateConsumable(slot, targets) {
     state.notice = error instanceof Error ? error.message : "Unable to use that item.";
   }
   render();
+  if (!state.over && state.notice && state.notice.includes(" used.")) {
+    showMoment("item", state.notice);
+  }
 }
 
 function beginConsumable(slot) {
@@ -1544,6 +1561,20 @@ $("viewResults").addEventListener("click", () => {
   state.resultsDismissed = false;
   render();
 });
+$("resultsCopy").addEventListener("click", async () => {
+  const text = $("resultsShareText").value;
+  if (!text || !isFinishedRun(mode, state)) return;
+  try {
+    if (!navigator.clipboard?.writeText) throw new Error("Clipboard unavailable");
+    await navigator.clipboard.writeText(text);
+    $("resultsCopyStatus").textContent = "Results copied. Share them wherever you like.";
+  } catch {
+    $("resultsShareText").focus();
+    $("resultsShareText").select();
+    $("resultsCopyStatus").textContent =
+      "Copy automatically is unavailable here. Your summary is selected; copy it manually.";
+  }
+});
 function showAchievements() {
   openAchievementGallery(achievementProfile);
 }
@@ -1567,6 +1598,7 @@ function applyShopAction(reducer, kind = null) {
     if (kind === "purchase") {
       awardRunEvent({ type: "purchase",
         fullBuild: state.run.inventory.permanents.every(Boolean) });
+      addActivity("shop", state.run.shop.notice || "New upgrade purchased.");
     }
   } catch (error) {
     state.run.shop.notice = error instanceof Error ? error.message : "Unable to complete that action.";
@@ -1614,6 +1646,8 @@ $("shopContinue").addEventListener("click", () => {
   if (mode !== "roguelite" || state.run.phase !== "shop") return;
   stopMotion();
   state = advanceRogueliteRound(state, Math.random, goldChancesForRun(state.run));
+  addActivity("round", "Round " + state.run.round +
+    " began. Bank correctly to reach the target.");
   recentAchievementIds = [];
   render();
   const boss = bossForRound(state.run);
