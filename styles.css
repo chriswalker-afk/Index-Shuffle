@@ -747,3 +747,44 @@ details[open] > summary .chevron { transform: rotate(180deg); }
   .shop-actions { gap: 8px; }
   .shop-actions > button { padding: 10px 8px; }
 }
+
+/* Pass 4: active loadout and accessible board targeting */
+.equip-chip.equip-use {
+  width: 100%; font: inherit; font-size: 10px; cursor: pointer;
+  border: 1px solid #83e7cb; color: #d6fff2;
+  background: #24594e; transition: background .12s, transform .12s;
+}
+.equip-chip.equip-use:not(:disabled):hover,
+.equip-chip.equip-use:not(:disabled):focus-visible { background: #367f67; transform: translateY(-1px); }
+.equip-chip.equip-use:disabled { opacity: .52; cursor: not-allowed; }
+.item-prompt {
+  border: 1px solid #d3ac61;
+  border-radius: 11px; margin: 12px 0;
+  padding: 10px 12px; background: #3b3224; color: #ffe8bb;
+  display: flex; justify-content: space-between; align-items: center;
+  gap: 11px; font-size: 12px; line-height: 1.45;
+}
+.item-cancel { border: 1px solid #d0ab6d; border-radius: 8px; background: #654927;
+  color: #fff1d7; font-weight: 800; font-size: 12px; padding: 7px 10px; }
+.item-cancel:hover { background: #8a5f35; }
+.cell.item-target {
+  position: relative; cursor: pointer;
+  border: 3px solid #ffdf8c;
+  box-shadow: inset 0 0 0 2px #8e5628, 0 0 15px #ebbd646e;
+  z-index: 2; animation: target-glow 1s ease-in-out infinite alternate;
+}
+.cell.item-target:not(:disabled):hover { filter: brightness(1.12); transform: scale(.96); }
+.cell.item-target-disabled:not(.item-target-selected) { opacity: .48; filter: saturate(.65); }
+.cell.item-target-selected { border: 3px solid #9cf2e1; box-shadow: inset 0 0 0 2px #2e7c72; opacity: 1; }
+.rogue-effect-status {
+  margin: 8px 0 0; border-top: 1px solid #4d7584;
+  padding-top: 8px; font-size: 11px; color: #b7ffea; line-height: 1.4;
+}
+@keyframes target-glow {
+  from { box-shadow: inset 0 0 0 2px #815326, 0 0 8px #e9b95c66; }
+  to { box-shadow: inset 0 0 0 2px #815326, 0 0 17px #ffdfa899; }
+}
+@media (max-width: 580px) {
+  .item-prompt { font-size: 11px; padding: 8px 10px; }
+  .item-cancel { padding: 6px 9px; }
+}
