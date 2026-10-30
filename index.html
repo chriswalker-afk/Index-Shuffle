@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#0c1428">
   <meta name="description" content="Slide and merge powers, solve banking challenges and stay in the game.">
   <title>Index Shuffle — Make every move count</title>
-  <link rel="stylesheet" href="styles.css?v=hazard-counter-v1-art-pass1">
+  <link rel="stylesheet" href="styles.css?v=hazard-counter-v1-art-pass2">
 </head>
 <body>
   <main class="shell">
@@ -495,12 +495,13 @@
     <div class="shop-dialog-inner">
       <header class="shop-head">
         <div>
-          <p class="overline">BETWEEN ROUNDS</p>
+          <p class="overline">AN INTERMISSION IN THE NUMBERWORLD</p>
           <h2 id="shopTitle">The Index Shop</h2>
           <p id="shopRound" class="shop-round">Preparing for round 2 of 12</p>
         </div>
         <div class="shop-wallet" aria-label="Current coin balance">
-          <span aria-hidden="true">●</span><strong id="shopCoins">0</strong><small>coins</small>
+          <span class="shop-wallet-symbol" aria-hidden="true">●</span>
+          <strong id="shopCoins">0</strong><small>coins</small>
         </div>
       </header>
       <div id="shopMerchant" class="shop-merchant-strip">
@@ -510,14 +511,24 @@
         <div class="shop-merchant-copy">
           <p class="shop-merchant-kicker">A CURIOUS LITTLE CORNER OF THE NUMBERWORLD</p>
           <strong>Curios for clever minds</strong>
-          <p>Make your coins count. Every relic could change your next round.</p>
+          <p id="shopMerchantMessage" class="shop-merchant-message">A little preparation beats a lot of panic.</p>
+        </div>
+        <div class="shop-merchant-trinkets" aria-hidden="true">
+          <span>2²</span><span>3³</span><span>5⁴</span>
         </div>
       </div>
       <p id="shopExplanation" class="shop-explanation">
-        Buy upgrades, sell or replace permanent items, discard single-use items,
-        or save coins for a later round. You may leave without buying.
-        <strong>Permanent bonuses apply automatically; use consumables from your loadout during rounds.</strong>
+        <strong>Permanent bonuses apply automatically.</strong>
+        Use single-use items during rounds. You can leave without buying.
       </p>
+      <details class="shop-guide">
+        <summary>Buying, replacing &amp; selling</summary>
+        <p>You have two permanent and two single-use inventory slots.
+          When both slots of a type are full, buying offers a choice of what to replace.
+          Selling a permanent returns half the amount you paid, rounded down.
+          Discarded single-use items give no refund. Rerolls cost coins and get
+          more expensive each time you reroll during this shop visit.</p>
+      </details>
       <section id="shopBossPreview" class="shop-boss-preview" hidden
         aria-label="Next round boss preview">
         <div class="shop-boss-layout">
@@ -532,11 +543,11 @@
       </section>
       <p id="shopNotice" class="shop-notice" role="status" aria-live="polite"></p>
       <div class="shop-section-heading">
-        <h3>Available offers</h3><span>2 permanent · 2 single use</span>
+        <h3>Available offers</h3><span>Choose a relic or tool for your build</span>
       </div>
       <div id="shopOffers" class="shop-offers" aria-label="Available shop items"></div>
       <div class="shop-section-heading">
-        <h3>Your inventory</h3><span>Exactly 2 slots for each type</span>
+        <h3>Your inventory</h3><span>2 permanent · 2 single-use slots</span>
       </div>
       <div id="shopInventory" class="shop-inventory" aria-label="Equipped items and slot management"></div>
       <footer class="shop-actions">
@@ -575,6 +586,6 @@
       <button type="button" id="cancel" class="textbtn">Keep this tile</button>
     </div>
   </div>
-  <script type="module" src="app.mjs?v=hazard-counter-v1-art-pass1"></script>
+  <script type="module" src="app.mjs?v=hazard-counter-v1-art-pass2"></script>
 </body>
 </html>
