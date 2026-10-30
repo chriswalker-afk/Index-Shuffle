@@ -2,9 +2,9 @@
 // mutations are delegated to pure reducers in shop.mjs.
 import {
   ITEM_BY_ID, INVENTORY_SLOTS, shopItemPrice, purchaseShopOffer, sellPermanent, discardConsumable
-} from "./shop.mjs?v=gold-banking-v2";
-import { targetForRound } from "./roguelite.mjs?v=gold-banking-v2";
-import { bossForRound, bossTargetFor } from "./bosses.mjs?v=gold-banking-v2";
+} from "./shop.mjs?v=mode-results-v1";
+import { targetForRound } from "./roguelite.mjs?v=mode-results-v1";
+import { bossForRound, bossTargetFor } from "./bosses.mjs?v=mode-results-v1";
 
 const $ = id => document.getElementById(id);
 const itemName = entry => entry ? ITEM_BY_ID[entry.id]?.name || "Unknown item" : "Empty";
@@ -81,7 +81,7 @@ function offerCard(type, itemId, slotIndex, state, dispatch) {
     actions.append(makeButton(enough
       ? "Buy for " + price
       : "Need " + (price - state.run.coins) + " more coins",
-      () => dispatch(value => purchaseShopOffer(value, type, slotIndex)), !enough,
+      () => dispatch(value => purchaseShopOffer(value, type, slotIndex), "purchase"), !enough,
       "shop-buy-button"));
   } else {
     actions.append(element("p", "shop-replace-label", "Both slots full — choose what to replace:"));
@@ -93,7 +93,7 @@ function offerCard(type, itemId, slotIndex, state, dispatch) {
       const text = "Replace " + itemName(occupied) + " · " +
         (net <= 0 ? "refund " + (-net) : "net " + net) + " coins";
       actions.append(makeButton(text,
-        () => dispatch(value => purchaseShopOffer(value, type, slotIndex, i)),
+        () => dispatch(value => purchaseShopOffer(value, type, slotIndex, i), "purchase"),
         !enough));
     }
   }

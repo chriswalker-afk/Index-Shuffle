@@ -62,6 +62,15 @@ Select **Roguelite** for a separate 12-round run. Correctly banking a power earn
 - **The Three Curse:** every **newly merged base-3 power** has three more successful slides to be correctly banked. Countdown markers follow the tile through movement and reset if it merges again. If it expires, it becomes a **one-hit blocker**; conversion is waived if it would exceed the two-blocker cap or leave no legal actions. Successfully banking it removes the countdown, and Alchemist can transform it into an uncursed base-5 tile.
 - All boss effects are restricted to **Roguelite boss rounds**. Boss identities and active curse countdowns persist between browser sessions, and earlier Pass 1–4 saves receive a stable, repeatable boss schedule. Classic gameplay is unchanged.
 
+**Mode selection, final scores and achievements:**
+
+- The equal-size **Classic** and **Roguelite** cards describe their different goals at a glance: a continuous high-score challenge versus a 12-round run with bosses, gold and upgrades. Mode switches retain separate existing saves.
+- Every finished game automatically opens an accessible **Final Score** screen. Classic shows the final score, personal best, slides, successful banks, highest banked exponent and blockers destroyed. Roguelite shows the cumulative run score (not merely the last round), best run score, rounds reached and cleared, bosses defeated, successful banks, slides, gold earned, coins remaining, upgrade purchases and notable correct banks.
+- The final screen supports **Play again** and **Back to board**, and can be reopened using **View final score**. A close choice persists through page refresh instead of reopening the dialog repeatedly.
+- Roguelite features **16 permanent achievements**, with progress indicators and a gallery accessed from the mode selector. Awards cover banking, golden tiles, double-gold mergers, high exponents, large score combinations, round clears, boss victories, shopping, equipping two permanents, efficient or close-call clears, blocker damage and single-use items. Unlock notifications appear as achievements are earned, and results list all awards earned during that run.
+- Achievements are stored under a **separate local storage key** so starting a new Roguelite run or switching to Classic does not wipe them. Per-run statistics survive round transitions and browser restarts. Existing saves are restored with safe defaults for stats that were not tracked by earlier releases. Awards are granted only on actual completed banking or gameplay actions, never by rereading a saved game.
+- The achievement gallery displays earned badges and readable goals with progress for locked badges, rather than presenting an unexplained row of awards.
+
 **Still to build:** Pass 6 balance and polish: simulate complete 12-round runs to tune 8–60+ targets, move budgets, boss severity, blocker arrival, gold/shop prices and UI feedback. Round targets remain provisional.
 
 ## Interface
@@ -91,6 +100,8 @@ The game is plain HTML, CSS, and native JavaScript modules, with no external run
 - **shop-ui.mjs:** accessible shop offer and equipment controls, plus active consumable buttons in the Roguelite HUD.
 - **effects.mjs:** pure bonus calculations, protected slides, hazard delays, gold rates, and ten targeted or immediate consumable effects, with independent tests.
 - **bosses.mjs:** boss scheduling, restrictions, score/target overrides, extra blockers, timed curses and migration for existing runs.
+- **milestones.mjs:** achievement catalogue, permanent progress tracking, per-run bank/shop/move stats and final-score summaries.
+- **results-ui.mjs:** accessible final score and achievement gallery dialogs with earned and locked medal states.
 - **app.mjs:** browser interaction, banking timer, accessible help dialog, persistent state, move-cost display and short tile animations. The HTML uses versioned script and stylesheet URLs to prevent stale modules from keeping the old layout or obsolete move rules after deployment.
 - **styles.css:** responsive visual design, including reduced-motion support.
 

@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#0c1428">
   <meta name="description" content="Slide and merge powers, solve banking challenges and stay in the game.">
   <title>Index Shuffle — Make every move count</title>
-  <link rel="stylesheet" href="styles.css?v=gold-banking-v2">
+  <link rel="stylesheet" href="styles.css?v=mode-results-v1">
 </head>
 <body>
   <main class="shell">
@@ -25,10 +25,35 @@
       </nav>
     </header>
 
-    <nav class="mode-picker" aria-label="Game mode">
-      <button type="button" id="modeClassic" aria-pressed="true">Classic</button>
-      <button type="button" id="modeRoguelite" aria-pressed="false">Roguelite · 12 rounds</button>
-    </nav>
+    <section class="mode-section" aria-label="Choose game mode">
+      <p class="mode-eyebrow">CHOOSE YOUR GAME</p>
+      <nav class="mode-picker" aria-label="Game mode">
+        <button type="button" id="modeClassic" class="mode-option" aria-pressed="true">
+          <span class="mode-symbol" aria-hidden="true">∞</span>
+          <span class="mode-copy">
+            <strong>Classic</strong>
+            <small>One continuous game. Build powers and beat your personal best.</small>
+          </span>
+          <span class="mode-check" aria-hidden="true">✓</span>
+        </button>
+        <button type="button" id="modeRoguelite" class="mode-option" aria-pressed="false">
+          <span class="mode-symbol" aria-hidden="true">♛</span>
+          <span class="mode-copy">
+            <strong>Roguelite</strong>
+            <small>12 rounds, boss challenges, gold, shops and upgrades.</small>
+          </span>
+          <span class="mode-check" aria-hidden="true">✓</span>
+        </button>
+      </nav>
+      <div class="mode-utilities" id="rogueAchievementsShortcut" hidden>
+        <button type="button" id="achievementOpen" class="achievement-open">
+          <span aria-hidden="true">🏆</span>
+          <span>Achievements</span>
+          <strong id="achievementCount">0 / 16</strong>
+        </button>
+        <span>Achievements stay unlocked across Roguelite runs.</span>
+      </div>
+    </section>
     <section class="play" aria-label="Index Shuffle game">
       <section class="game" aria-label="Game board">
         <div class="board-head">
@@ -39,6 +64,11 @@
         </div>
         <div id="status" class="game-feedback" role="status" aria-live="polite">
           Merge matching bases or bank a glowing power.
+        </div>
+        <div id="achievementToast" class="achievement-toast" hidden role="status" aria-live="polite">
+          <span aria-hidden="true">🏆</span>
+          <span id="achievementToastText"></span>
+          <button type="button" id="achievementToastView">View awards</button>
         </div>
         <div id="itemPrompt" class="item-prompt" hidden aria-live="polite">
           <span id="itemPromptText">Choose a tile for your item.</span>
@@ -120,9 +150,12 @@
         </div>
         <div id="endActions" class="end-actions" hidden>
           <strong>Run finished</strong>
-          <p>You can start a new game and try a different strategy.</p>
+          <p>You can review your final score or start a fresh game.</p>
           <p id="rogueEndSummary" hidden></p>
-          <button type="button" id="newFromEnd" class="primary">Play again</button>
+          <div class="end-action-buttons">
+            <button type="button" id="viewResults" class="outline">View final score</button>
+            <button type="button" id="newFromEnd" class="primary">Play again</button>
+          </div>
         </div>
       </section>
 
@@ -260,6 +293,58 @@
     </section>
   </dialog>
 
+  <dialog id="achievementsDialog" class="achievements-dialog" aria-labelledby="achievementsTitle">
+    <div class="achievements-inner">
+      <header class="achievements-head">
+        <div>
+          <p class="overline">ROGUELITE COLLECTION</p>
+          <h2 id="achievementsTitle">Achievements</h2>
+          <p id="achievementsSubtitle">Earn awards by playing, banking and overcoming bosses.</p>
+        </div>
+        <button type="button" id="achievementsClose" class="dialog-close" aria-label="Close achievements">×</button>
+      </header>
+      <div class="achievements-progress">
+        <div><strong id="achievementsProgressText">0 of 16 unlocked</strong>
+          <small>Collected across all Roguelite runs</small></div>
+        <progress id="achievementsProgressBar" value="0" max="16"
+          aria-label="Achievements unlocked"></progress>
+      </div>
+      <div id="achievementsGrid" class="achievements-grid" aria-label="All achievements"></div>
+    </div>
+  </dialog>
+
+  <dialog id="resultsDialog" class="results-dialog" aria-labelledby="resultsTitle"
+    aria-describedby="resultsSubtitle">
+    <div class="results-inner">
+      <div class="results-topline">
+        <span class="results-kicker" id="resultsKicker">GAME OVER</span>
+        <button type="button" class="dialog-close" id="resultsClose"
+          aria-label="Close final score">×</button>
+      </div>
+      <h2 id="resultsTitle">Your final score</h2>
+      <p id="resultsSubtitle">How far did you get?</p>
+      <section class="results-score-hero" aria-label="Final score">
+        <span id="resultsScoreLabel">FINAL SCORE</span>
+        <strong id="resultsFinalScore">0</strong>
+        <p id="resultsBestScore">Personal best: 0</p>
+      </section>
+      <div id="resultsStats" class="results-stats" aria-label="Game statistics"></div>
+      <section id="resultsAwardsSection" class="results-awards" hidden>
+        <div class="results-awards-heading">
+          <h3>Achievements earned this run</h3>
+          <button type="button" id="resultsAllAchievements" class="results-awards-link">
+            View all achievements
+          </button>
+        </div>
+        <div id="resultsAwardsList" class="results-awards-list"></div>
+      </section>
+      <footer class="results-actions">
+        <button type="button" class="primary" id="resultsPlayAgain">Play again</button>
+        <button type="button" class="outline" id="resultsBack">Back to board</button>
+      </footer>
+    </div>
+  </dialog>
+
   <dialog id="shopDialog" class="shop-dialog" aria-labelledby="shopTitle" aria-describedby="shopExplanation">
     <div class="shop-dialog-inner">
       <header class="shop-head">
@@ -328,6 +413,6 @@
       <button type="button" id="cancel" class="textbtn">Keep this tile</button>
     </div>
   </div>
-  <script type="module" src="app.mjs?v=gold-banking-v2"></script>
+  <script type="module" src="app.mjs?v=mode-results-v1"></script>
 </body>
 </html>

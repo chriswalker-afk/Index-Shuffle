@@ -1,11 +1,12 @@
 // Roguelite progression and economy. Classic keeps its original scoring and rules.
 import {
   initial, INITIAL_MOVES_LEFT, MAX_MOVES_LEFT, BUDGET_RULES_VERSION
-} from "./engine.mjs?v=gold-banking-v2";
+} from "./engine.mjs?v=mode-results-v1";
 import {
   createBossSchedule, restoreBossSchedule, bossPointsFor,
   bossTargetFor, startBossBoard
-} from "./bosses.mjs?v=gold-banking-v2";
+} from "./bosses.mjs?v=mode-results-v1";
+import { emptyRunStats, restoreRunStats } from "./milestones.mjs?v=mode-results-v1";
 
 export const ROUND_TARGETS = Object.freeze([
   8, 11, 14, 17, 20, 24, 28, 33, 39, 45, 52, 60
@@ -144,6 +145,7 @@ export function restoreRogueliteRun(run, movesLeft = 0) {
     .every(key => Number.isSafeInteger(previousReward[key]) && previousReward[key] >= 0);
   const restored = {
     ...run, coins, roundBankCoins, totalCoinsEarned, goldDryStreak,
+    stats: restoreRunStats(run.stats),
     bosses: restoreBossSchedule(run),
     lastRoundReward: validReward ? { ...previousReward } : null
   };
@@ -166,8 +168,10 @@ export function newRogueliteRun(best = 0, rng = Math.random) {
     score: 0, best: Number.isSafeInteger(best) && best > 0 ? best : 0,
     moves: 0, movesLeft: INITIAL_MOVES_LEFT, mergeCredit: 0,
     budgetRulesVersion: BUDGET_RULES_VERSION, over: false, notice: "",
+    resultsFinalized: false, resultsDismissed: false,
     run: {
       round: 1, totalScore: 0, totalSlides: 0, phase: "playing",
+      stats: emptyRunStats(),
       coins: 0, totalCoinsEarned: 0, roundBankCoins: 0,
       goldDryStreak: 0, lastRoundReward: null,
       scoredBanks: 0, twosBanked: 0, lastBankBase: null,

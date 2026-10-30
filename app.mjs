@@ -4,27 +4,36 @@ import {
   mergeReadyAfterSlide, attemptBank, adjacentIndices, activeBases, BASE_UNLOCKS,
   INITIAL_MOVES_LEFT, MERGES_PER_BONUS_MOVE, BUDGET_RULES_VERSION,
   restoreMoveBudget, spendMove, slideCost, creditCorrectBank, gameEnded
-} from "./engine.mjs?v=gold-banking-v2";
+} from "./engine.mjs?v=mode-results-v1";
 import { newRogueliteRun, targetForRound, stageForRound, isBossRound,
   recordRogueliteBank, advanceRogueliteRound, validRogueliteRun,
   restoreRogueliteRun, markGoldSpawns, goldTier, goldForBank
-} from "./roguelite.mjs?v=gold-banking-v2";
+} from "./roguelite.mjs?v=mode-results-v1";
 import {
   restoreShopState, enterRogueliteShop, rerollRogueliteShop
-} from "./shop.mjs?v=gold-banking-v2";
+} from "./shop.mjs?v=mode-results-v1";
 import {
   renderRogueliteInventory, renderRogueliteShop
-} from "./shop-ui.mjs?v=gold-banking-v2";
+} from "./shop-ui.mjs?v=mode-results-v1";
 import {
   restoreEffectState, bankItemBonuses, goldChancesForRun,
   costOfNextSlide, canActivateConsumable, CONSUMABLE_TARGETS,
   consumableTargets, useConsumable
-} from "./effects.mjs?v=gold-banking-v2";
-import { ITEM_BY_ID } from "./shop.mjs?v=gold-banking-v2";
+} from "./effects.mjs?v=mode-results-v1";
+import { ITEM_BY_ID } from "./shop.mjs?v=mode-results-v1";
 import {
   bossForRound, bossTargetFor, bossPointsFor, bossMovementRules,
   bossAllowsMoveRestoration, applyThreeCurse
-} from "./bosses.mjs?v=gold-banking-v2";
+} from "./bosses.mjs?v=mode-results-v1";
+import {
+  ACHIEVEMENTS, ACHIEVEMENT_BY_ID, emptyRunStats, restoreRunStats,
+  restoreAchievementProfile, recordRunStats, recordSuccessfulSlide,
+  addEarnedToRunStats, recordAchievementEvent, countUnlocked,
+  progressForAchievement, isFinishedRun, finalScoreSummary
+} from "./milestones.mjs?v=mode-results-v1";
+import {
+  renderAchievementCount, openAchievementGallery, renderFinalScreen
+} from "./results-ui.mjs?v=mode-results-v1";
 
 const $ = id => document.getElementById(id);
 const glyph = n => String(n).replace(/\d/g, d => "⁰¹²³⁴⁵⁶⁷⁸⁹"[+d]);
@@ -36,11 +45,20 @@ function fresh(best = 0) {
   return { board: initial(), discovered: [], banked: [], locked: [], mergeReady: [],
     score: 0, best, moves: 0, movesLeft: INITIAL_MOVES_LEFT,
     mergeCredit: 0, budgetRulesVersion: BUDGET_RULES_VERSION,
-    over: false, notice: "" };
+    stats: emptyRunStats(), resultsFinalized: false,
+    resultsDismissed: false, over: false, notice: "" };
 }
 const CLASSIC_SAVE = "index-shuffle-v1";
 const ROGUE_SAVE = "index-shuffle-roguelite-v1";
 const MODE_SAVE = "index-shuffle-selected-mode-v1";
+const ACHIEVEMENT_SAVE = "index-shuffle-roguelite-achievements-v1";
+function savedAchievements() {
+  try { return restoreAchievementProfile(JSON.parse(
+    localStorage.getItem(ACHIEVEMENT_SAVE))); }
+  catch { return restoreAchievementProfile(null); }
+}
+let achievementProfile = savedAchievements();
+let recentAchievementIds = [];
 function saved(mode = "classic") {
   try { return JSON.parse(localStorage.getItem(mode === "roguelite" ? ROGUE_SAVE : CLASSIC_SAVE)); }
   catch { return null; }
@@ -51,6 +69,8 @@ if (!state || !Array.isArray(state.board) || state.board.length !== 16) {
   state = mode === "roguelite" ? newRogueliteRun() : fresh();
 } else {
   // Previous games did not track temporary banking lockouts.
+  state.resultsFinalized = state.resultsFinalized === true;
+  state.resultsDismissed = state.resultsDismissed === true;
   state.locked = Array.isArray(state.locked) ? state.locked : [];
   state.discovered = Array.isArray(state.discovered) ? state.discovered : [];
   state.banked = Array.isArray(state.banked) ? state.banked : [];
@@ -62,8 +82,12 @@ if (!state || !Array.isArray(state.board) || state.board.length !== 16) {
   state.notice = "";
   if (mode === "roguelite" && !validRogueliteRun(state.run)) state = newRogueliteRun();
   else {
-    if (mode === "roguelite") state.run = restoreEffectState(restoreShopState(
-      restoreRogueliteRun(state.run, state.movesLeft)));
+    if (mode === "roguelite") {
+      state.run = restoreEffectState(restoreShopState(
+        restoreRogueliteRun(state.run, state.movesLeft)));
+    } else {
+      state.stats = restoreRunStats(state.stats);
+    }
     state.over = mode === "roguelite" && state.run.phase !== "playing" ? false
       : currentGameEnded();
   }
@@ -82,8 +106,38 @@ function currentGameEnded() {
 }
 
 function persist() {
-  try { localStorage.setItem(mode === "roguelite" ? ROGUE_SAVE : CLASSIC_SAVE, JSON.stringify(state)); }
-  catch { /* Storage may be unavailable in private mode. */ }
+  try {
+    localStorage.setItem(mode === "roguelite" ? ROGUE_SAVE : CLASSIC_SAVE,
+      JSON.stringify(state));
+    localStorage.setItem(ACHIEVEMENT_SAVE, JSON.stringify(achievementProfile));
+  } catch { /* Storage may be unavailable in private mode. */ }
+}
+
+function awardRunEvent(event) {
+  if (mode !== "roguelite") return;
+  state.run.stats = recordRunStats(state.run.stats, event);
+  const awarded = recordAchievementEvent(achievementProfile, event);
+  achievementProfile = awarded.profile;
+  if (awarded.unlockedNow.length) {
+    state.run.stats = addEarnedToRunStats(state.run.stats, awarded.unlockedNow);
+    recentAchievementIds = [...new Set([
+      ...recentAchievementIds, ...awarded.unlockedNow
+    ])];
+  }
+}
+
+function finalizeGameIfNeeded() {
+  if (!isFinishedRun(mode, state) || state.resultsFinalized) return;
+  if (mode === "roguelite") {
+    const awarded = recordAchievementEvent(achievementProfile,
+      { type: "finish", score: state.run.totalScore });
+    achievementProfile = awarded.profile;
+    if (awarded.unlockedNow.length) {
+      state.run.stats = addEarnedToRunStats(state.run.stats, awarded.unlockedNow);
+      recentAchievementIds = awarded.unlockedNow;
+    }
+  }
+  state.resultsFinalized = true;
 }
 
 function tileContent(t, badge = "") {
@@ -91,6 +145,16 @@ function tileContent(t, badge = "") {
 }
 function render() {
   const rogue = mode === "roguelite";
+  finalizeGameIfNeeded();
+  renderAchievementCount(achievementProfile, rogue);
+  $("achievementToast").hidden = !rogue || !recentAchievementIds.length;
+  if (rogue && recentAchievementIds.length) {
+    const names = recentAchievementIds.map(id =>
+      ACHIEVEMENT_BY_ID[id]?.name).filter(Boolean);
+    $("achievementToastText").textContent =
+      (names.length > 1 ? "Achievements unlocked: " : "Achievement unlocked: ") +
+      names.join(", ") + "!";
+  }
   $("modeClassic").setAttribute("aria-pressed", String(!rogue));
   $("modeRoguelite").setAttribute("aria-pressed", String(rogue));
   $("rogueProgress").hidden = !rogue;
@@ -318,6 +382,7 @@ function render() {
   renderRogueliteInventory(state, rogue, beginConsumable, slot =>
     canActivateConsumable(state, slot));
   renderRogueliteShop(state, mode, applyShopAction);
+  renderFinalScreen(mode, state, achievementProfile);
   persist();
 }
 
@@ -388,6 +453,7 @@ function move(direction) {
   const result = slide(before, direction,
     mode === "roguelite" ? bossMovementRules(state.run) : null);
   if (!result.changed) return;
+  recentAchievementIds = [];
   for (const t of result.merges) {
     if (t.exp >= 2 && !state.discovered.includes(key(t))) state.discovered.push(key(t));
   }
@@ -432,6 +498,11 @@ function move(direction) {
   const unlockedNow = activeBases(progression)
     .filter(base => !activeBases(previousProgression).includes(base));
   state.moves = nextMove;
+  if (mode === "roguelite") {
+    state.run.stats = recordSuccessfulSlide(state.run.stats);
+  } else {
+    state.stats = recordSuccessfulSlide(state.stats);
+  }
   // A successful slide clears the incorrect-attempt and banking cooldowns.
   state.locked = [];
   const news = [];
@@ -559,6 +630,7 @@ $("bankForm").addEventListener("submit", event => {
     return;
   }
   if (outcome.status !== "success") return;
+  recentAchievementIds = [];
   closeBank();
   state.board = outcome.board;
   state.mergeReady = state.mergeReady.filter(index => index !== i);
@@ -612,6 +684,27 @@ $("bankForm").addEventListener("submit", event => {
   } else if (damaged.length) {
     state.notice += " Blocker damaged by your correct bank!";
   }
+
+  // Track only mathematically correct bank submissions. Gold cannot earn
+  // an award from merely spawning, merging, or an incorrect answer.
+  const bankEvent = {
+    type: "bank", points: points.points, exponent: t.exp,
+    goldTier: mode === "roguelite" ? goldTier(t) : 0,
+    goldCoins: mode === "roguelite" ? points.bankGold : 0,
+    blockersDestroyed: destroyed.length
+  };
+  if (mode === "roguelite") {
+    awardRunEvent(bankEvent);
+    if (points.cleared) {
+      awardRunEvent({
+        type: "round-clear", movesLeft: state.movesLeft,
+        boss: isBossRound(state.run.round),
+        victory: state.run.phase === "victory"
+      });
+    }
+  } else {
+    state.stats = recordRunStats(state.stats, bankEvent);
+  }
   state.over = mode === "roguelite" && state.run.phase !== "playing" ? false :
     currentGameEnded();
   render();
@@ -632,11 +725,15 @@ $("modal").addEventListener("click", event => {
   if (event.target === $("modal")) closeBank();
 });
 function startNewGame() {
-  if (!state.over && !confirm("Start a new game? Your current run will be replaced.")) return;
+  if (!isFinishedRun(mode, state) &&
+      !confirm("Start a new game? Your current run will be replaced.")) return;
   const best = state.best;
   stopMotion();
   closeBank();
+  if ($("resultsDialog").open) $("resultsDialog").close();
+  if ($("achievementsDialog").open) $("achievementsDialog").close();
   pendingItem = null;
+  recentAchievementIds = [];
   state = mode === "roguelite" ? newRogueliteRun(best) : fresh(best);
   render();
 }
@@ -653,6 +750,8 @@ function activateConsumable(slot, targets) {
     const next = useConsumable(state, slot, targets);
     state = next;
     pendingItem = null;
+    recentAchievementIds = [];
+    awardRunEvent({ type: "consumable" });
     state.over = currentGameEnded();
   } catch (error) {
     pendingItem = null;
@@ -689,16 +788,48 @@ function selectConsumableTarget(index) {
 }
 $("new").addEventListener("click", startNewGame);
 $("newFromEnd").addEventListener("click", startNewGame);
+$("resultsPlayAgain").addEventListener("click", startNewGame);
+
+function dismissResults() {
+  state.resultsDismissed = true;
+  if ($("resultsDialog").open) $("resultsDialog").close();
+  persist();
+}
+$("resultsClose").addEventListener("click", dismissResults);
+$("resultsBack").addEventListener("click", dismissResults);
+$("resultsDialog").addEventListener("cancel", () => {
+  state.resultsDismissed = true;
+  persist();
+});
+$("viewResults").addEventListener("click", () => {
+  if (!isFinishedRun(mode, state)) return;
+  state.resultsDismissed = false;
+  render();
+});
+function showAchievements() {
+  if (mode !== "roguelite") return;
+  openAchievementGallery(achievementProfile);
+}
+$("achievementOpen").addEventListener("click", showAchievements);
+$("achievementToastView").addEventListener("click", showAchievements);
+$("resultsAllAchievements").addEventListener("click", showAchievements);
+$("achievementsClose").addEventListener("click",
+  () => $("achievementsDialog").close());
 $("nextRound").addEventListener("click", () => {
   if (mode !== "roguelite" || state.run.phase !== "round-clear") return;
   stopMotion();
   state = enterRogueliteShop(state);
   render();
 });
-function applyShopAction(reducer) {
+function applyShopAction(reducer, kind = null) {
   if (mode !== "roguelite" || state.run.phase !== "shop") return;
   try {
     state = reducer(state);
+    recentAchievementIds = [];
+    if (kind === "purchase") {
+      awardRunEvent({ type: "purchase",
+        fullBuild: state.run.inventory.permanents.every(Boolean) });
+    }
   } catch (error) {
     state.run.shop.notice = error instanceof Error ? error.message : "Unable to complete that action.";
   }
@@ -711,6 +842,7 @@ $("shopContinue").addEventListener("click", () => {
   if (mode !== "roguelite" || state.run.phase !== "shop") return;
   stopMotion();
   state = advanceRogueliteRound(state, Math.random, goldChancesForRun(state.run));
+  recentAchievementIds = [];
   render();
 });
 // Escape cannot dismiss the modal while the game is in its saved shop phase.
@@ -724,6 +856,7 @@ function switchMode(selected) {
   }
   stopMotion();
   pendingItem = null;
+  recentAchievementIds = [];
   persist();
   mode = selected;
   localStorage.setItem(MODE_SAVE, mode);
@@ -732,14 +865,20 @@ function switchMode(selected) {
     (mode === "classic" || validRogueliteRun(restored.run))
     ? restored : mode === "roguelite" ? newRogueliteRun() : fresh();
   Object.assign(state, restoreMoveBudget(state));
+  state.resultsFinalized = state.resultsFinalized === true;
+  state.resultsDismissed = state.resultsDismissed === true;
   state.locked = Array.isArray(state.locked) ? state.locked : [];
   state.mergeReady = Array.isArray(state.mergeReady) ? state.mergeReady : [];
   state.discovered = Array.isArray(state.discovered) ? state.discovered : [];
   state.banked = Array.isArray(state.banked) ? state.banked : [];
-  if (mode === "roguelite") state.run = restoreEffectState(restoreShopState(
-    restoreRogueliteRun(state.run, state.movesLeft)));
+  if (mode === "roguelite") {
+    state.run = restoreEffectState(restoreShopState(
+      restoreRogueliteRun(state.run, state.movesLeft)));
+  } else {
+    state.stats = restoreRunStats(state.stats);
+  }
   state.over = mode === "roguelite" && state.run.phase !== "playing" ? false
-    : gameEnded(state.board, new Set(state.banked), new Set(state.locked), state.movesLeft);
+    : currentGameEnded();
   render();
 }
 $("modeClassic").addEventListener("click", () => switchMode("classic"));
@@ -768,7 +907,8 @@ const keys = {
 document.addEventListener("keydown", event => {
   if (event.key === "Escape" && pending !== null) { closeBank(); return; }
   // Let arrow keys scroll the modal shop instead of swallowing them as slides.
-  if ($("shopDialog").open) return;
+  if ($("shopDialog").open || $("achievementsDialog").open ||
+      $("resultsDialog").open) return;
   if (pendingItem !== null) {
     if (event.key === "Escape") { event.preventDefault(); cancelConsumable(); }
     return;
