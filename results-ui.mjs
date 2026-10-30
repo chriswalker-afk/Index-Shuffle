@@ -3,7 +3,7 @@
 import {
   ACHIEVEMENTS, ACHIEVEMENT_BY_ID, countUnlocked,
   progressForAchievement, isFinishedRun, finalScoreSummary
-} from "./milestones.mjs?v=mode-results-v1";
+} from "./milestones.mjs?v=hazard-pass3-v1";
 
 const $ = id => document.getElementById(id);
 const node = (tag, className, text) => {
