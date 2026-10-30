@@ -199,6 +199,7 @@ export function slide(board, direction, rules = null) {
           const gold = Math.min(2, (stolenA ? 0 : goldA) +
             (stolenB ? 0 : goldB));
           if (gold) merged.gold = gold;
+          if (a.value.prism === 1 || b.value.prism === 1) merged.prism = 1;
           out.push(merged);
           merges.push(merged);
           mergeDestinations.push(to);
