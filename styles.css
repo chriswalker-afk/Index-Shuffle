@@ -2829,3 +2829,74 @@ dialog.overlay > .dialog {
 @media (prefers-reduced-motion: reduce) {
   .skip-game-board { transition: none !important; }
 }
+
+
+/* Frostlock encounter · original icy control art, not an overlay on maths tiles. */
+:is(.boss-rule, .shop-boss-preview, .boss-intro-dialog,
+    .boss-victory-banner, .results-boss-victory)[data-boss="frostlock"] {
+  --boss-accent: #9ceef2;
+  --boss-tint: #2e5873;
+}
+.boss-rule[data-boss="frostlock"] {
+  background: radial-gradient(ellipse at 5% 0%, #3f738455, transparent 65%),
+    linear-gradient(132deg, #243b56, #26304a);
+}
+.boss-rule[data-boss="frostlock"] .boss-label { color: #b8f8ff; }
+.shop-boss-preview[data-boss="frostlock"] {
+  background: radial-gradient(circle at 0% 20%, #79dbe550, transparent 62%),
+    linear-gradient(130deg, #263e57, #262d45);
+}
+.controls button.frostlock-frozen,
+.controls button.frostlock-frozen:disabled {
+  position: relative; opacity: 1; cursor: not-allowed;
+  border: 2px solid #b8f7fb;
+  color: #e7faff;
+  background:
+    linear-gradient(115deg, #dcf9ff43, transparent 46%),
+    linear-gradient(145deg, #5c9cba, #315878 70%);
+  box-shadow: inset 0 0 0 2px #e6ffff39, 0 0 13px #6edce75e;
+  text-shadow: 0 1px 3px #24445c;
+  transform: none !important;
+}
+.controls button.frostlock-frozen::after {
+  content: "❄";
+  position: absolute; top: -9px; right: -8px;
+  display: grid; place-items: center;
+  width: 22px; height: 22px;
+  border: 1px solid #caefff; border-radius: 50%;
+  background: #24465f; color: #ccfdff;
+  font-size: 14px; line-height: 1; text-shadow: none;
+  box-shadow: 0 2px 7px #0a1f39a3;
+  pointer-events: none;
+}
+.frostlock-status {
+  display: flex; align-items: flex-start; gap: 10px;
+  width: 100%; margin: 13px 0 0;
+  padding: 11px 13px;
+  color: #e4faff; background: linear-gradient(130deg, #234e64, #1e354f);
+  border: 1px solid #92dfe8; border-left: 4px solid #b9f6fc;
+  border-radius: 11px; box-shadow: inset 0 1px 0 #dbffff26;
+  font-size: 12px; line-height: 1.5;
+}
+.frostlock-status .frostlock-snowflake {
+  flex: none; font-size: 24px; line-height: 1.1; color: #adf1f7;
+  text-shadow: 0 0 12px #94eff1ab;
+}
+.frostlock-status strong {
+  color: #fff3ce; font-size: 13px; font-weight: 950;
+  letter-spacing: .055em; white-space: nowrap;
+}
+@media (max-width: 650px) {
+  .frostlock-status { font-size: 11px; gap: 8px; padding: 9px 10px; margin-top: 11px; }
+  .frostlock-status strong { font-size: 12px; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes frostlock-appear {
+    from { box-shadow: inset 0 0 0 2px #e6ffff39, 0 0 21px #c5ffffb7; }
+    to { box-shadow: inset 0 0 0 2px #e6ffff39, 0 0 13px #6edce75e; }
+  }
+  .controls button.frostlock-frozen { animation: frostlock-appear .34s ease-out; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .controls button.frostlock-frozen { animation: none !important; }
+}
