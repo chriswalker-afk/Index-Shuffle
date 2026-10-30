@@ -24,6 +24,7 @@ jobs:
           node hazard-layer.tests.mjs
           node hazards-live.tests.mjs
           node hazards-balance.tests.mjs
+          node hazard-permanents.tests.mjs
       - name: Check JavaScript syntax
         run: |
           node --check engine.mjs
@@ -51,6 +52,7 @@ jobs:
           node --check hazard-layer.tests.mjs
           node --check hazards-live.tests.mjs
           node --check hazards-balance.tests.mjs
+          node --check hazard-permanents.tests.mjs
       - name: Verify Pages static files
         run: |
           test -f .nojekyll
