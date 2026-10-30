@@ -891,6 +891,7 @@ function move(direction) {
     render();
     return;
   }
+  hideMoment();
   const before = state.board.slice();
   const beforeHazards = mode === "roguelite" ? state.hazards.slice() : null;
   let result = slide(before, direction, currentMovementRules());
@@ -1042,9 +1043,25 @@ function move(direction) {
   const newFreeze = rollFrostlockAfterAction();
   if (newFreeze) news.unshift("❄ Frostlock now freezes " +
     FROST_LABELS[newFreeze] + ". No moves are charged for frozen inputs.");
-  state.notice = news.slice(0, 2).join(" ");
+  const mergeCount = result.mergeDestinations.length;
+  if (mergeCount) addActivity("merge", mergeCount +
+    (mergeCount === 1 ? " new power merged. " : " new powers merged. ") +
+    "Bank merged powers correctly to earn points and move credit.");
+  for (const message of news.slice(0, 3)) {
+    const eventKind = /foundry|prism|mint|sanctuary|echo|shatter/i.test(message)
+      ? "runestone" : /hazard|cloudy|void|cracked|null|greedy|watch out/i.test(message)
+        ? "hazard" : /blocker|curse/i.test(message) ? "blocker"
+          : /base unlocked/i.test(message) ? "round" : "system";
+    addActivity(eventKind, message);
+  }
+  state.notice = news.slice(0, 2).join(" ") || (mergeCount
+    ? "Merge complete! Select a glowing power and solve it to score." : "");
   state.over = currentGameEnded();
   render();
+  if (mergeCount) showMoment("merge", "✦ " + mergeCount +
+    (mergeCount === 1 ? " new power formed" : " new powers formed") +
+    " · Bank to earn points");
+  else if (news.length && !state.over) showMoment("event", news[0]);
   animateSlide(before, result.motions, new Set(result.mergeDestinations),
     spawned.spawned, result.damaged, result.destroyed,
     spawned.blockerAt, spawned.warningAt, beforeHazards,
@@ -1117,6 +1134,7 @@ function openBank(i) {
   if (!isBankable(t, new Set(state.banked), i, new Set(state.locked),
       mode === "roguelite" ? state.hazards : null,
       mode === "roguelite" ? state.enchantments : null)) return;
+  hideMoment();
   const enchanted = enchantedPreview(i, t);
   const bankLimit = Math.min(60, currentBankSeconds() +
     (enchanted?.extraSeconds || 0));
@@ -1204,6 +1222,7 @@ function lockPending(reason) {
     : reason === "cancel"
       ? "Banking cancelled. Slide once before retrying that tile."
       : "Not quite. That tile is locked until your next successful slide.";
+  addActivity("system", state.notice);
   state.over = currentGameEnded();
   render();
   focusAfterBank(i);
@@ -1338,9 +1357,32 @@ $("bankForm").addEventListener("submit", event => {
   } else {
     state.stats = recordRunStats(state.stats, bankEvent);
   }
+  addActivity("bank", "Correctly banked " + t.base + glyph(t.exp) +
+    " · +" + points.points + " points.");
+  if (mode === "roguelite" && points.bankGold > 0)
+    addActivity("gold", "+" + points.bankGold + " gold from this bank.");
+  if (redeemedRuneType)
+    addActivity("runestone", ENCHANTMENT_DEFINITIONS[redeemedRuneType].name +
+      " activated on a correct bank.");
+  if (destroyed.length)
+    addActivity("blocker", destroyed.length +
+      (destroyed.length === 1 ? " blocker destroyed." : " blockers destroyed."));
+  else if (damaged.length)
+    addActivity("blocker", "Correct bank damaged " + damaged.length +
+      (damaged.length === 1 ? " blocker." : " blockers."));
+  if (award.earned) addActivity("round", "+" + award.earned +
+    " move earned by two correctly banked merges.");
+  if (mode === "roguelite" && points.cleared)
+    addActivity("round", state.run.phase === "victory"
+      ? "All 12 rounds cleared. Final boss defeated!"
+      : "Round " + state.run.round + " cleared. Shop unlocked.");
   state.over = mode === "roguelite" && state.run.phase !== "playing" ? false :
     currentGameEnded();
   render();
+  showMoment("bank", bankMoment({
+    points: points.points, coins: points.bankGold || 0,
+    moves: award.earned || 0, blockers: destroyed.length
+  }));
   focusAfterBank(i);
   if (!prefersReducedMotion()) {
     $("board").children[i]?.classList.add("bank-flash");
