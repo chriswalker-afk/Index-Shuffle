@@ -34,6 +34,16 @@ full or corrupt, a clear warning appears; playable progress is kept in memory
 screen does not create an unfinished game. Existing local-storage keys and
 achievement records are preserved. See [5A QA and limitations](QA_RELEASE_5A.md).
 
+**Release player experience Pass 5B:** New players are offered a skippable,
+reopenable three-step guide to sliding, exact-value banking and earning
+moves. The board provides concise rewards and event feedback, and an
+optional Recent events panel keeps the last eight significant actions
+across saves. End-of-run results now explain a move-budget loss versus a
+board lock, show a genuine run highlight and offer a copyable plain-text
+score summary. These additions do not change gameplay rules or timers.
+The guide dismissal preference uses a separate local key, and older
+game saves have no migration burden. See [5B QA and release checklist](QA_RELEASE_5B.md).
+
 
 **Game over:** The final-score screen offers **Play again** (restart the same
 mode) and **Return to title**. Once dismissed, the results can still be viewed
