@@ -87,8 +87,8 @@ assert.match(resultsUI, /const emblem = node\("span", "achievement-medal", earne
 assert.match(resultsUI, /if \(earned\) \{/);
 assert.match(resultsUI, /achievementMedalHref\(achievement\.id\)/);
 assert.match(resultsUI, /progressForAchievement\(profile, achievement\)/);
-assert.match(html, /styles\.css\?v=runestones-pass3/);
-assert.match(html, /app\.mjs\?v=runestones-pass4/);
+assert.match(html, /styles\.css\?v=release-5a/);
+assert.match(html, /app\.mjs\?v=release-5a/);
 assert.match(app, /hazard-ui\.mjs\?v=hazard-counter-v1-art-pass4/);
 for (const selector of [
   ".stage-scene", ".title-numberworld-art", ".title-realm-grid",
