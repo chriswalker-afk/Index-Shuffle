@@ -2,7 +2,9 @@
 // mutations are delegated to pure reducers in shop.mjs.
 import {
   ITEM_BY_ID, INVENTORY_SLOTS, shopItemPrice, purchaseShopOffer, sellPermanent, discardConsumable
-} from "./shop.mjs?v=roguelite-pass4-v1";
+} from "./shop.mjs?v=roguelite-pass5-v1";
+import { targetForRound } from "./roguelite.mjs?v=roguelite-pass5-v1";
+import { bossForRound, bossTargetFor } from "./bosses.mjs?v=roguelite-pass5-v1";
 
 const $ = id => document.getElementById(id);
 const itemName = entry => entry ? ITEM_BY_ID[entry.id]?.name || "Unknown item" : "Empty";
@@ -130,8 +132,20 @@ export function renderRogueliteShop(state, mode, dispatch) {
   }
   const { shop, inventory, coins, round } = state.run;
   $("shopCoins").textContent = coins;
-  $("shopRound").textContent = "After round " + round + " · Next: round " + (round + 1) +
-    " of 12";
+  const nextRound = round + 1;
+  const boss = bossForRound(state.run, nextRound);
+  $("shopRound").textContent = "After round " + round + " · Next: " +
+    (boss ? "BOSS ROUND " : "round ") + nextRound + " of 12";
+  $("shopBossPreview").hidden = !boss;
+  if (boss) {
+    $("shopBossName").textContent = boss.name;
+    $("shopBossRule").textContent = boss.detail;
+    const baseTarget = targetForRound(nextRound);
+    const bossTarget = bossTargetFor({ ...state.run, round: nextRound }, baseTarget);
+    $("shopBossTarget").textContent = "Score target: " + bossTarget + " points" +
+      (bossTarget !== baseTarget ? " (normally " + baseTarget + ")" : "") +
+      ". Prepare your loadout before continuing.";
+  }
   $("shopNotice").textContent = shop.notice;
   $("shopReroll").textContent = "Reroll four offers · " + shop.rerollCost +
     (shop.rerollCost === 1 ? " coin" : " coins");
