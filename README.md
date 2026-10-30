@@ -56,6 +56,39 @@ a new one instead.
 - Moves animate briefly (170 ms). System **reduced motion** preferences disable animations. Banking timers pause while the browser tab is hidden.
 - Game state, correctly banked merge credit, remaining moves and high score are saved locally in the browser. New games start with 10 moves. **Existing saved games created under the earlier automatic-merge-reward rule** keep their board, score, discoveries and historical slide count but receive a fresh ten-move balance and zero correct-bank credit; this upgrade occurs once.
 
+## Enchanted Squares — Pass 3: rarity and presentation
+
+Pass 3 makes purchased positive squares understandable while keeping the
+original mathematical banking rules and two active square limit.
+
+- **Shop rarity:** Each refresh of consumable stock from round 4 onward has
+  approximately a 22% Runestone chance, until a rare item has appeared.
+  **Only one Runestone can be revealed per shop visit**, even if bought or
+  followed by multiple rerolls. The reveal is recorded in the saved shop.
+  Existing Pass 2 shops are migrated without replacing their offers.
+  Among unlocked rare items, Foundry, Prism and Sanctuary are more common
+  (weight 3), Echo and Shatter less common (weight 2), and Twin Mint the
+  rarest (weight 1). Locked items are never offered early.
+- **Shop clarity:** Rare items have distinct gold-and-violet card frames,
+  activation labels and remaining-use previews. An optional collapsible
+  Runestone field guide lists every item, artwork, trigger, charges, price
+  and unlock round; locked Runestones are identified clearly.
+  The shop tells players when a Runestone is in stock and when the single
+  rare opportunity in that visit has already been used.
+- **Board clarity:** Selecting a Runestone highlights only legal placements
+  with non-intercepting outlines and a "PLACE" hint. Existing enchanted
+  squares remain fixed; an unobtrusive summary shows their board positions
+  and remaining charges. Tile-carried Prism marks remain distinguishable
+  from board-square effects.
+- **Activation feedback:** A short visual flash and explicit notice identify
+  a successful enchanted merge or correct banking activation, with the
+  charges remaining. Banking prompts show relevant square bonuses,
+  including timed Sanctuary boosts and Prism-marked powers.
+- **Accessibility:** All meanings are available in text and screen-reader
+  button labels, previews capture no gestures or keyboard focus, and
+  animated effects respect reduced-motion preferences. Classic mode,
+  obstacles, boss restrictions and save keys are unchanged.
+
 ## Enchanted Squares — Passes 1–2
 
 From round 4, approximately 22% of shop visits offer **one rare Runestone**
