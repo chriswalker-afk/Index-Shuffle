@@ -1,5 +1,6 @@
 import {
-  key, slide, turnSpawns, initial, canMove, isBankable, isBlocker, BLOCKER_HITS,
+  key, slide, turnSpawns, initial, canMove, isBankable, isBlocker,
+  blockerStrength, blockerHitsForMove, BLOCKER_START, BLOCKER_INTERVAL, MAX_BLOCKERS,
   bankReplacement, checkAnswer, scoreFor, activeBases, BASE_UNLOCKS
 } from "./engine.mjs";
 
@@ -62,15 +63,16 @@ function render() {
 
   state.board.forEach((t, i) => {
     const button = document.createElement("button");
-    button.className = "cell" + (isBlocker(t) ? " block-tile"
+    button.className = "cell" + (isBlocker(t) ? " block-tile block-tier" + blockerStrength(t)
       : t ? " tile base" + t.base : "");
     button.setAttribute("role", "gridcell");
     button.type = "button";
     if (isBlocker(t)) {
-      const remaining = BLOCKER_HITS - t.hits;
+      const strength = blockerStrength(t);
+      const remaining = Math.max(0, strength - t.hits);
       button.innerHTML = '<span class="block-symbol" aria-hidden="true">▦</span>'
-        + '<small class="block-health">' + remaining + ' left</small>';
-      button.title = "Fixed blocker: " + remaining
+        + '<small class="block-health">' + remaining + ' / ' + strength + '</small>';
+      button.title = "Tier " + strength + " fixed blocker: " + remaining
         + " adjacent " + (remaining === 1 ? "merge" : "merges") + " to break";
       button.setAttribute("aria-label", button.title);
       button.disabled = true;
@@ -94,7 +96,12 @@ function render() {
     }
     board.appendChild(button);
   });
-  $("blockerCount").textContent = state.board.filter(isBlocker).length + " / 1";
+  $("blockerCount").textContent =
+    state.board.filter(isBlocker).length + " / " + MAX_BLOCKERS;
+  const nextBlockerMove = Math.max(BLOCKER_START,
+    (Math.floor(state.moves / BLOCKER_INTERVAL) + 1) * BLOCKER_INTERVAL);
+  $("blockerNext").textContent = "Next attempt: move " + nextBlockerMove
+    + " · tier " + blockerHitsForMove(nextBlockerMove);
 
   const all = [...new Set([...state.discovered, ...state.banked])].sort((a, b) => {
     const [x, y] = a.split("-").map(Number), [u, v] = b.split("-").map(Number);
@@ -195,7 +202,11 @@ function move(direction) {
   if (unlockedNow.length) news.push("Unlocked base " + unlockedNow.join(", ") + "!");
   if (result.destroyed.length) news.push("Blocker broken — space freed!");
   else if (result.damaged.length) news.push("Merge near a blocker to damage it.");
-  if (spawned.blockerAt >= 0) news.push("Blocker appeared: 3 adjacent merges to break it.");
+  if (spawned.blockerAt >= 0) {
+    const strength = blockerStrength(state.board[spawned.blockerAt]);
+    news.push("Tier " + strength + " blocker appeared: " + strength
+      + " adjacent " + (strength === 1 ? "merge" : "merges") + " to break it.");
+  }
   if (spawned.extraSpawned) news.push("Extra tile spawned!");
   state.notice = news.join(" ");
   state.over = !canMove(state.board, new Set(state.banked), new Set());
