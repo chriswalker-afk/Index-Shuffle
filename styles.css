@@ -2604,3 +2604,181 @@ details[open] > summary .chevron { transform: rotate(180deg); }
   .stage-scene-image, .title-numberworld-art, .achievement-medal,
   .title-realm-card, .hazard-art-emblem { animation: none !important; transition: none !important; }
 }
+
+
+/* ─── Pass 5: accessibility, maths legibility and small-screen QA ──────────
+   These rules deliberately override artwork passes without changing the
+   base tile palette, hazard rules or game state. */
+
+/* A real native dialog, rather than a visual overlay that allows Tab to
+   escape to background tiles. The prompt remains timed only while visible. */
+dialog.overlay {
+  position: fixed; inset: 0;
+  width: 100%; max-width: none;
+  height: 100dvh; max-height: 100dvh;
+  margin: 0; padding: max(14px, env(safe-area-inset-top))
+    14px max(14px, env(safe-area-inset-bottom));
+  border: 0; border-radius: 0;
+  color: var(--text); background: #050914e8;
+  overflow-y: auto; overscroll-behavior: contain;
+  box-sizing: border-box;
+}
+dialog.overlay:not([open]) { display: none !important; }
+dialog.overlay[open] { display: grid; place-items: center; }
+dialog.overlay::backdrop { background: #030716c7; }
+dialog.overlay > .dialog {
+  width: min(100%, 460px);
+  max-height: min(91dvh, 720px);
+  padding: clamp(19px, 4.5vw, 30px);
+}
+.dialog h2 { letter-spacing: -.03em; line-height: 1.25; overflow-wrap: anywhere; }
+.dialog h2 sup { font-size: .56em; vertical-align: super; line-height: 0; }
+.dialog .close {
+  display: grid; place-items: center;
+  top: 9px; right: 9px; width: 44px; height: 44px;
+  border: 1px solid #627b98; border-radius: 11px;
+  background: #263d55; color: #f5f8ff;
+  font-size: 27px; line-height: 1;
+}
+.dialog .close:hover { background: #38536b; }
+.dialog #cancel {
+  min-height: 44px; padding: 10px 15px;
+  border: 1px solid #647d92; border-radius: 9px;
+  background: #233950; color: #edf5ff;
+}
+.dialog #cancel:hover { background: #315169; }
+.dialog .bank-hint summary { min-height: 44px; }
+.dialog input { font-size: 20px; }
+.dialog :focus-visible { outline: 3px solid #f6d08c; outline-offset: 3px; }
+
+/* Native button roles are retained for the sixteen board squares.
+   Power notation is always an actual superscript; the banking marker is
+   lower-right, away from the exponent and from the golden top-left coin. */
+.board:focus-visible {
+  outline: 3px solid #ffe0a7;
+  outline-offset: 5px;
+}
+.cell.tile > span, .tile-ghost > span:not(.ghost-cloud-cover) {
+  display: inline-block; max-width: 100%;
+  white-space: nowrap;
+  line-height: 1.15; font-variant-numeric: lining-nums;
+  text-align: center; pointer-events: none;
+}
+.cell.tile sup, .tile-ghost sup {
+  font-size: .55em; vertical-align: super;
+  line-height: 0; margin-left: .01em;
+}
+.cell i {
+  top: auto; bottom: 3px; right: 4px;
+  font-size: clamp(11px, 1.6vw, 14px);
+  width: 20px; height: 20px;
+  display: grid; place-items: center;
+  border: 1px solid #1b506045;
+  border-radius: 5px;
+  background: #b4fff0db; color: #164650;
+  text-shadow: none; line-height: 1;
+  pointer-events: none;
+}
+/* Under active hazard badges, an outline carries the banking affordance.
+   Do not conceal or overlap the hazard's corner impact symbol. */
+.cell.hazard-underlay.bankable { outline: 2px solid #c8fff0; outline-offset: -2px; }
+.cell.hazard-underlay i { display: none; }
+.cell.block-strike i { color: #56351c; background: #ffe0a2; }
+.cell:focus-visible, .cell.bankable:focus-visible {
+  outline: 3px solid #fff1bf;
+  outline-offset: -3px;
+  box-shadow: inset 0 0 0 1px #173449, 0 0 0 3px #ffe8a7c9;
+}
+.tile-gold-mark, .tile-curse-mark {
+  pointer-events: none;
+}
+
+/* On a phone, show the board first and keep the essential move budget
+   available in a compact strip without making students scroll past the HUD.
+   The full HUD below still contains all score, banking and effect details. */
+.mobile-status { display: none; }
+@media (max-width: 650px) {
+  .play {
+    grid-template-areas: "board" "hud" "secondary";
+    grid-template-rows: auto;
+    gap: 12px;
+  }
+  .mobile-status {
+    display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 7px; margin: 0 0 12px;
+  }
+  .mobile-status-item {
+    display: flex; flex-direction: column; justify-content: center;
+    gap: 4px; min-width: 0; min-height: 61px;
+    padding: 9px 10px;
+    background: linear-gradient(150deg, #1b3045, #17273c);
+    border: 1px solid #637991; border-radius: 11px;
+    box-shadow: inset 0 1px 0 #ffffff17;
+  }
+  .mobile-status-item span {
+    color: #c4d5e2; font-size: 10px; line-height: 1.3;
+    font-weight: 750;
+  }
+  .mobile-status-item strong {
+    display: block; min-width: 0;
+    color: #f4f8ff; font-size: clamp(15px, 4.3vw, 20px);
+    line-height: 1.17; font-weight: 900; font-variant-numeric: tabular-nums;
+    overflow-wrap: anywhere;
+  }
+  .mobile-status-moves {
+    border-color: #7cd5bd; background: linear-gradient(145deg,#214b4a,#1a3946);
+  }
+  .mobile-status-moves strong { color: #c6ffe9; font-size: clamp(22px,6vw,29px); }
+  .mobile-status.low-moves .mobile-status-moves {
+    border-color: #efcb87; background: #433a35;
+  }
+  .mobile-status.low-moves .mobile-status-moves strong { color: #ffe8a9; }
+  .mobile-status.empty-moves .mobile-status-moves { border-color: #f29fa5; background: #53383e; }
+  .mobile-status.empty-moves .mobile-status-moves strong { color: #ffe0dc; }
+  .controls button {
+    min-width: 44px; min-height: 44px;
+    width: 44px; height: 44px; flex-shrink: 0;
+  }
+  .controls { gap: 7px; }
+  .shop-dialog { max-height: 96dvh; }
+  .shop-dialog-inner { padding-bottom: max(14px, env(safe-area-inset-bottom)); }
+  .shop-actions { padding-bottom: max(10px, env(safe-area-inset-bottom)); }
+  .shop-actions > button { min-height: 44px; line-height: 1.35; }
+  .help-dialog { max-height: 94dvh; }
+  .achievements-dialog, .results-dialog { max-height: 94dvh; }
+}
+@media (max-width: 430px) {
+  .controls-row {
+    display: grid; grid-template-columns: 1fr; gap: 8px;
+    justify-items: center; margin-top: 11px;
+  }
+  .control-caption {
+    max-width: none; text-align: center; padding: 0;
+    font-size: 11px;
+  }
+  .controls { justify-content: center; gap: 9px; width: 100%; }
+  .game { padding: 10px; }
+  .board { padding: 6px; gap: 5px; }
+  .cell.tile, .tile-ghost {
+    font-size: clamp(18px, 6.2vw, 25px);
+    border-radius: 8px;
+  }
+  .cell i { width: 16px; height: 16px; font-size: 10px; bottom: 2px; right: 2px; }
+  .tile-gold-mark { font-size: 9px; }
+  .mobile-status-item { padding: 8px 7px; }
+  .mobile-status-item span { font-size: 9px; }
+  .mobile-status-item strong { font-size: 15px; }
+  .mobile-status-moves strong { font-size: 24px; }
+}
+@media (max-width: 350px) {
+  .controls button { min-width: 42px; width: 42px; min-height: 44px; }
+  .controls { gap: 7px; }
+  .mobile-status-item { padding: 7px 5px; }
+  .game { padding: 8px; }
+  .cell.tile { font-size: 17px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tile-ghost { will-change: auto; }
+  .cell.bankable:hover, .cell.item-target:hover { transform: none !important; }
+  dialog.overlay::backdrop { backdrop-filter: none; }
+}
