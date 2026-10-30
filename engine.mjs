@@ -293,7 +293,8 @@ export function turnSpawns(board, discovered, moves, rng = Math.random,
   // A warning always becomes a solid blocker on the NEXT successful
   // slide, even if an item delayed the later warning schedule.
   // Classic's milestone-based timing is unchanged.
-  if (next.some(isWarning)) {
+  const hadWarning = next.some(isWarning);
+  if (hadWarning) {
     next = next.map((value, index) => {
       if (!isWarning(value)) return value;
       blockerAt = index;
@@ -304,7 +305,7 @@ export function turnSpawns(board, discovered, moves, rng = Math.random,
   // At moves 9, 19, 29, ... reserve an eligible square for the next
   // successful slide, before number spawning can occupy that square.
   const previewMove = BLOCKER_START - 1;
-  if (moves >= previewMove &&
+  if (!hadWarning && moves >= previewMove &&
       (moves - previewMove) % BLOCKER_INTERVAL === 0 &&
       next.filter(isObstacle).length < MAX_BLOCKERS) {
     const candidates = next.map((value, index) => {
