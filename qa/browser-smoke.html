@@ -239,6 +239,35 @@
         $("headerTitle").click();
         assert($("saveWarning").hidden,
           "warning clears after game and achievements save successfully again");
+
+        // Verify that the actual document Escape shortcut cannot bypass
+        // the time penalty on a banking question.
+        const bankSave = JSON.parse(win.localStorage.getItem(key));
+        bankSave.board = Array(16).fill(null);
+        bankSave.board[0] = { base: 2, exp: 2 };
+        bankSave.board[1] = { base: 3, exp: 1 };
+        bankSave.banked = []; bankSave.locked = []; bankSave.mergeReady = [];
+        bankSave.hazards = Array(16).fill(null);
+        bankSave.enchantments = Array(16).fill(null);
+        bankSave.movesLeft = 7; bankSave.over = false;
+        bankSave.run.round = 4; bankSave.run.phase = "playing";
+        bankSave.run.frozenDirection = null;
+        bankSave.run.hazardWarning = null;
+        win.localStorage.setItem(key, JSON.stringify(bankSave));
+        $("titleContinue").click();
+        const bankResume = [...$("continueSlots").querySelectorAll("button")]
+          .find(button => button.getAttribute("aria-label")?.includes("Roguelike"));
+        assert(Boolean(bankResume), "deterministic banking save can be continued");
+        bankResume.click();
+        await tick();
+        $("board").children[0].click();
+        assert($("modal").open, "bankable question opens for Escape regression");
+        doc.dispatchEvent(new win.KeyboardEvent("keydown", {
+          key: "Escape", bubbles: true, cancelable: true
+        }));
+        assert(!$("modal").open, "Escape closes the banking question");
+        assert(JSON.parse(win.localStorage.getItem(key)).locked.includes(0),
+          "Escape cancels and persists the one-slide banking lock");
         finish("pass", logs.length + " interactive layout/semantics checks");
       } catch (error) {
         finish("fail", String(error && error.stack || error));
