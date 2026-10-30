@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 480" role="img" aria-labelledby="title desc">
+  <title id="title">The Timekeeper</title>
+  <desc id="desc">A clockwork guardian with an hourglass chest, rotating-looking gears, a giant dial for a head and glowing brass clock hands.</desc>
+  <defs>
+    <linearGradient id="scene" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#3b5263"/><stop offset="1" stop-color="#172438"/></linearGradient>
+    <radialGradient id="aura"><stop stop-color="#eac588" stop-opacity=".33"/><stop offset="1" stop-color="#eac588" stop-opacity="0"/></radialGradient>
+    <linearGradient id="brass" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#fff0b6"/><stop offset=".5" stop-color="#dba46e"/><stop offset="1" stop-color="#946348"/></linearGradient>
+    <linearGradient id="cloth" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#825b8d"/><stop offset="1" stop-color="#32284e"/></linearGradient>
+    <linearGradient id="steel" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#b5c0c5"/><stop offset=".48" stop-color="#76899b"/><stop offset="1" stop-color="#35465d"/></linearGradient>
+    <filter id="shadow" x="-25%" y="-25%" width="150%" height="160%"><feDropShadow dx="0" dy="12" stdDeviation="9" flood-color="#071022" flood-opacity=".65"/></filter>
+  </defs>
+  <rect width="480" height="480" rx="36" fill="url(#scene)"/>
+  <circle cx="240" cy="213" r="220" fill="url(#aura)"/>
+  <path d="M0 390 48 356l64 12 53-44 72 24 77-43 73 43 48-31 45 31v132H0Z" fill="#13253a" opacity=".52"/>
+  <path d="M39 103l47-30m311 5 47 41M35 361l65-42m300 14 40 35" stroke="#eac588" stroke-opacity=".19" stroke-width="5"/>
+  
+  <g opacity=".52" stroke="#d7c18f" stroke-width="4" fill="none">
+    <circle cx="78" cy="194" r="43"/><circle cx="404" cy="189" r="42"/>
+    <path d="M77 146v13m0 68v13m-47-46h15m65 0h15m279-54v14m0 73v14m-47-50h14m66 0h14"/>
+    <circle cx="77" cy="194" r="14"/><circle cx="404" cy="189" r="14"/>
+  </g>
+  <g filter="url(#shadow)" stroke="#1b2c41" stroke-width="9" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M134 419q-17-117 34-147l70-33 78 34q46 35 31 146Z" fill="url(#steel)"/>
+    <path d="M177 293l64 106 65-106" fill="#42566a"/>
+    <path d="M207 304h67v26l-27 39h-13l-27-39Z" fill="#d8b982"/>
+    <path d="M219 302h43l-22 29 22 29h-43l20-29Z" fill="#f0e0a6"/>
+    <path d="M220 359q18-18 40 0" stroke="#ab7966" stroke-width="6" fill="none"/>
+    <path d="M169 283q-52 18-60 75m207-74q51 18 60 74" fill="none" stroke="#576779" stroke-width="31"/>
+    <circle cx="243" cy="166" r="111" fill="#43556a" stroke="url(#brass)" stroke-width="13"/>
+    <circle cx="243" cy="166" r="91" fill="#f1ddad" stroke="#756358" stroke-width="6"/>
+    <circle cx="243" cy="166" r="71" fill="#d2c0a4" stroke="#a88565" stroke-width="5"/>
+    <path d="M243 82v19m0 130v17M159 166h20m127 0h21M184 107l13 13m92 91 13 13m0-117-13 13m-92 91-13 13" stroke="#655560" stroke-width="7"/>
+    <path d="M243 166V109m0 57 42 35" stroke="#384960" stroke-width="11" fill="none"/>
+    <circle cx="243" cy="166" r="14" fill="url(#brass)" stroke="#69504f" stroke-width="5"/>
+    <path d="M206 211q38 19 73 0" stroke="#8d7564" stroke-width="6" fill="none"/>
+    <rect x="203" y="263" width="76" height="30" rx="8" fill="#5a6370" stroke="#d3b27a" stroke-width="6"/>
+  </g>
+  <g filter="url(#shadow)">
+    <path d="M108 328h65v8l-28 28 28 30v9h-65v-9l29-30-29-28Z" fill="#e6d0a5" stroke="#695568" stroke-width="5"/>
+    <path d="M122 343h37l-19 20Z" fill="#c68e6b"/>
+    <path d="M123 389h38l-21-16Z" fill="#c68e6b"/>
+    <path d="M105 326h72m-72 78h72" stroke="#d6a16c" stroke-width="9"/>
+    <circle cx="389" cy="356" r="35" fill="#526579" stroke="#d8b078" stroke-width="8"/>
+    <circle cx="389" cy="356" r="15" fill="#e8c991" stroke="#344456" stroke-width="5"/>
+    <path d="M389 315v-10m0 99v-10m-40-38h-10m100 0h-10m-68-27-6-6m68 68-6-6m6-62-6 6m-56 56-6 6" stroke="#f6d99d" stroke-width="8"/>
+  </g>
+  <g fill="#f5dfaa"><path d="M72 84l6 13 14 6-14 5-6 14-5-14-13-5 13-6Z"/><circle cx="396" cy="79" r="6"/></g>
+
+  <path d="M37 449h406" stroke="#eac588" stroke-width="4" opacity=".4"/>
+</svg>

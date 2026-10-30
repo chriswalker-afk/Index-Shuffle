@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#0c1428">
   <meta name="description" content="Slide and merge powers, solve banking challenges and stay in the game.">
   <title>Index Shuffle — Make every move count</title>
-  <link rel="stylesheet" href="styles.css?v=hazard-counter-v1-art-pass2">
+  <link rel="stylesheet" href="styles.css?v=hazard-counter-v1-art-pass3">
 </head>
 <body>
   <main class="shell">
@@ -227,7 +227,15 @@
           <p>Tap a single-use item during a round to activate it. Permanent bonuses apply automatically.</p>
         </section>
         <div id="roundClearPanel" class="round-clear-panel" hidden>
-          <strong>Round complete!</strong>
+          <section id="bossVictoryBanner" class="boss-victory-banner" hidden aria-label="Boss defeated">
+            <img id="bossVictoryPortrait" alt="" width="86" height="86" decoding="async">
+            <div class="boss-victory-copy">
+              <span class="boss-victory-kicker"><span aria-hidden="true">✦</span> BOSS DEFEATED</span>
+              <h3 id="bossVictoryName">Victory over the boss!</h3>
+              <p id="bossVictoryLine"></p>
+            </div>
+          </section>
+          <strong id="roundClearHeading">Round complete!</strong>
           <p id="roundClearMessage"></p>
           <div class="round-reward-breakdown" aria-label="Round gold earnings">
             <div><span>Gold powers banked</span><strong id="roundBankCoins">+0</strong></div>
@@ -459,6 +467,36 @@
     </div>
   </dialog>
 
+  <dialog id="bossIntroDialog" class="boss-intro-dialog" aria-labelledby="bossIntroName"
+    aria-describedby="bossIntroRule">
+    <div class="boss-intro-shell">
+      <div class="boss-intro-topline">
+        <span class="boss-intro-kicker">☠ &nbsp; BOSS ENCOUNTER</span>
+        <button type="button" class="boss-intro-skip" id="bossIntroSkip">Skip intro</button>
+      </div>
+      <div class="boss-intro-layout">
+        <div class="boss-intro-art">
+          <img id="bossIntroPortrait" src="assets/art/boss-blockade.svg"
+            alt="The Blockade, a formidable stone guardian" width="480" height="480">
+          <span class="boss-intro-seal" aria-hidden="true">✦</span>
+        </div>
+        <div class="boss-intro-story">
+          <span id="bossIntroRound" class="boss-intro-round">STAGE 1 · ROUND 3 OF 12</span>
+          <h2 id="bossIntroName">The Blockade</h2>
+          <p id="bossIntroQuote" class="boss-intro-quote">A formidable opponent awaits.</p>
+          <div class="boss-intro-rule">
+            <strong>YOUR CHALLENGE</strong>
+            <p id="bossIntroRule">The rule for this boss encounter.</p>
+          </div>
+          <p id="bossIntroTarget" class="boss-intro-target">Round target: 0 points</p>
+          <button type="button" id="bossIntroStart" class="primary boss-intro-start" autofocus>
+            Begin boss round
+          </button>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
   <dialog id="resultsDialog" class="results-dialog" aria-labelledby="resultsTitle"
     aria-describedby="resultsSubtitle">
     <div class="results-inner">
@@ -469,6 +507,15 @@
       </div>
       <h2 id="resultsTitle">Your final score</h2>
       <p id="resultsSubtitle">How far did you get?</p>
+      <section id="resultsBossVictory" class="results-boss-victory" hidden
+        aria-label="Final boss defeated">
+        <img id="resultsBossPortrait" alt="" width="88" height="88" decoding="async">
+        <div class="results-boss-copy">
+          <span class="results-boss-kicker">✦ FINAL BOSS DEFEATED</span>
+          <strong id="resultsBossName">The boss is defeated!</strong>
+          <p id="resultsBossLine"></p>
+        </div>
+      </section>
       <section class="results-score-hero" aria-label="Final score">
         <span id="resultsScoreLabel">FINAL SCORE</span>
         <strong id="resultsFinalScore">0</strong>
@@ -586,6 +633,6 @@
       <button type="button" id="cancel" class="textbtn">Keep this tile</button>
     </div>
   </div>
-  <script type="module" src="app.mjs?v=hazard-counter-v1-art-pass2"></script>
+  <script type="module" src="app.mjs?v=hazard-counter-v1-art-pass3"></script>
 </body>
 </html>

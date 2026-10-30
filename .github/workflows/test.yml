@@ -27,6 +27,7 @@ jobs:
           node hazard-permanents.tests.mjs
           node art-catalog.tests.mjs
           node shop-art.tests.mjs
+          node boss-art.tests.mjs
       - name: Check JavaScript syntax
         run: |
           node --check engine.mjs
@@ -59,6 +60,8 @@ jobs:
           node --check art-catalog.tests.mjs
           node --check shop-art.mjs
           node --check shop-art.tests.mjs
+          node --check boss-scenes.mjs
+          node --check boss-art.tests.mjs
       - name: Verify Pages static files
         run: |
           test -f .nojekyll
@@ -87,5 +90,15 @@ jobs:
           test -f shop-art.tests.mjs
           test -f item-gallery.html
           test -f assets/art/item-sprites.svg
+          test -f boss-scenes.mjs
+          test -f boss-gallery.html
+          test -f assets/art/boss-scorekeeper.svg
+          test -f assets/art/boss-silent-seven.svg
+          test -f assets/art/boss-power-snob.svg
+          test -f assets/art/boss-timekeeper.svg
+          test -f assets/art/boss-three-curse.svg
       - name: Validate item sprite XML
         run: python3 -c "import xml.etree.ElementTree as ET; ET.parse('assets/art/item-sprites.svg')"
+      - name: Validate all boss portrait SVGs
+        run: |
+          python3 -c "import glob, xml.etree.ElementTree as ET; [ET.parse(path) for path in glob.glob('assets/art/boss-*.svg')]"

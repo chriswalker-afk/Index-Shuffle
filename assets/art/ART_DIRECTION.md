@@ -1,6 +1,6 @@
-# Index Shuffle · Art direction (Pass 1)
+# Index Shuffle · Numberworld art direction
 
-Status: **Pass 1 character concepts + Pass 2 illustrated shop complete**. This guide is the single
+Status: **Pass 1 characters + Pass 2 illustrated shop + Pass 3 boss scenes complete**. This guide is the single
 source of truth for visual design decisions in later passes.
 
 ## Concept: The Curious Numberworld
@@ -95,9 +95,40 @@ changed by this art pass. More boss IDs can be added to `BOSS_ART` later.
 - `item-gallery.html`: an optional visual-review gallery for all
   31 items without needing to reach an in-game shop.
 
+## Pass 3 · Boss encounters (complete)
+
+- **Seven original characters** in `assets/art/boss-*.svg`, including the
+  five new portraits for The Scorekeeper, The Silent Seven, The Power Snob,
+  The Timekeeper and The Three Curse. All are original 480×480 standalone
+  SVGs, with readable silhouettes at HUD scale, meaningful art alt text
+  and no external references, scripts, fonts or animation.
+- `art-catalog.mjs` is now a complete boss-ID-to-portrait map with an
+  explicit missing-ID fallback. Boss names, scheduling and rules remain
+  defined exclusively in `bosses.mjs`.
+- `boss-scenes.mjs` provides separate, short flavour lines for each
+  encounter and defeat; these **never modify rules**.
+- Beginning any boss round **from the shop** shows a native, accessible,
+  skippable encounter dialog with illustration, boss name, full current
+  rule and required target. The round has already started; closing this
+  modal simply exposes the unchanged playable board. Escape, Skip intro
+  and Begin boss round dismiss it without timers, moves, costs or flags.
+- Continuing a saved run mid-boss **does not repeat** the introduction.
+  Returning to the title safely closes an open intro dialog.
+- Active boss rule cards, shop previews and victory panels share a
+  per-boss visual accent using existing stable boss IDs. All numerical
+  and textual rules remain front and centre.
+- Clearing rounds 3, 6 or 9 adds an optional illustrated **Boss defeated**
+  panel above the normal reward and Visit shop action. Round 12 uses a
+  similar final boss victory panel in the existing final score modal.
+  **No victory panel is shown on defeat.**
+- Small, decorative reveal animations respect
+  `prefers-reduced-motion: reduce`; nothing requires waiting for
+  animation to finish, and the playboard remains unillustrated.
+- `boss-gallery.html` offers all seven images and a real live
+  preview of the encounter dialog **without entering a game**.
+
 ## Next passes
 
-- **Pass 3:** portraits for the other five bosses, encounter and victory beats.
 - **Pass 4:** stage atmospheres, hazard icons, title and achievements.
 - **Pass 5:** restrained animation, mobile/performance/accessibility polish.
 

@@ -5,7 +5,7 @@ import {
 } from "./shop.mjs?v=hazard-counter-v1";
 import { targetForRound } from "./roguelite.mjs?v=hazard-counter-v1";
 import { bossForRound, bossTargetFor } from "./bosses.mjs?v=hazard-counter-v1";
-import { bossPortraitFor } from "./art-catalog.mjs?v=hazard-counter-v1-art-pass1";
+import { bossPortraitFor } from "./art-catalog.mjs?v=hazard-counter-v1-art-pass3";
 import { itemIconHref, itemArtKind } from "./shop-art.mjs?v=hazard-counter-v1-art-pass2";
 
 const $ = id => document.getElementById(id);
@@ -202,6 +202,7 @@ export function renderRogueliteShop(state, mode, dispatch) {
     ? "A tricky customer is next. Choose your tools carefully."
     : MERCHANT_LINES[(round - 1) % MERCHANT_LINES.length];
   $("shopBossPreview").hidden = !boss;
+  $("shopBossPreview").dataset.boss = boss?.id ?? "";
   const portrait = boss ? bossPortraitFor(boss.id) : null;
   $("shopBossPortrait").hidden = !portrait;
   if (portrait) {

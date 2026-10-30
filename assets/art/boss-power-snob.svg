@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 480" role="img" aria-labelledby="title desc">
+  <title id="title">The Power Snob</title>
+  <desc id="desc">A snooty aristocratic peacock-like mathematical noble wearing a high purple hat, crown, monocle with exponent symbol and embroidered waistcoat.</desc>
+  <defs>
+    <linearGradient id="scene" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#533c64"/><stop offset="1" stop-color="#1c2038"/></linearGradient>
+    <radialGradient id="aura"><stop stop-color="#e9c285" stop-opacity=".33"/><stop offset="1" stop-color="#e9c285" stop-opacity="0"/></radialGradient>
+    <linearGradient id="brass" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#fff0b6"/><stop offset=".5" stop-color="#dba46e"/><stop offset="1" stop-color="#946348"/></linearGradient>
+    <linearGradient id="cloth" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#825b8d"/><stop offset="1" stop-color="#32284e"/></linearGradient>
+    <linearGradient id="steel" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#b5c0c5"/><stop offset=".48" stop-color="#76899b"/><stop offset="1" stop-color="#35465d"/></linearGradient>
+    <filter id="shadow" x="-25%" y="-25%" width="150%" height="160%"><feDropShadow dx="0" dy="12" stdDeviation="9" flood-color="#071022" flood-opacity=".65"/></filter>
+  </defs>
+  <rect width="480" height="480" rx="36" fill="url(#scene)"/>
+  <circle cx="240" cy="213" r="220" fill="url(#aura)"/>
+  <path d="M0 390 48 356l64 12 53-44 72 24 77-43 73 43 48-31 45 31v132H0Z" fill="#13253a" opacity=".52"/>
+  <path d="M39 103l47-30m311 5 47 41M35 361l65-42m300 14 40 35" stroke="#e9c285" stroke-opacity=".19" stroke-width="5"/>
+  
+  <g opacity=".6">
+    <path d="M102 120q-25-42-42 0 32 9 42 60 8-50 42-60-18-39-42 0Z" fill="#ab88b0"/>
+    <path d="M385 100q-25-36-46 6 38 13 46 70 10-53 45-68-21-37-45-8Z" fill="#bea2bc"/>
+  </g>
+  <g filter="url(#shadow)" stroke="#1b263b" stroke-width="8" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M109 437q-6-105 65-167h130q78 61 68 167Z" fill="#503653"/>
+    <path d="M157 282l86 128 78-130-44-22h-77Z" fill="url(#cloth)"/>
+    <path d="M208 280l34 80 33-81-24-38h-21Z" fill="#f0d9b8"/>
+    <path d="M175 320l-22 110h67l-13-112m112 4 22 108h-67l13-112" fill="#9a6f8c"/>
+    <path d="M172 185q-9-71 68-90 81 16 69 91l-9 92-51 32-64-30Z" fill="#e8bfad"/>
+    <path d="M179 147l14-58 103-3 12 60-35 26-69-4Z" fill="#654461"/>
+    <path d="M174 107l22-80h91l22 80" fill="#6c496c"/>
+    <path d="M163 112q77-14 156 1" stroke="#d7a16b" stroke-width="16" fill="none"/>
+    <path d="M205 26l-6-19 20 13 21-17 17 18 21-14-5 21" fill="url(#brass)" stroke-width="6"/>
+    <path d="M201 185q13-8 26 0m34 0q14-8 27 0" stroke="#4d4150" stroke-width="6" fill="none"/>
+    <circle cx="214" cy="194" r="9" fill="#2b3f52" stroke-width="3"/>
+    <circle cx="276" cy="194" r="9" fill="#2b3f52" stroke-width="3"/>
+    <circle cx="278" cy="195" r="24" fill="none" stroke="#d9ae70" stroke-width="6"/>
+    <path d="M301 199q21 20 7 40" fill="none" stroke="#d9ae70" stroke-width="4"/>
+    <path d="M238 205l-8 27 20 3" stroke="#bc8e83" stroke-width="5" fill="none"/>
+    <path d="M240 250q-24-18-44 0-17 15-1 19 21 3 43-7m4-12q25-18 45 0 16 15 0 19-21 3-43-7" fill="#544454" stroke-width="3"/>
+    <path d="M233 268h16v21h-16Z" fill="url(#brass)" stroke-width="3"/>
+    <path d="M136 310q-49 26-65 78m282-78q50 24 57 80" fill="none" stroke="#7a527b" stroke-width="28"/>
+    <path d="M240 374l-11 34 11 21 11-21Z" fill="url(#brass)"/>
+  </g>
+  <g filter="url(#shadow)">
+    <circle cx="383" cy="299" r="48" fill="#654163" stroke="#d5ae7b" stroke-width="7"/>
+    <path d="M353 297h60M383 269v56" stroke="#ffe7bb" stroke-width="4"/>
+    <text x="383" y="309" text-anchor="middle" font-family="Georgia,serif" font-size="35" font-weight="900" fill="#fff0c5">²</text>
+    <path d="M325 331l67 55" stroke="#e2b87f" stroke-width="7"/>
+    <circle cx="107" cy="357" r="33" fill="#30445f" stroke="#e6b77b" stroke-width="8"/>
+    <text x="107" y="369" font-family="Georgia,serif" font-size="36" text-anchor="middle" fill="#ffe3ab">2</text>
+  </g>
+  <g fill="#ffe8ab"><path d="M91 173l5 12 12 5-12 5-5 12-5-12-12-5 12-5Z"/><path d="M381 156l5 11 12 5-12 5-5 12-5-12-12-5 12-5Z"/></g>
+
+  <path d="M37 449h406" stroke="#e9c285" stroke-width="4" opacity=".4"/>
+</svg>

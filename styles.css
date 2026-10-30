@@ -1900,3 +1900,273 @@ details[open] > summary .chevron { transform: rotate(180deg); }
     transition: none !important; animation: none !important;
   }
 }
+
+
+/* ── Numberworld boss encounters · Visual Pass 3 ──────────────────────────
+   Accent colour signifies the illustrated opponent, never the danger/score
+   status. Maths and rule text always remain normal selectable HTML.
+   No animation controls gameplay or requires waiting to dismiss a dialog. */
+:is(.boss-rule, .shop-boss-preview, .boss-intro-dialog,
+    .boss-victory-banner, .results-boss-victory) {
+  --boss-accent: #f4bea2;
+  --boss-tint: #594056;
+}
+:is(.boss-rule, .shop-boss-preview, .boss-intro-dialog,
+    .boss-victory-banner, .results-boss-victory)[data-boss="blockade"] {
+  --boss-accent: #eeb2a0; --boss-tint: #603c4b;
+}
+:is(.boss-rule, .shop-boss-preview, .boss-intro-dialog,
+    .boss-victory-banner, .results-boss-victory)[data-boss="five-thief"] {
+  --boss-accent: #f1c08e; --boss-tint: #594057;
+}
+:is(.boss-rule, .shop-boss-preview, .boss-intro-dialog,
+    .boss-victory-banner, .results-boss-victory)[data-boss="scorekeeper"] {
+  --boss-accent: #f2d091; --boss-tint: #573d4d;
+}
+:is(.boss-rule, .shop-boss-preview, .boss-intro-dialog,
+    .boss-victory-banner, .results-boss-victory)[data-boss="silent-seven"] {
+  --boss-accent: #b1dcee; --boss-tint: #384366;
+}
+:is(.boss-rule, .shop-boss-preview, .boss-intro-dialog,
+    .boss-victory-banner, .results-boss-victory)[data-boss="power-snob"] {
+  --boss-accent: #e0c1f4; --boss-tint: #573d64;
+}
+:is(.boss-rule, .shop-boss-preview, .boss-intro-dialog,
+    .boss-victory-banner, .results-boss-victory)[data-boss="timekeeper"] {
+  --boss-accent: #f7cf8c; --boss-tint: #405464;
+}
+:is(.boss-rule, .shop-boss-preview, .boss-intro-dialog,
+    .boss-victory-banner, .results-boss-victory)[data-boss="three-curse"] {
+  --boss-accent: #f5b5d9; --boss-tint: #633753;
+}
+.boss-rule[data-boss] {
+  border-color: var(--boss-accent);
+  border-width: 1px;
+  background: radial-gradient(circle at -10% -10%, var(--boss-tint), transparent 70%),
+    linear-gradient(130deg, #31273d, #2c2c41);
+  box-shadow: inset 0 1px 0 #ffffff24;
+}
+.boss-rule[data-boss] .boss-rule-heading strong { color: #fff3ed; }
+.boss-rule[data-boss] .boss-label { color: var(--boss-accent); }
+.boss-rule[data-boss] .boss-rule-heading > span:first-child { color: var(--boss-accent); }
+.boss-rule[data-boss] .boss-rule-portrait {
+  border: 2px solid var(--boss-accent); border-radius: 10px;
+  background: #1b2236; box-shadow: 0 5px 16px #170e1d99;
+}
+.shop-boss-preview[data-boss] {
+  border-color: var(--boss-accent);
+  background: radial-gradient(ellipse at -12% 25%, var(--boss-tint), transparent 65%),
+    linear-gradient(135deg, #33273b, #27253b);
+  box-shadow: inset 0 1px 0 #ffe9d12b;
+}
+.shop-boss-preview[data-boss] .shop-boss-kicker,
+.shop-boss-preview[data-boss] .shop-boss-target { color: var(--boss-accent); }
+.shop-boss-preview[data-boss] .shop-boss-portrait {
+  border: 2px solid var(--boss-accent); border-radius: 13px;
+  width: 124px; height: 124px;
+}
+.shop-boss-preview[data-boss] .shop-boss-layout { align-items: center; }
+
+.boss-intro-dialog {
+  width: min(890px, calc(100% - 22px));
+  max-height: min(95dvh, 850px); padding: 0; overflow-y: auto;
+  border: 2px solid var(--boss-accent);
+  border-radius: 24px; color: #f8f4fa;
+  background: radial-gradient(circle at 9% 25%, var(--boss-tint), transparent 57%),
+    linear-gradient(140deg, #28243d, #151f32 74%);
+  box-shadow: 0 35px 95px #050715eb, inset 0 2px 0 #ffe9d02a;
+}
+.boss-intro-dialog::backdrop {
+  background: #040713e8; backdrop-filter: blur(8px);
+}
+.boss-intro-shell { padding: clamp(16px, 3.4vw, 29px); }
+.boss-intro-topline {
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 9px; padding-bottom: 15px;
+  border-bottom: 1px solid #c9a7a647;
+}
+.boss-intro-kicker {
+  color: var(--boss-accent); font-size: 11px; letter-spacing: .14em;
+  font-weight: 900;
+}
+.boss-intro-skip {
+  flex: none; min-height: 37px; padding: 8px 13px;
+  border-radius: 9px; border: 1px solid #a2afc3;
+  background: #1d2c41; color: #e3edf8;
+  font-size: 12px; font-weight: 750;
+}
+.boss-intro-skip:hover { background: #30415a; }
+.boss-intro-layout {
+  display: grid; grid-template-columns: minmax(210px, .85fr) minmax(0, 1fr);
+  gap: clamp(16px, 3vw, 27px); align-items: center; padding-top: 19px;
+}
+.boss-intro-art {
+  position: relative; isolation: isolate;
+  display: grid; place-items: center;
+  min-width: 0; border-radius: 19px;
+  background: radial-gradient(circle, var(--boss-tint), #1b263b 78%);
+  box-shadow: 0 16px 36px #03081980;
+}
+.boss-intro-art::before {
+  content: ""; position: absolute; z-index: -1;
+  inset: -16px; border-radius: 28px;
+  background: radial-gradient(circle, var(--boss-tint), transparent 65%);
+  filter: blur(17px); pointer-events: none;
+}
+.boss-intro-art > img {
+  display: block; width: 100%; height: auto; aspect-ratio: 1;
+  border: 1px solid var(--boss-accent); border-radius: 18px;
+  object-fit: contain; box-shadow: inset 0 2px 0 #ffffff55;
+}
+.boss-intro-seal {
+  position: absolute; right: -9px; bottom: 13px;
+  width: 49px; height: 49px; border-radius: 50%;
+  display: grid; place-items: center;
+  color: #2e2b3e; font-size: 30px;
+  background: radial-gradient(circle at 25% 15%, #ffedbc, var(--boss-accent));
+  border: 3px solid #f8dba3; box-shadow: 0 5px 15px #080a18a8;
+}
+.boss-intro-story { min-width: 0; }
+.boss-intro-round {
+  display: block; color: #aec8d9; font-size: 10px;
+  font-weight: 900; letter-spacing: .16em;
+}
+.boss-intro-story h2 {
+  margin: 9px 0 13px; color: #fff2e9;
+  font-size: clamp(29px, 4.6vw, 47px); font-weight: 950;
+  line-height: 1.06; letter-spacing: -.04em;
+}
+.boss-intro-quote {
+  margin: 0 0 17px; color: var(--boss-accent);
+  font-size: clamp(14px, 2vw, 17px); line-height: 1.5;
+  font-weight: 600; font-style: italic;
+}
+.boss-intro-rule {
+  border: 1px solid #67748b;
+  border-left: 4px solid var(--boss-accent);
+  border-radius: 11px; padding: 13px 14px;
+  background: #121e31bd;
+}
+.boss-intro-rule strong {
+  color: var(--boss-accent); font-size: 10px;
+  letter-spacing: .13em; font-weight: 900;
+}
+.boss-intro-rule p {
+  margin: 7px 0 0; color: #ecedf6;
+  font-size: 13px; line-height: 1.65;
+}
+.boss-intro-target {
+  margin: 14px 0 18px; color: #ffe0b8;
+  font-size: 14px; font-weight: 850; font-variant-numeric: tabular-nums;
+}
+.boss-intro-start {
+  width: 100%; min-height: 49px; border: 1px solid #b0ffe6;
+  border-radius: 11px; background: linear-gradient(140deg, #b8ffea, #76e2c8);
+  color: #102c35; font-weight: 900; font-size: 14px;
+}
+.boss-intro-start:hover { background: #d4fff3; }
+
+.boss-victory-banner {
+  position: relative; overflow: hidden; isolation: isolate;
+  display: flex; align-items: center; gap: 13px;
+  margin: 0 0 16px; padding: 12px;
+  border: 1px solid var(--boss-accent); border-radius: 14px;
+  background: radial-gradient(circle at 4% 12%, var(--boss-tint), transparent 64%),
+    linear-gradient(135deg, #263e43, #242d3d);
+  box-shadow: inset 0 1px 0 #ffefd93d;
+}
+.boss-victory-banner::after {
+  content: "✦"; position: absolute; z-index: -1;
+  top: -13px; right: 6px; font-size: 70px;
+  color: var(--boss-accent); opacity: .23; pointer-events: none;
+}
+.boss-victory-banner img {
+  width: 86px; height: 86px; border-radius: 12px;
+  border: 2px solid var(--boss-accent);
+  flex: none; object-fit: cover; box-shadow: 0 5px 16px #06121faa;
+}
+.boss-victory-copy { min-width: 0; flex: 1; }
+.boss-victory-kicker {
+  display: block; font-size: 10px; color: #bdf9e2;
+  font-weight: 900; letter-spacing: .13em;
+}
+.boss-victory-copy h3 {
+  margin: 5px 0 4px; font-size: 19px; color: #fff0e0;
+  font-weight: 900; line-height: 1.23;
+}
+.boss-victory-copy p {
+  margin: 0; font-size: 12px; color: #d8e3e7; line-height: 1.55;
+}
+.round-clear-panel:has(.boss-victory-banner:not([hidden])) {
+  border-top-color: #f0b991a8;
+}
+.results-boss-victory {
+  position: relative; display: flex; gap: 14px;
+  align-items: center; margin: 0 0 15px;
+  padding: 12px; border-radius: 14px;
+  border: 1px solid var(--boss-accent);
+  background: radial-gradient(circle at 0 0, var(--boss-tint), transparent 64%),
+    linear-gradient(145deg, #334747, #282c43);
+}
+.results-boss-victory img {
+  flex: none; width: 88px; height: 88px;
+  border-radius: 11px; border: 2px solid var(--boss-accent);
+  object-fit: cover; box-shadow: 0 7px 18px #0e102399;
+}
+.results-boss-copy { min-width: 0; }
+.results-boss-kicker {
+  display: block; font-size: 10px; letter-spacing: .11em;
+  font-weight: 900; color: #bcffe4; margin-bottom: 5px;
+}
+.results-boss-copy strong { display: block; font-size: 18px; color: #fff3df; }
+.results-boss-copy p {
+  margin: 6px 0 0; color: #d9e5e7; font-size: 12px; line-height: 1.5;
+}
+
+/* The reveal and celebratory shimmer are entirely decorative. */
+@keyframes boss-portrait-reveal {
+  from { opacity: .5; transform: translateY(12px) scale(.975); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes boss-victory-reveal {
+  from { opacity: .65; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.boss-intro-dialog[open] .boss-intro-art > img {
+  animation: boss-portrait-reveal .42s ease-out both;
+}
+.boss-victory-banner:not([hidden]),
+.results-boss-victory:not([hidden]) {
+  animation: boss-victory-reveal .38s ease-out both;
+}
+@media (max-width: 680px) {
+  .boss-intro-dialog { width: calc(100% - 16px); border-radius: 17px; max-height: 96dvh; }
+  .boss-intro-shell { padding: 15px; }
+  .boss-intro-layout { grid-template-columns: 1fr; padding-top: 13px; gap: 16px; }
+  .boss-intro-art { max-width: 245px; margin: 0 auto; width: min(72vw, 245px); }
+  .boss-intro-art::before { inset: -8px; }
+  .boss-intro-seal { width: 37px; height: 37px; font-size: 23px; }
+  .boss-intro-story h2 { margin: 6px 0 9px; font-size: 30px; }
+  .boss-intro-quote { font-size: 14px; margin-bottom: 12px; }
+  .boss-intro-rule { padding: 10px 12px; }
+  .boss-intro-rule p { font-size: 12px; line-height: 1.55; }
+  .boss-intro-target { margin: 10px 0 13px; }
+  .shop-boss-preview[data-boss] .shop-boss-portrait { width: 90px; height: 90px; }
+}
+@media (max-width: 400px) {
+  .boss-victory-banner { gap: 9px; padding: 9px; }
+  .boss-victory-banner img { width: 66px; height: 66px; }
+  .boss-victory-copy h3 { font-size: 16px; }
+  .boss-victory-copy p { font-size: 11px; }
+  .results-boss-victory { gap: 9px; padding: 9px; }
+  .results-boss-victory img { width: 66px; height: 66px; }
+  .results-boss-copy strong { font-size: 16px; }
+  .boss-intro-topline { padding-bottom: 9px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .boss-intro-dialog[open] .boss-intro-art > img,
+  .boss-victory-banner:not([hidden]),
+  .results-boss-victory:not([hidden]) {
+    animation: none !important; transition: none !important;
+  }
+}
