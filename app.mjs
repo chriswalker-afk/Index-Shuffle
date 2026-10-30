@@ -120,7 +120,9 @@ function awardRunEvent(event) {
   achievementProfile = awarded.profile;
   if (awarded.unlockedNow.length) {
     state.run.stats = addEarnedToRunStats(state.run.stats, awarded.unlockedNow);
-    recentAchievementIds = awarded.unlockedNow;
+    recentAchievementIds = [...new Set([
+      ...recentAchievementIds, ...awarded.unlockedNow
+    ])];
   }
 }
 
@@ -723,11 +725,15 @@ $("modal").addEventListener("click", event => {
   if (event.target === $("modal")) closeBank();
 });
 function startNewGame() {
-  if (!state.over && !confirm("Start a new game? Your current run will be replaced.")) return;
+  if (!isFinishedRun(mode, state) &&
+      !confirm("Start a new game? Your current run will be replaced.")) return;
   const best = state.best;
   stopMotion();
   closeBank();
+  if ($("resultsDialog").open) $("resultsDialog").close();
+  if ($("achievementsDialog").open) $("achievementsDialog").close();
   pendingItem = null;
+  recentAchievementIds = [];
   state = mode === "roguelite" ? newRogueliteRun(best) : fresh(best);
   render();
 }
@@ -744,6 +750,8 @@ function activateConsumable(slot, targets) {
     const next = useConsumable(state, slot, targets);
     state = next;
     pendingItem = null;
+    recentAchievementIds = [];
+    awardRunEvent({ type: "consumable" });
     state.over = currentGameEnded();
   } catch (error) {
     pendingItem = null;
@@ -786,10 +794,15 @@ $("nextRound").addEventListener("click", () => {
   state = enterRogueliteShop(state);
   render();
 });
-function applyShopAction(reducer) {
+function applyShopAction(reducer, kind = null) {
   if (mode !== "roguelite" || state.run.phase !== "shop") return;
   try {
     state = reducer(state);
+    recentAchievementIds = [];
+    if (kind === "purchase") {
+      awardRunEvent({ type: "purchase",
+        fullBuild: state.run.inventory.permanents.every(Boolean) });
+    }
   } catch (error) {
     state.run.shop.notice = error instanceof Error ? error.message : "Unable to complete that action.";
   }
@@ -802,6 +815,7 @@ $("shopContinue").addEventListener("click", () => {
   if (mode !== "roguelite" || state.run.phase !== "shop") return;
   stopMotion();
   state = advanceRogueliteRound(state, Math.random, goldChancesForRun(state.run));
+  recentAchievementIds = [];
   render();
 });
 // Escape cannot dismiss the modal while the game is in its saved shop phase.
@@ -815,6 +829,7 @@ function switchMode(selected) {
   }
   stopMotion();
   pendingItem = null;
+  recentAchievementIds = [];
   persist();
   mode = selected;
   localStorage.setItem(MODE_SAVE, mode);
@@ -823,14 +838,20 @@ function switchMode(selected) {
     (mode === "classic" || validRogueliteRun(restored.run))
     ? restored : mode === "roguelite" ? newRogueliteRun() : fresh();
   Object.assign(state, restoreMoveBudget(state));
+  state.resultsFinalized = state.resultsFinalized === true;
+  state.resultsDismissed = state.resultsDismissed === true;
   state.locked = Array.isArray(state.locked) ? state.locked : [];
   state.mergeReady = Array.isArray(state.mergeReady) ? state.mergeReady : [];
   state.discovered = Array.isArray(state.discovered) ? state.discovered : [];
   state.banked = Array.isArray(state.banked) ? state.banked : [];
-  if (mode === "roguelite") state.run = restoreEffectState(restoreShopState(
-    restoreRogueliteRun(state.run, state.movesLeft)));
+  if (mode === "roguelite") {
+    state.run = restoreEffectState(restoreShopState(
+      restoreRogueliteRun(state.run, state.movesLeft)));
+  } else {
+    state.stats = restoreRunStats(state.stats);
+  }
   state.over = mode === "roguelite" && state.run.phase !== "playing" ? false
-    : gameEnded(state.board, new Set(state.banked), new Set(state.locked), state.movesLeft);
+    : currentGameEnded();
   render();
 }
 $("modeClassic").addEventListener("click", () => switchMode("classic"));
@@ -859,7 +880,8 @@ const keys = {
 document.addEventListener("keydown", event => {
   if (event.key === "Escape" && pending !== null) { closeBank(); return; }
   // Let arrow keys scroll the modal shop instead of swallowing them as slides.
-  if ($("shopDialog").open) return;
+  if ($("shopDialog").open || $("achievementsDialog").open ||
+      $("resultsDialog").open) return;
   if (pendingItem !== null) {
     if (event.key === "Escape") { event.preventDefault(); cancelConsumable(); }
     return;
