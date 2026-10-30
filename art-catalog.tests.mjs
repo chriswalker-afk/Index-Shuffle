@@ -44,6 +44,6 @@ assert.match(css, /\.shop-merchant-strip/);
 assert.match(css, /\.boss-rule-portrait/);
 assert.ok(existsSync("art-preview.html"));
 assert.ok(existsSync("assets/art/ART_DIRECTION.md"));
-assert.match(html, /styles\.css\?v=release-5b/);
-assert.match(html, /app\.mjs\?v=release-5b/);
+assert.match(html, /styles\.css\?v=release-5c/);
+assert.match(html, /app\.mjs\?v=release-5c/);
 console.log("Index Shuffle all-eight-boss art catalogue checks passed.");
