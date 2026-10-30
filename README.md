@@ -56,33 +56,38 @@ a new one instead.
 - Moves animate briefly (170 ms). System **reduced motion** preferences disable animations. Banking timers pause while the browser tab is hidden.
 - Game state, correctly banked merge credit, remaining moves and high score are saved locally in the browser. New games start with 10 moves. **Existing saved games created under the earlier automatic-merge-reward rule** keep their board, score, discoveries and historical slide count but receive a fresh ten-move balance and zero correct-bank credit; this upgrade occurs once.
 
-## Enchanted Squares — Pass 1
+## Enchanted Squares — Passes 1–2
 
-From round 4, a rare shop roll can offer **Runestones**, one-use tools in the existing
-two consumable slots. The Gilded Foundry (5 coins) and Power Prism (6 coins) each
-create a **fixed positive square** on a selected board position. Runestone squares
-have two charges, at most two active squares are allowed, and unused charges vanish
-on advancing to the next round. They are independent of the five square hazards,
-not carried by moving tiles, and cannot be placed on a hazard, an incoming
-hazard or blocker warning, a blocker, or an already-enchanted square. Empty
-squares are valid targets; placing one does not spend a slide.
+From round 4, approximately 22% of shop visits offer **one rare Runestone**
+among the two consumable offers. These items occupy existing one-use slots
+and enchant a chosen board coordinate without using a move. Enchantments
+are independent of tiles, square hazards and blockers. At most two may
+exist at once, and remaining charges disappear between rounds. Runestones
+cannot be placed on active hazards, other enchantments, pending hazard
+warnings, blockers or blocker-warning cells. Empty board squares are valid.
 
-- **Gilded Foundry:** a merge finishing on this square becomes golden and
-  carries its gold when moved. A correct bank on the square instead counts
-  as golden for its one bank. Already-golden tiles do not spend Foundry charges.
-- **Power Prism:** a merge finishing on this square receives a persistent
-  double-score mark, carried with the power until banked. A correct bank on
-  the square also earns twice the normal scored points if the tile is not
-  already marked. No double-application or extra charge is incurred from
-  activating the same effect twice. A boss that nullifies the score still
-  nullifies it, without wasting a directly banked square charge.
+| Runestone | From | Price | Charges | Effect |
+| --- | ---: | ---: | ---: | --- |
+| Gilded Foundry | Round 4 | 5 | 2 | A successful merge becomes golden, or a correct bank on its square counts as gold. Already-gold powers do not spend charges. |
+| Power Prism | Round 4 | 6 | 2 | A merge stores a double-score mark on its power; otherwise a correct bank on this square scores double. Already-marked powers do not double again. Zero-score boss banks do not consume a direct Prism charge. |
+| Time Sanctuary | Round 4 | 5 | 2 | Opening a banking question here grants +10 seconds (maximum 60). The charge is consumed on opening regardless of success. |
+| Echo Seal | Round 7 | 7 | 1 | Correctly bank one previously banked base–exponent combination again here. The usual one-slide tile lock and exact answer still apply. |
+| Shatter Crest | Round 7 | 5 | 2 | Correct banking of a genuinely merged power beside a blocker adds +1 hit. May stack with Blockbuster to a maximum of 3 hits per adjacent blocker. |
+| Twin Mint | Round 10 | 8 | 1 | A merge finishing here becomes double gold, upgrading ordinary gold if necessary. Cannot be activated by banking or sliding alone. |
 
-Each activation is tied to a meaningful merge or correct answer. Enchantments
-have a separate persistent 4×4 save layer (legacy saves safely start with none);
-consumable inventory, existing hazards and Classic scoring remain compatible.
-The board shows enchanted positions and remaining charges without intercepting
-gestures. CI includes separate Runestone tests and the full existing browser
-and game test suite.
+Enchantment icons, charge badges, rare offer labels and tile-carried Prism
+marks are visible on the board. Correct-answer banking remains the only
+source of score, blocker damage, and merge credit. Normal gold rewards and
+boss restrictions remain authoritative. Cancelled banking questions now
+lock the tile until another successful slide, preventing free timer resets.
+Time Sanctuary awards extra time at question open and spends one charge
+immediately even if the answer is wrong, cancelled or times out.
+
+The enchantment layer saves as an independent serializable 4×4 array and
+migrates safely from Pass-1/legacy saves. Existing discoveries, currency,
+inventory, hazard warnings, game modes and achievement profiles remain
+unchanged. CI covers placement, charges, repeated banks, double gold,
+score multipliers, shop rarity, timers, blocker hits and browser navigation.
 
 ## Square hazards — Passes 1–4 (balance, rescue and visual polish)
 
