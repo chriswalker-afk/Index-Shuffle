@@ -187,17 +187,36 @@ function render() {
     $("hazardCount").textContent = activeHazardCount(state.hazards) +
       " / " + MAX_ACTIVE_HAZARDS;
     const warning = state.run.hazardWarning;
+    const count = activeHazardCount(state.hazards);
+    const names = state.hazards.filter(Boolean).map(hazard =>
+      HAZARD_DEFINITIONS[hazard.type].name +
+      (hazard.type === "cloudy" ? " (" + hazard.turnsLeft + " slides)" : ""));
+    const coords = warning
+      ? "row " + (Math.floor(warning.index / 4) + 1) +
+        ", column " + (warning.index % 4 + 1) : "";
+    $("boardHazardStatus").hidden =
+      state.run.round <= 3 && !warning && count === 0;
+    $("boardHazardTitle").textContent = warning
+      ? HAZARD_DEFINITIONS[warning.type].name + " incoming"
+      : count ? count + (count === 1 ? " active hazard" : " active hazards")
+      : "Stage " + stageForRound(state.run.round) + " hazards";
+    $("boardHazardDetail").textContent = warning
+      ? "Marked square: " + coords + " · Next successful slide"
+      : count ? names.join(" · ") : "A warning appears before each hazard.";
     $("hazardNext").textContent = warning
-      ? HAZARD_DEFINITIONS[warning.type].name +
-        " square incoming on the next successful slide!"
+      ? HAZARD_DEFINITIONS[warning.type].name + " at " + coords +
+        " after the next successful slide."
       : state.run.round <= 3
         ? "Square hazards begin in Stage 2."
-        : "New hazards may be warned one successful slide in advance.";
+        : "New hazards are warned one successful slide in advance.";
     $("hazardAlert").hidden = !warning;
+    $("hazardAlert").dataset.hazard = warning?.type ?? "";
     $("hazardAlert").textContent = warning
       ? "⚠ " + HAZARD_DEFINITIONS[warning.type].name +
-        " hazard: marked square activates after your next slide." : "";
+        " will appear at " + coords + " after your next successful slide."
+      : "";
   } else {
+    $("boardHazardStatus").hidden = true;
     $("hazardAlert").hidden = true;
   }
   finalizeGameIfNeeded();
@@ -408,7 +427,9 @@ function render() {
       const type = HAZARD_DEFINITIONS[state.run.hazardWarning.type]?.name;
       if (type) {
         button.title = (button.title ? button.title + ". " : "") +
-          "Incoming " + type + " square after the next slide.";
+          "Incoming " + type + " square after the next successful slide " +
+          "at row " + (Math.floor(i / 4) + 1) + ", column " +
+          (i % 4 + 1) + ".";
         button.setAttribute("aria-label", button.title);
       }
     }
