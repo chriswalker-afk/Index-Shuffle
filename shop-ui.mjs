@@ -2,11 +2,11 @@
 // reroll effects remain in shop.mjs; this module changes presentation only.
 import {
   ITEM_BY_ID, INVENTORY_SLOTS, shopItemPrice, purchaseShopOffer, sellPermanent, discardConsumable
-} from "./shop.mjs?v=frostlock-v1";
-import { targetForRound } from "./roguelite.mjs?v=frostlock-v1";
-import { bossForRound, bossTargetFor } from "./bosses.mjs?v=frostlock-v1";
+} from "./shop.mjs?v=runestones-pass2";
+import { targetForRound } from "./roguelite.mjs?v=runestones-pass2";
+import { bossForRound, bossTargetFor } from "./bosses.mjs?v=runestones-pass2";
 import { bossPortraitFor } from "./art-catalog.mjs?v=frostlock-v1";
-import { itemIconHref, itemArtKind } from "./shop-art.mjs?v=hazard-counter-v1-art-pass2";
+import { itemIconHref, itemArtKind } from "./shop-art.mjs?v=runestones-pass2";
 
 const $ = id => document.getElementById(id);
 const SVG_NS = "http://www.w3.org/2000/svg";
