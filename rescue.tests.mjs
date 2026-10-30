@@ -83,5 +83,5 @@ assert.equal(after.movesLeft,unlocked.movesLeft);
 const app=readFileSync("app.mjs","utf8");
 assert.match(app,/rescuableConsumables\(state\)/);
 assert.match(app,/canRescueHazardLock\(/);
-assert.match(app,/Board is blocked, but /);
+assert.match(app,/board is blocked, but /);
 console.log("All held-item game-over rescue scenarios passed.");
