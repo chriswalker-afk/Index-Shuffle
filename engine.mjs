@@ -371,8 +371,11 @@ export function mergeReadyAfterSlide(previous = [], motions = []) {
 // Incorrect answers, cancelled attempts and ordinary slides do no damage.
 export function attemptBank(board, index, answer,
   { discovered = new Set(), banked = new Set(),
-    locked = new Set(), mergeReady = new Set() } = {},
+    locked = new Set(), mergeReady = new Set(), blockerDamage = 1 } = {},
   rng = Math.random) {
+  if (!Number.isSafeInteger(blockerDamage) || blockerDamage < 1 || blockerDamage > 2) {
+    throw new RangeError("Blocker banking damage must be one or two hits");
+  }
   const t = board[index];
   if (!isBankable(t, banked, index, locked)) return { status: "unavailable" };
   if (!checkAnswer(t, answer)) return { status: "incorrect" };
@@ -385,7 +388,7 @@ export function attemptBank(board, index, answer,
     for (const target of adjacentIndices(index)) {
       if (!isBlocker(next[target])) continue;
       const strength = blockerStrength(next[target]);
-      const hits = next[target].hits + 1;
+      const hits = next[target].hits + blockerDamage;
       if (hits >= strength) {
         next[target] = null;
         destroyed.push(target);
