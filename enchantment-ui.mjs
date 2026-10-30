@@ -4,9 +4,12 @@ import {
   ENCHANTMENT_CELLS, ENCHANTMENT_DEFINITIONS, activeEnchantmentCount
 } from "./enchantments.mjs?v=runestones-pass2";
 
-export function renderEnchantmentLayer(board, layer) {
+export function renderEnchantmentLayer(board, layer,
+  { previewType = null, candidates = [] } = {}) {
   board.querySelector(".enchantment-layer")?.remove();
-  if (activeEnchantmentCount(layer) === 0) return;
+  const preview = ENCHANTMENT_DEFINITIONS[previewType] &&
+    Array.isArray(candidates) ? new Set(candidates) : new Set();
+  if (activeEnchantmentCount(layer) === 0 && preview.size === 0) return;
   const overlay = document.createElement("div");
   overlay.className = "enchantment-layer";
   overlay.setAttribute("aria-hidden", "true");
@@ -23,6 +26,16 @@ export function renderEnchantmentLayer(board, layer) {
       remaining.className = "enchantment-remaining";
       remaining.textContent = String(entry.chargesLeft);
       slot.append(mark, remaining);
+    } else if (preview.has(index)) {
+      slot.classList.add("enchantment-slot--preview");
+      slot.dataset.preview = previewType;
+      const mark = document.createElement("span");
+      mark.className = "enchantment-preview-icon";
+      mark.textContent = ENCHANTMENT_DEFINITIONS[previewType].icon;
+      const word = document.createElement("span");
+      word.className = "enchantment-preview-label";
+      word.textContent = "PLACE";
+      slot.append(mark, word);
     }
     overlay.append(slot);
   }
