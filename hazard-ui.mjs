@@ -5,13 +5,16 @@ import {
   HAZARD_CELLS, HAZARD_DEFINITIONS, hazardAt, activeHazardCount
 } from "./hazards.mjs?v=hazard-layer-v1";
 
-export function renderHazardLayer(boardElement, hazards) {
+export function renderHazardLayer(boardElement, hazards, warning = null) {
   if (!boardElement || typeof boardElement.appendChild !== "function") {
     throw new RangeError("A board element is required");
   }
   const old = boardElement.querySelector(".hazard-layer");
   old?.remove();
-  if (activeHazardCount(hazards) === 0) return;
+  const showWarning = warning && Number.isInteger(warning.index) &&
+    warning.index >= 0 && warning.index < HAZARD_CELLS &&
+    HAZARD_DEFINITIONS[warning.type] && !hazards[warning.index];
+  if (activeHazardCount(hazards) === 0 && !showWarning) return;
 
   const overlay = document.createElement("div");
   overlay.className = "hazard-layer";
@@ -21,6 +24,17 @@ export function renderHazardLayer(boardElement, hazards) {
     const square = document.createElement("div");
     square.className = "hazard-slot";
     const entry = hazardAt(hazards, index);
+    if (!entry && showWarning && warning.index === index) {
+      const alert = document.createElement("span");
+      alert.className = "hazard-warning-symbol";
+      alert.textContent = "!";
+      const caption = document.createElement("small");
+      caption.className = "hazard-warning-label";
+      caption.textContent = HAZARD_DEFINITIONS[warning.type].name + " NEXT";
+      square.classList.add("hazard-incoming");
+      square.dataset.warning = warning.type;
+      square.append(alert, caption);
+    }
     if (entry) {
       const definition = HAZARD_DEFINITIONS[entry.type];
       square.classList.add("hazard-" + entry.type);
