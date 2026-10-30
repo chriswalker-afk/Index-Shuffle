@@ -232,6 +232,7 @@ assert.match(app, /advanceRogueliteRound\(state\)/);
 assert.match(app, /renderRogueliteShop\(state, mode, applyShopAction\)/);
 assert.match(app, /shopDialog"\)\.addEventListener\("cancel", event => event\.preventDefault\(\)\)/);
 assert.match(app, /restoreShopState\(/);
+assert.match(app, /if \(\$\("shopDialog"\)\.open\) return;/);
 assert.match(app, /index-shuffle-v1/);
 assert.match(app, /index-shuffle-roguelite-v1/);
 assert.match(ui, /purchaseShopOffer\(value, type, slotIndex, i\)/);
