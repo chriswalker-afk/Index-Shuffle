@@ -1,6 +1,6 @@
 // Roguelike square hazards — permanent coordinates independent of tile
 // objects. Effects, fair placement, warnings and rescue checks live here.
-import { SIZE, isObstacle, canMove, adjacentIndices } from "./engine.mjs?v=hazard-pass4-v1";
+import { SIZE, isObstacle, canMove, adjacentIndices } from "./engine.mjs?v=hazard-counter-v1";
 
 export const HAZARD_CELLS = SIZE * SIZE;
 export const MAX_ACTIVE_HAZARDS = 2;
