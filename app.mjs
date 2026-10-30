@@ -205,13 +205,15 @@ function render() {
       button.setAttribute("aria-label", button.title);
       button.disabled = true;
     } else if (t) {
+      const gold = rogue ? goldTier(t) : 0;
       const available = isBankable(t, banked, i, locked);
-      const blocked = t.exp >= 2 && locked.has(i) && !banked.has(key(t));
+      const blocked = (t.exp >= 2 || gold > 0) && locked.has(i) &&
+        (gold > 0 || !banked.has(key(t)));
       const strike = available && mergeReady.has(i) &&
         adjacentIndices(i).some(j => isBlocker(state.board[j]));
-      const gold = rogue ? goldTier(t) : 0;
       const coinBadge = gold
-        ? '<small class="tile-gold-mark" aria-hidden="true">●' + (gold === 2 ? '×2' : '') + '</small>'
+        ? '<small class="tile-gold-mark" aria-hidden="true">◉' +
+          (gold === 2 ? '×2' : '') + '</small>'
         : "";
       const curseBadge = rogue && Number.isInteger(t.curseLeft) && t.curseLeft > 0
         ? '<small class="tile-curse-mark" aria-hidden="true">3 · ' + t.curseLeft + '</small>'
@@ -221,9 +223,9 @@ function render() {
         : blocked ? '<i aria-hidden="true">⌛</i>' : ""));
       const description = t.base + " to the power " + t.exp;
       const goldCoins = gold ? goldForBank(t, mergeReady.has(i)) : 0;
-      const goldHint = !gold ? "" : goldCoins
-        ? ". Golden power: a correct bank earns " + goldCoins + " coins."
-        : ". Golden tile: merge it before banking to earn coins.";
+      const goldHint = !gold ? "" :
+        ". Golden tile: a correct bank earns " + goldCoins +
+        (goldCoins === 1 ? " coin. Merge first to earn more." : " coins.");
       button.title = (blocked ? "Wait one slide before retrying " + description
         : strike ? "Bank " + description + " correctly to damage adjacent blocker"
         : available ? "Bank " + description : description) + goldHint +
@@ -351,7 +353,8 @@ function animateSlide(before, motions, mergedDestinations, spawned, damaged, des
     ghost.style.width = from.width + "px";
     ghost.style.height = from.height + "px";
     ghost.innerHTML = tileContent(t, mode === "roguelite" && goldTier(t)
-      ? '<small class="tile-gold-mark" aria-hidden="true">●</small>' : "");
+      ? '<small class="tile-gold-mark" aria-hidden="true">◉' +
+        (goldTier(t) === 2 ? '×2' : '') + '</small>' : "");
     layer.appendChild(ghost);
     const animation = ghost.animate([
       { transform: "translate3d(0, 0, 0)" },
@@ -500,10 +503,11 @@ function openBank(i) {
     ? bankItemBonuses(state.run, t, state.mergeReady.includes(i)) : null;
   const previewScore = bonuses
     ? bossPointsFor(state.run, t, bonuses.score) : null;
-  const goldHelp = mode !== "roguelite" || !goldTier(t) ? ""
-    : bankGold ? " Correct banking also earns " +
-      (bankGold + (bonuses?.extraCoins ?? 0)) + " coins."
-    : " This tile is golden, but must be merged before banking to earn coins.";
+  const goldHelp = mode !== "roguelite" || !goldTier(t) ? "" :
+    " Banking this golden tile correctly earns " +
+    (bankGold + (bonuses?.extraCoins ?? 0)) +
+    " " + (bankGold + (bonuses?.extraCoins ?? 0) === 1 ? "coin" : "coins") +
+    (bankGold === 1 ? ". Merge it first to earn a bigger reward." : ".");
   $("promptHelp").textContent = (canStrike
     ? "Correct answer: bank this power and damage the nearby blocker."
     : "Calculate its exact value to bank this power.") + goldHelp +
