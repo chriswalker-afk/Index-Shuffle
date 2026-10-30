@@ -148,6 +148,9 @@ export function slide(board, direction, rules = null) {
     : direction === "up" ? -SIZE : SIZE;
   const passesGreedy = (from, to) => {
     if (from === to || !hazards) return false;
+    // Gilded Soles preserves gold while travelling PAST a Greedy square,
+    // but never protects a tile that stops on Greedy (including merges).
+    if (rules?.greedyLandingOnly) return hazardType(to) === "greedy";
     for (let index = from; index !== to + stride; index += stride) {
       if (hazardType(index) === "greedy") return true;
     }
