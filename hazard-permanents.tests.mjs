@@ -264,5 +264,5 @@ assert.match(app, /Hazard Tamer softened incoming/);
 assert.match(shopUI, /item\.hazardCounter \? "Permanent · Hazard defence"/);
 assert.match(css, /\.shop-offer-card\.hazard-counter-offer/);
 assert.match(css, /\.equip-chip\.hazard-counter-equipped/);
-assert.match(html, /styles\.css\?v=release-5c/);
+assert.match(html, /styles\.css\?v=round-intermission-v1/);
 console.log("All hazard-defence permanent item tests passed.");
