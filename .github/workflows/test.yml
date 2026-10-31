@@ -26,6 +26,7 @@ jobs:
           node save-safety.tests.mjs
           node experience.tests.mjs
           node release-audit.tests.mjs
+          node round-complete.tests.mjs
           node shop.tests.mjs
           node effects.tests.mjs
           node bosses.tests.mjs
@@ -63,6 +64,9 @@ jobs:
           node --check experience.mjs
           node --check experience.tests.mjs
           node --check release-audit.tests.mjs
+          node --check round-complete.mjs
+          node --check round-complete-ui.mjs
+          node --check round-complete.tests.mjs
           node --check shop.mjs
           node --check shop-ui.mjs
           node --check shop.tests.mjs
@@ -115,6 +119,9 @@ jobs:
           test -f experience.mjs
           test -f experience.tests.mjs
           test -f release-audit.tests.mjs
+          test -f round-complete.mjs
+          test -f round-complete-ui.mjs
+          test -f round-complete.tests.mjs
           test -f assets/art/index-shuffle-icon.svg
           test -f shop.mjs
           test -f shop-ui.mjs
