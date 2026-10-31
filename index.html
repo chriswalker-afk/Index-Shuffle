@@ -16,7 +16,7 @@
   <meta name="twitter:card" content="summary">
   <title>Index Shuffle — Make every move count</title>
   <link rel="icon" href="assets/art/index-shuffle-icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="styles.css?v=release-5c">
+  <link rel="stylesheet" href="styles.css?v=round-intermission-v1">
 </head>
 <body>
   <main class="shell">
@@ -686,6 +686,80 @@
     </div>
   </dialog>
 
+  <dialog id="roundCompleteDialog" class="round-complete-dialog"
+    aria-labelledby="roundCompleteTitle" aria-describedby="roundCompleteDescription">
+    <div class="round-complete-shell">
+      <header class="round-complete-topline">
+        <span class="round-complete-eyebrow">✦ &nbsp; THE NUMBERWORLD · ROUND CLEARED</span>
+        <span id="roundCompleteRound" class="round-complete-round">ROUND 1 / 12</span>
+      </header>
+
+      <div class="round-complete-hero">
+        <div>
+          <p class="round-complete-kicker">TARGET REACHED</p>
+          <h2 id="roundCompleteTitle">Round complete!</h2>
+          <p id="roundCompleteDescription">A new victory on your journey through the Numberworld.</p>
+        </div>
+        <div class="round-complete-seal" aria-hidden="true"><span>✦</span></div>
+      </div>
+      <div id="roundCompleteBossVictory" class="round-complete-boss-victory" hidden>
+        <img id="roundCompleteBossPortrait" alt="" width="68" height="68" decoding="async">
+        <div><span>BOSS DEFEATED</span><strong id="roundCompleteDefeatedName">Challenge completed</strong></div>
+      </div>
+
+      <div class="round-complete-scoreboard" aria-label="This round's rewards">
+        <div class="round-complete-stat">
+          <span>ROUND SCORE</span><strong id="roundCompleteScore">0</strong>
+          <small id="roundCompleteTarget">Target 0 points</small>
+        </div>
+        <div class="round-complete-stat round-complete-stat--gold">
+          <span>GOLD EARNED</span><strong id="roundCompleteGold">+0</strong>
+          <small>From banks and unused moves</small>
+        </div>
+        <div class="round-complete-stat">
+          <span>YOUR WALLET</span><strong id="roundCompleteWallet">0</strong>
+          <small>Coins carried forward</small>
+        </div>
+      </div>
+      <div class="round-complete-breakdown">
+        <div><span>Golden powers and bank bonuses</span><strong id="roundCompleteBankCoins">+0</strong></div>
+        <div><span id="roundCompleteUnusedLabel">Unused moves</span>
+          <strong id="roundCompleteMoveCoins">+0</strong></div>
+        <div class="round-complete-breakdown-total">
+          <span>Total gold awarded</span><strong id="roundCompleteGoldTotal">+0</strong>
+        </div>
+      </div>
+
+      <section class="round-complete-boss-track" aria-labelledby="roundCompleteBossLabel">
+        <div class="round-complete-boss-heading">
+          <div>
+            <span class="round-complete-boss-kicker">THE ROAD AHEAD</span>
+            <h3 id="roundCompleteBossLabel">Next boss: Round 3</h3>
+            <p id="roundCompleteBossDetail">Two more rounds before your next challenge.</p>
+          </div>
+          <span id="roundCompleteBossCount" class="round-complete-boss-count">1 / 3</span>
+        </div>
+        <progress id="roundCompleteBossProgress" value="1" max="3"
+          aria-label="Rounds completed toward the next boss"></progress>
+        <ol id="roundCompleteBossSteps" class="round-complete-boss-steps"
+          aria-label="Progress toward the next boss"></ol>
+      </section>
+
+      <div class="round-complete-actions">
+        <button type="button" id="roundCompleteShop" class="primary round-complete-shop">
+          <span aria-hidden="true">◉</span> Visit shop
+        </button>
+        <button type="button" id="roundCompleteContinue" class="outline round-complete-continue">
+          Continue to round 2
+        </button>
+      </div>
+      <p class="round-complete-footnote">Continue skips this shop visit. Your gold and existing items carry forward, but you cannot return to this shop.</p>
+      <button type="button" id="roundCompleteReturn" class="round-complete-return">
+        Save and return to title
+      </button>
+    </div>
+  </dialog>
+
   <dialog id="shopDialog" class="shop-dialog" aria-labelledby="shopTitle" aria-describedby="shopExplanation">
     <div class="shop-dialog-inner">
       <header class="shop-head">
@@ -793,6 +867,6 @@
       <button type="button" id="cancel" class="textbtn">Cancel question (locks tile until next slide)</button>
     </div>
   </dialog>
-  <script type="module" src="app.mjs?v=release-5c"></script>
+  <script type="module" src="app.mjs?v=round-intermission-v1"></script>
 </body>
 </html>
