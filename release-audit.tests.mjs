@@ -24,8 +24,8 @@ assert.match(html, /rel="icon" href="assets\/art\/index-shuffle-icon\.svg" type=
 assert.match(icon, /<svg[^>]*viewBox="0 0 64 64"/);
 assert.match(icon, /<title id="title">Index Shuffle icon<\/title>/);
 assert.match(icon, /fill="url\(#tile\)"/);
-assert.match(html, /styles\.css\?v=release-5c/);
-assert.match(html, /app\.mjs\?v=release-5c/);
+assert.match(html, /styles\.css\?v=round-intermission-v1/);
+assert.match(html, /app\.mjs\?v=round-intermission-v1/);
 
 // All local URL references should actually exist. Absolute canonical URLs,
 // colour fragments and mailto URLs are deliberately excluded.
