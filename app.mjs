@@ -6,10 +6,10 @@ import {
   restoreMoveBudget, spendMove, slideCost, creditCorrectBank, gameEnded
 } from "./engine.mjs?v=runestones-pass2";
 import { newRogueliteRun, targetForRound, stageForRound, isBossRound,
-  recordRogueliteBank, advanceRogueliteRound, validRogueliteRun,
+  recordRogueliteBank, advanceRogueliteRound, skipRogueliteShop, validRogueliteRun,
   restoreRogueliteRun, markGoldSpawns, goldTier, goldForBank,
   bankSecondsForRound, INITIAL_BANK_SECONDS
-} from "./roguelite.mjs?v=runestones-pass2";
+} from "./roguelite.mjs?v=round-intermission-v1";
 import {
   restoreShopState, enterRogueliteShop, rerollRogueliteShop
 } from "./shop.mjs?v=runestones-pass4";
@@ -56,6 +56,8 @@ import { ENCHANTMENT_ITEMS, ENCHANTMENT_DEFINITIONS,
   restoreEnchantmentLayer, activeEnchantmentCount, previewEnchantedBank,
   redeemEnchantedBank, resolveSlideEnchantments } from "./enchantments.mjs?v=runestones-pass2";
 import { renderEnchantmentLayer } from "./enchantment-ui.mjs?v=runestones-pass3";
+import { renderRoundCompleteDialog
+} from "./round-complete-ui.mjs?v=round-intermission-v1";
 import {
   renderHazardLayer, hazardTileDescription
 } from "./hazard-ui.mjs?v=hazard-counter-v1-art-pass4";
@@ -426,7 +428,7 @@ function render() {
   $("helpRogueBlock").hidden = !rogue;
   $("rogueEndSummary").hidden = !rogue || state.run.phase !== "victory";
   $("roundClearPanel").hidden = !rogue || state.run.phase !== "round-clear";
-  $("nextRound").textContent = "Visit shop";
+  $("nextRound").textContent = "View round summary";
   $("endActions").querySelector("strong").textContent = rogue && state.run.phase === "victory"
     ? "Run completed!" : "Run finished";
   if (rogue) {
@@ -780,7 +782,7 @@ function render() {
       ITEM_BY_ID[state.run.inventory.consumables[selection.slot].id].name +
       ". This does not use a move."
     : rogue && state.run.phase === "round-clear"
-    ? "Round cleared! Your shop visit is next."
+    ? "Round cleared! Choose the shop or start the next round in your summary."
     : rogue && state.run.phase === "shop"
     ? "Shop open: choose items, reroll, or save your coins."
     : rogue && state.run.phase === "victory"
@@ -802,6 +804,7 @@ function render() {
   $("endActions").hidden = !state.over && !(rogue && state.run.phase === "victory");
   renderRogueliteInventory(state, rogue, beginConsumable, slot =>
     canActivateConsumable(state, slot));
+  renderRoundCompleteDialog(state, mode, screen);
   renderRogueliteShop(state, mode, applyShopAction);
   renderFinalScreen(mode, state, achievementProfile);
   renderActivity();
@@ -1106,7 +1109,7 @@ function focusAfterBank(index) {
   if (screen !== "game" || $("modal").open ||
       $("shopDialog").open || $("resultsDialog").open) return;
   if (mode === "roguelite" && state.run.phase === "round-clear") {
-    $("nextRound").focus({ preventScroll: true });
+    $("roundCompleteShop").focus({ preventScroll: true });
     return;
   }
   if (state.over || (mode === "roguelite" && state.run.phase === "victory")) {
@@ -1417,7 +1420,8 @@ function closeNavigationDialogs() {
   else closeBank();
   pendingItem = null;
   recentAchievementIds = [];
-  for (const id of ["shopDialog", "resultsDialog", "achievementsDialog", "bossIntroDialog"]) {
+  for (const id of ["roundCompleteDialog", "shopDialog", "resultsDialog",
+    "achievementsDialog", "bossIntroDialog"]) {
     if ($(id).open) $(id).close();
   }
 }
@@ -1498,8 +1502,10 @@ function resumeSavedGame(selected) {
   hideMoment();
   screen = "game";
   render();
-  // A Roguelike shop resumes in its modal, including its existing stock.
-  if (!$("shopDialog").open) $("headerTitle").focus();
+  // A saved shop or round-clear intermission resumes in its native modal.
+  if (!$("shopDialog").open && !$("roundCompleteDialog").open) {
+    $("headerTitle").focus();
+  }
 }
 
 function returnToTitle() {
