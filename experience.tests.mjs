@@ -96,6 +96,6 @@ assert.match(css,/\.activity-list/);
 assert.match(css,/\.results-ending/);
 assert.match(css,/\.results-dialog\.victory \.results-score-hero/);
 assert.match(css,/prefers-reduced-motion:reduce/);
-assert.match(html,/app\.mjs\?v=release-5c/);
-assert.match(html,/styles\.css\?v=release-5c/);
+assert.match(html,/app\.mjs\?v=round-intermission-v1/);
+assert.match(html,/styles\.css\?v=round-intermission-v1/);
 console.log("Pass 5B tour, activity, moment and score summary tests passed.");
