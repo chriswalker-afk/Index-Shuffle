@@ -245,6 +245,21 @@ export function recordRogueliteBank(run, previousScore, power,
   return { points, roundScore, cleared, bankGold, moveGold, run: next };
 }
 
+// Players may choose to bypass the merchant entirely after clearing a
+// non-final round. Reuse the *same* stage-advance code as a real shop visit;
+// no offers are drawn, no items are bought and no extra gold is awarded.
+// The existing shop-only advance guard remains strict for all other callers.
+export function skipRogueliteShop(state, rng = Math.random, rates = null) {
+  if (state?.mode !== "roguelite" || !validRogueliteRun(state.run) ||
+      state.run.phase !== "round-clear" || state.run.round >= TOTAL_ROUNDS) {
+    throw new RangeError("Skip the shop only after clearing a Roguelite round");
+  }
+  return advanceRogueliteRound({
+    ...state,
+    run: { ...state.run, phase: "shop", shop: null }
+  }, rng, rates);
+}
+
 // Currency, discoveries and lifetime slides persist. Round bank locks,
 // tile gold, dry streak, blockers, moves, and round score all reset.
 export function advanceRogueliteRound(state, rng = Math.random, rates = null) {

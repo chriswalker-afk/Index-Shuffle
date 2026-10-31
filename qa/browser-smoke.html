@@ -352,6 +352,126 @@
         assert(withHistory.activity?.some(e => e.type === "system"),
           "recent activity survives a save as bounded, serialisable data");
 
+        // Real correct bank => real round-clear phase => celebratory modal.
+        // All rewards come from the existing bank engine, not test-only UI.
+        $("headerTitle").click();
+        const roundBankSave = JSON.parse(win.localStorage.getItem(key));
+        roundBankSave.board = Array(16).fill(null);
+        roundBankSave.board[0] = { base: 2, exp: 8, gold: 1 };
+        roundBankSave.banked = []; roundBankSave.locked = [];
+        roundBankSave.mergeReady = []; roundBankSave.score = 0;
+        roundBankSave.movesLeft = 7; roundBankSave.over = false;
+        roundBankSave.hazards = Array(16).fill(null);
+        roundBankSave.enchantments = Array(16).fill(null);
+        roundBankSave.run.round = 1;
+        roundBankSave.run.phase = "playing";
+        roundBankSave.run.roundBankCoins = 0;
+        roundBankSave.run.lastRoundReward = null;
+        roundBankSave.run.shop = null;
+        roundBankSave.run.frozenDirection = null;
+        roundBankSave.run.hazardWarning = null;
+        win.localStorage.setItem(key, JSON.stringify(roundBankSave));
+        $("titleContinue").click();
+        const readyRound = [...$("continueSlots").querySelectorAll("button")]
+          .find(button => button.getAttribute("aria-label")?.includes("Roguelike"));
+        assert(Boolean(readyRound), "deterministic round-clear scenario can resume");
+        readyRound.click();
+        await tick();
+        $("board").children[0].click();
+        assert($("modal").open, "genuine round-clear bank prompts for exact answer");
+        $("answer").value = "256";
+        $("bankForm").requestSubmit();
+        await tick();
+        assert($("roundCompleteDialog").open,
+          "correct bank that reaches the target opens the round-complete pop-in");
+        assert(!$("modal").open && !$("shopDialog").open,
+          "round-complete replaces banking and does not force the shop");
+        assert($("roundCompleteTitle").textContent === "Round complete!",
+          "the intermission celebrates a completed regular round");
+        assert($("roundCompleteScore").textContent === "8" &&
+          $("roundCompleteTarget").textContent.includes("8"),
+          "the round score and target reflect the genuine bank");
+        assert($("roundCompleteBankCoins").textContent === "+1" &&
+          $("roundCompleteMoveCoins").textContent === "+5" &&
+          $("roundCompleteGoldTotal").textContent === "+6",
+          "gold powers and unused-move gold are broken down without duplication");
+        assert($("roundCompleteBossProgress").value === 1 &&
+          $("roundCompleteBossCount").textContent === "1 / 3" &&
+          $("roundCompleteBossSteps").children.length === 3,
+          "first round shows progress one of three toward the boss");
+        assert($("roundCompleteContinue").textContent.includes("round 2") &&
+          $("roundCompleteShop").textContent.includes("Visit shop"),
+          "both round progression choices are available");
+        await width(320);
+        assert($("roundCompleteDialog").getBoundingClientRect().width <=
+          frame.clientWidth + 1,
+          "round-complete pop-in fits a phone viewport");
+        const cancel = new win.Event("cancel", { cancelable: true });
+        $("roundCompleteDialog").dispatchEvent(cancel);
+        assert(cancel.defaultPrevented && $("roundCompleteDialog").open,
+          "Escape cannot secretly dismiss the decision while the round remains cleared");
+        const completedWallet = JSON.parse(win.localStorage.getItem(key)).run.coins;
+        $("roundCompleteReturn").click();
+        assert($("titleScreen") && !$("titleScreen").hidden,
+          "the intermission offers a saved return to the title");
+        $("titleContinue").click();
+        const clearedSave = [...$("continueSlots").querySelectorAll("button")]
+          .find(button => button.getAttribute("aria-label")?.includes("Roguelike"));
+        assert(Boolean(clearedSave), "a round-clear save remains resumable");
+        clearedSave.click();
+        await tick();
+        assert($("roundCompleteDialog").open &&
+          JSON.parse(win.localStorage.getItem(key)).run.coins === completedWallet,
+          "resuming the intermission preserves rewards and reopens the decision");
+
+        $("roundCompleteShop").click();
+        await tick();
+        assert(!$("roundCompleteDialog").open && $("shopDialog").open,
+          "Visit shop closes intermission and opens the real saved merchant");
+        assert(JSON.parse(win.localStorage.getItem(key)).run.phase === "shop",
+          "shop stock is generated only when the shop is chosen");
+        $("shopContinue").click();
+        await tick();
+        assert(!$("shopDialog").open &&
+          JSON.parse(win.localStorage.getItem(key)).run.round === 2,
+          "normal shop route still starts the next round");
+
+        // The other choice must bypass *all* shop stock without inventing
+        // gold and still announce a boss when the next round is a boss.
+        $("headerTitle").click();
+        const skipBankSave = JSON.parse(win.localStorage.getItem(key));
+        skipBankSave.run.round = 2;
+        skipBankSave.run.phase = "round-clear";
+        skipBankSave.run.lastRoundReward = {
+          bankCoins: 1, moveCoins: 4, unusedMoves: 4, totalCoins: 5
+        };
+        skipBankSave.run.shop = null;
+        skipBankSave.run.coins = 13;
+        skipBankSave.score = 16;
+        win.localStorage.setItem(key, JSON.stringify(skipBankSave));
+        $("titleContinue").click();
+        const skipSaveButton = [...$("continueSlots").querySelectorAll("button")]
+          .find(button => button.getAttribute("aria-label")?.includes("Roguelike"));
+        skipSaveButton.click();
+        await tick();
+        assert($("roundCompleteDialog").open &&
+          $("roundCompleteBossProgress").value === 2,
+          "round 2 completion shows two steps toward round 3 boss");
+        assert($("roundCompleteBossLabel").textContent.includes("Next round:"),
+          "an imminent boss encounter is announced");
+        $("roundCompleteContinue").click();
+        await tick();
+        const skippedRun = JSON.parse(win.localStorage.getItem(key)).run;
+        assert(skippedRun.round === 3 && skippedRun.phase === "playing" &&
+          skippedRun.shop === null && skippedRun.coins === 13,
+          "Skip shop starts the boss round with original wallet and no shop offers");
+        assert(!$("roundCompleteDialog").open && !$("shopDialog").open &&
+          $("bossIntroDialog").open,
+          "skipping the shop still presents the next boss introduction");
+        $("bossIntroSkip").click();
+        assert(!$("bossIntroDialog").open,
+          "boss introduction can be dismissed to play after skipping the shop");
+
         // Cause a genuine final move-budget loss without bypassing the
         // real engine, then inspect the honest final screen and share text.
         $("headerTitle").click();

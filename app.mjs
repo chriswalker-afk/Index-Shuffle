@@ -6,10 +6,10 @@ import {
   restoreMoveBudget, spendMove, slideCost, creditCorrectBank, gameEnded
 } from "./engine.mjs?v=runestones-pass2";
 import { newRogueliteRun, targetForRound, stageForRound, isBossRound,
-  recordRogueliteBank, advanceRogueliteRound, validRogueliteRun,
+  recordRogueliteBank, advanceRogueliteRound, skipRogueliteShop, validRogueliteRun,
   restoreRogueliteRun, markGoldSpawns, goldTier, goldForBank,
   bankSecondsForRound, INITIAL_BANK_SECONDS
-} from "./roguelite.mjs?v=runestones-pass2";
+} from "./roguelite.mjs?v=round-intermission-v1";
 import {
   restoreShopState, enterRogueliteShop, rerollRogueliteShop
 } from "./shop.mjs?v=runestones-pass4";
@@ -56,6 +56,8 @@ import { ENCHANTMENT_ITEMS, ENCHANTMENT_DEFINITIONS,
   restoreEnchantmentLayer, activeEnchantmentCount, previewEnchantedBank,
   redeemEnchantedBank, resolveSlideEnchantments } from "./enchantments.mjs?v=runestones-pass2";
 import { renderEnchantmentLayer } from "./enchantment-ui.mjs?v=runestones-pass3";
+import { renderRoundCompleteDialog
+} from "./round-complete-ui.mjs?v=round-intermission-v1";
 import {
   renderHazardLayer, hazardTileDescription
 } from "./hazard-ui.mjs?v=hazard-counter-v1-art-pass4";
@@ -426,7 +428,7 @@ function render() {
   $("helpRogueBlock").hidden = !rogue;
   $("rogueEndSummary").hidden = !rogue || state.run.phase !== "victory";
   $("roundClearPanel").hidden = !rogue || state.run.phase !== "round-clear";
-  $("nextRound").textContent = "Visit shop";
+  $("nextRound").textContent = "View round summary";
   $("endActions").querySelector("strong").textContent = rogue && state.run.phase === "victory"
     ? "Run completed!" : "Run finished";
   if (rogue) {
@@ -780,7 +782,7 @@ function render() {
       ITEM_BY_ID[state.run.inventory.consumables[selection.slot].id].name +
       ". This does not use a move."
     : rogue && state.run.phase === "round-clear"
-    ? "Round cleared! Your shop visit is next."
+    ? "Round cleared! Choose the shop or start the next round in your summary."
     : rogue && state.run.phase === "shop"
     ? "Shop open: choose items, reroll, or save your coins."
     : rogue && state.run.phase === "victory"
@@ -802,6 +804,7 @@ function render() {
   $("endActions").hidden = !state.over && !(rogue && state.run.phase === "victory");
   renderRogueliteInventory(state, rogue, beginConsumable, slot =>
     canActivateConsumable(state, slot));
+  renderRoundCompleteDialog(state, mode, screen);
   renderRogueliteShop(state, mode, applyShopAction);
   renderFinalScreen(mode, state, achievementProfile);
   renderActivity();
@@ -1106,7 +1109,7 @@ function focusAfterBank(index) {
   if (screen !== "game" || $("modal").open ||
       $("shopDialog").open || $("resultsDialog").open) return;
   if (mode === "roguelite" && state.run.phase === "round-clear") {
-    $("nextRound").focus({ preventScroll: true });
+    $("roundCompleteShop").focus({ preventScroll: true });
     return;
   }
   if (state.over || (mode === "roguelite" && state.run.phase === "victory")) {
@@ -1417,7 +1420,8 @@ function closeNavigationDialogs() {
   else closeBank();
   pendingItem = null;
   recentAchievementIds = [];
-  for (const id of ["shopDialog", "resultsDialog", "achievementsDialog", "bossIntroDialog"]) {
+  for (const id of ["roundCompleteDialog", "shopDialog", "resultsDialog",
+    "achievementsDialog", "bossIntroDialog"]) {
     if ($(id).open) $(id).close();
   }
 }
@@ -1498,8 +1502,10 @@ function resumeSavedGame(selected) {
   hideMoment();
   screen = "game";
   render();
-  // A Roguelike shop resumes in its modal, including its existing stock.
-  if (!$("shopDialog").open) $("headerTitle").focus();
+  // A saved shop or round-clear intermission resumes in its native modal.
+  if (!$("shopDialog").open && !$("roundCompleteDialog").open) {
+    $("headerTitle").focus();
+  }
 }
 
 function returnToTitle() {
@@ -1629,10 +1635,36 @@ $("achievementsClose").addEventListener("click",
   () => $("achievementsDialog").close());
 $("nextRound").addEventListener("click", () => {
   if (mode !== "roguelite" || state.run.phase !== "round-clear") return;
+  renderRoundCompleteDialog(state, mode, screen);
+});
+$("roundCompleteShop").addEventListener("click", () => {
+  if (screen !== "game" || mode !== "roguelite" ||
+      state.run.phase !== "round-clear") return;
   stopMotion();
+  $("roundCompleteDialog").close();
   state = enterRogueliteShop(state);
+  addActivity("shop", "Round " + state.run.round +
+    " complete. Visit the merchant before the next round.");
   render();
 });
+$("roundCompleteContinue").addEventListener("click", () => {
+  if (screen !== "game" || mode !== "roguelite" ||
+      state.run.phase !== "round-clear") return;
+  stopMotion();
+  $("roundCompleteDialog").close();
+  const completedRound = state.run.round;
+  state = skipRogueliteShop(state, Math.random, goldChancesForRun(state.run));
+  addActivity("round", "Skipped the shop after round " + completedRound +
+    ". Round " + state.run.round + " began with existing gold and upgrades.");
+  recentAchievementIds = [];
+  render();
+  const boss = bossForRound(state.run);
+  if (boss) showBossIntro(boss);
+});
+$("roundCompleteReturn").addEventListener("click", returnToTitle);
+// A saved round-clear state always needs a deliberate next action.
+// Escape cannot discard the summary or accidentally skip the shop.
+$("roundCompleteDialog").addEventListener("cancel", event => event.preventDefault());
 function applyShopAction(reducer, kind = null) {
   if (mode !== "roguelite" || state.run.phase !== "shop") return;
   try {
@@ -1729,8 +1761,9 @@ document.addEventListener("keydown", event => {
     return;
   }
   // Let arrow keys scroll the modal shop instead of swallowing them as slides.
-  if (screen !== "game" || $("shopDialog").open || $("bossIntroDialog").open ||
-      $("achievementsDialog").open || $("resultsDialog").open) return;
+  if (screen !== "game" || $("shopDialog").open || $("roundCompleteDialog").open ||
+      $("bossIntroDialog").open || $("achievementsDialog").open ||
+      $("resultsDialog").open) return;
   if (pendingItem !== null) {
     if (event.key === "Escape") { event.preventDefault(); cancelConsumable(); }
     return;

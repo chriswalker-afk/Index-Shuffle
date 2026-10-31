@@ -3322,3 +3322,231 @@ dialog.overlay > .dialog {
     border-width: 2px;
   }
 }
+
+
+/* Round-clear intermission — the next decision is always foregrounded, not
+   hidden in the HUD. All rewards and progress are rendered as real text. */
+.round-complete-dialog {
+  width: min(645px, calc(100% - 20px));
+  max-height: min(92dvh, 850px);
+  margin: auto;
+  padding: 0;
+  overflow-y: auto;
+  color: #eef8f5;
+  border: 2px solid #91e7cf;
+  border-radius: 22px;
+  background: radial-gradient(ellipse at 92% 4%, #38586d70, transparent 57%),
+    linear-gradient(150deg, #1d3548, #172338 78%);
+  box-shadow: 0 32px 85px #020716dd, inset 0 2px 0 #d9ffe73e;
+}
+.round-complete-dialog::backdrop {
+  background: #030a19e2;
+  backdrop-filter: blur(6px);
+}
+.round-complete-shell { padding: clamp(16px, 4vw, 28px); }
+.round-complete-topline {
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 8px; margin-bottom: 15px;
+}
+.round-complete-eyebrow {
+  color: #a2e8d2; font-size: 10px; font-weight: 950;
+  letter-spacing: .12em;
+}
+.round-complete-round {
+  padding: 7px 10px; border: 1px solid #86a6b5;
+  border-radius: 99px; background: #122b3cb8;
+  font-size: 10px; font-weight: 900; letter-spacing: .08em;
+}
+.round-complete-hero {
+  display: flex; justify-content: space-between; align-items: center;
+  gap: 15px; margin-bottom: 16px;
+}
+.round-complete-kicker {
+  margin: 0 0 5px; color: #f6d18e; font-size: 10px;
+  font-weight: 900; letter-spacing: .12em;
+}
+.round-complete-hero h2 {
+  margin: 0 0 8px; color: #fbfff7;
+  font-size: clamp(29px, 6vw, 44px); line-height: 1.06;
+  letter-spacing: -.035em; font-weight: 950;
+}
+.round-complete-hero p:last-child {
+  margin: 0; max-width: 45ch; color: #c6dfe5;
+  font-size: 12px; line-height: 1.55;
+}
+.round-complete-seal {
+  flex: 0 0 77px; width: 77px; height: 77px;
+  display: grid; place-items: center; border-radius: 50%;
+  border: 2px solid #f8df9c;
+  background: radial-gradient(circle at 32% 26%, #fff1bd, #d99e4c 70%, #926328);
+  box-shadow: 0 0 0 6px #f0d48d22, 0 7px 22px #030a195e;
+  color: #4d340e; font-size: 42px; line-height: 1;
+  transform: rotate(-8deg);
+}
+.round-complete-boss-victory {
+  display: flex; align-items: center; gap: 12px;
+  padding: 9px 12px; margin: 0 0 13px;
+  border: 1px solid #f1c68e; border-radius: 12px;
+  background: linear-gradient(105deg, #594250, #23434a);
+}
+.round-complete-boss-victory[hidden] { display: none; }
+.round-complete-boss-victory img {
+  flex: 0 0 64px; width: 64px; height: 64px;
+  border: 2px solid #f4d9a9; border-radius: 10px;
+  object-fit: cover;
+}
+.round-complete-boss-victory span {
+  display: block; color: #ffdda5; font-size: 10px;
+  font-weight: 950; letter-spacing: .12em;
+}
+.round-complete-boss-victory strong {
+  display: block; margin-top: 4px; font-size: 17px; color: #fff4e0;
+}
+.round-complete-scoreboard {
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px; margin: 0 0 11px;
+}
+.round-complete-stat {
+  min-width: 0; display: flex; flex-direction: column;
+  padding: 12px; border: 1px solid #526c7d;
+  border-radius: 12px; background: #101e33b9;
+}
+.round-complete-stat > span {
+  color: #adcbda; font-size: 9px;
+  font-weight: 900; letter-spacing: .11em;
+}
+.round-complete-stat strong {
+  margin: 5px 0 4px; color: #f0fff9;
+  font-size: clamp(25px, 5vw, 37px); line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+.round-complete-stat--gold strong { color: #ffe2a1; }
+.round-complete-stat small {
+  font-size: 10px; line-height: 1.4; color: #aac8d8;
+}
+.round-complete-breakdown {
+  border: 1px solid #47667b; border-radius: 11px;
+  padding: 10px 13px; margin-bottom: 13px; background: #14273b;
+}
+.round-complete-breakdown > div {
+  display: flex; gap: 10px; justify-content: space-between;
+  padding: 5px 0; color: #d3e1eb; font-size: 11px;
+  line-height: 1.45;
+}
+.round-complete-breakdown strong { color: #fae0ab; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.round-complete-breakdown .round-complete-breakdown-total {
+  border-top: 1px solid #6e8a9688;
+  margin-top: 4px; padding-top: 9px; font-weight: 900;
+}
+.round-complete-breakdown-total strong { font-size: 16px; }
+.round-complete-boss-track {
+  padding: 13px; margin: 0 0 15px;
+  border: 1px solid #6b729e; border-radius: 13px;
+  background: linear-gradient(110deg, #282c49, #172d42);
+}
+.round-complete-boss-heading {
+  display: flex; justify-content: space-between;
+  align-items: start; gap: 12px;
+}
+.round-complete-boss-kicker {
+  color: #e6c9a2; font-weight: 900; font-size: 9px; letter-spacing: .1em;
+}
+.round-complete-boss-heading h3 {
+  font-size: 15px; margin: 5px 0 4px; color: #fff3dc;
+}
+.round-complete-boss-heading p {
+  margin: 0 0 9px; color: #b8cfdf; font-size: 11px; line-height: 1.4;
+}
+.round-complete-boss-count {
+  flex: 0 0 auto; border-radius: 8px; padding: 6px 8px;
+  color: #dbfff2; background: #245365;
+  font-size: 14px; font-weight: 950; font-variant-numeric: tabular-nums;
+}
+.round-complete-boss-track progress {
+  width: 100%; height: 8px; border: 0; border-radius: 20px;
+  overflow: hidden; background: #101e34;
+  accent-color: #9cead6;
+}
+.round-complete-boss-track progress::-webkit-progress-bar { background: #101e34; border-radius: 20px; }
+.round-complete-boss-track progress::-webkit-progress-value { background: #91e7cf; border-radius: 20px; }
+.round-complete-boss-track progress::-moz-progress-bar { background: #91e7cf; }
+.round-complete-boss-steps {
+  list-style: none; display: grid;
+  grid-template-columns: repeat(3, minmax(0,1fr));
+  gap: 9px; padding: 0; margin: 9px 0 0;
+}
+.round-complete-boss-step {
+  display: flex; gap: 6px; align-items: center;
+  color: #adbdcf; font-size: 9px; line-height: 1.3;
+}
+.round-complete-boss-dot {
+  flex: 0 0 22px; display: grid; place-items: center;
+  width: 22px; height: 22px; border-radius: 50%;
+  border: 1px solid #74899f; color: #d7e1f3; background: #1c3045;
+  font-size: 11px; font-weight: 900;
+}
+.round-complete-boss-step.is-complete .round-complete-boss-dot {
+  border-color: #b7ffe6; color: #143c3c; background: #a8ead5;
+}
+.round-complete-boss-step.is-boss .round-complete-boss-dot {
+  border-color: #e9ce93; color: #ffdfa0; background: #584557;
+}
+.round-complete-actions {
+  display: grid; grid-template-columns: repeat(2, minmax(0,1fr));
+  gap: 10px;
+}
+.round-complete-actions button {
+  min-height: 49px; padding: 10px 12px;
+  border-radius: 11px; font-size: 13px; font-weight: 900;
+}
+.round-complete-actions .round-complete-shop {
+  color: #0d3438; background: linear-gradient(120deg, #a4ffe0, #78ddc9);
+  border: 1px solid #a9ffe4;
+}
+.round-complete-actions .round-complete-continue {
+  color: #f0e6d5; background: #2d3651; border: 1px solid #9faac1;
+}
+.round-complete-actions button:hover { filter: brightness(1.08); }
+.round-complete-footnote {
+  margin: 8px 0 0; text-align: center; color: #b4cbd7;
+  font-size: 10px; line-height: 1.5;
+}
+.round-complete-return {
+  display: block; margin: 10px auto 0; padding: 7px 10px;
+  border: 0; background: transparent; color: #a6c7d3;
+  font-size: 11px; text-decoration: underline; cursor: pointer;
+}
+.round-complete-return:hover { color: #f4fff6; }
+@media (max-width: 540px) {
+  .round-complete-dialog { width: calc(100% - 12px); max-height: 95dvh; border-radius: 15px; }
+  .round-complete-shell { padding: 15px 13px; }
+  .round-complete-eyebrow { font-size: 9px; }
+  .round-complete-round { font-size: 9px; }
+  .round-complete-hero { gap: 9px; margin-bottom: 13px; }
+  .round-complete-hero h2 { font-size: clamp(27px, 8vw, 34px); }
+  .round-complete-seal { flex-basis: 50px; width: 50px; height: 50px; font-size: 30px; }
+  .round-complete-scoreboard { gap: 5px; }
+  .round-complete-stat { padding: 9px 7px; }
+  .round-complete-stat > span { font-size: 8px; }
+  .round-complete-stat strong { font-size: 26px; }
+  .round-complete-stat small { font-size: 9px; }
+  .round-complete-boss-step { flex-direction: column; align-items: flex-start; gap: 4px; }
+  .round-complete-actions { grid-template-columns: 1fr; gap: 8px; }
+}
+@media (max-height: 590px) {
+  .round-complete-dialog { max-height: calc(100dvh - 12px); }
+  .round-complete-shell { padding-block: 13px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .round-complete-dialog, .round-complete-seal { animation: none !important; }
+}
+@media (forced-colors: active) {
+  .round-complete-dialog, .round-complete-stat,
+  .round-complete-boss-track, .round-complete-breakdown {
+    border-color: CanvasText;
+  }
+  .round-complete-actions button:focus-visible,
+  .round-complete-return:focus-visible {
+    outline: 3px solid Highlight; outline-offset: 3px;
+  }
+}
