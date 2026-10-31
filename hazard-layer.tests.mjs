@@ -266,6 +266,6 @@ assert.match(app, /state\.board\.forEach\(\(t, i\) =>/);
 assert.match(app, /let result = slide\(before, direction, currentMovementRules\(\)\)/);
 assert.match(app, /progressHazardRound\(state\.board, state\.hazards, state\.run, nextMove/,
   "Hazard spawning now activates after a successful slide");
-assert.match(html, /styles\.css\?v=release-5c/);
-assert.match(html, /app\.mjs\?v=release-5c/);
+assert.match(html, /styles\.css\?v=round-intermission-v1/);
+assert.match(html, /app\.mjs\?v=round-intermission-v1/);
 console.log("All Index Shuffle hazard foundation Pass 1 tests passed.");
