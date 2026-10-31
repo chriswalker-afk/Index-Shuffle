@@ -1635,10 +1635,36 @@ $("achievementsClose").addEventListener("click",
   () => $("achievementsDialog").close());
 $("nextRound").addEventListener("click", () => {
   if (mode !== "roguelite" || state.run.phase !== "round-clear") return;
+  renderRoundCompleteDialog(state, mode, screen);
+});
+$("roundCompleteShop").addEventListener("click", () => {
+  if (screen !== "game" || mode !== "roguelite" ||
+      state.run.phase !== "round-clear") return;
   stopMotion();
+  $("roundCompleteDialog").close();
   state = enterRogueliteShop(state);
+  addActivity("shop", "Round " + state.run.round +
+    " complete. Visit the merchant before the next round.");
   render();
 });
+$("roundCompleteContinue").addEventListener("click", () => {
+  if (screen !== "game" || mode !== "roguelite" ||
+      state.run.phase !== "round-clear") return;
+  stopMotion();
+  $("roundCompleteDialog").close();
+  const completedRound = state.run.round;
+  state = skipRogueliteShop(state, Math.random, goldChancesForRun(state.run));
+  addActivity("round", "Skipped the shop after round " + completedRound +
+    ". Round " + state.run.round + " began with existing gold and upgrades.");
+  recentAchievementIds = [];
+  render();
+  const boss = bossForRound(state.run);
+  if (boss) showBossIntro(boss);
+});
+$("roundCompleteReturn").addEventListener("click", returnToTitle);
+// A saved round-clear state always needs a deliberate next action.
+// Escape cannot discard the summary or accidentally skip the shop.
+$("roundCompleteDialog").addEventListener("cancel", event => event.preventDefault());
 function applyShopAction(reducer, kind = null) {
   if (mode !== "roguelite" || state.run.phase !== "shop") return;
   try {
@@ -1735,8 +1761,9 @@ document.addEventListener("keydown", event => {
     return;
   }
   // Let arrow keys scroll the modal shop instead of swallowing them as slides.
-  if (screen !== "game" || $("shopDialog").open || $("bossIntroDialog").open ||
-      $("achievementsDialog").open || $("resultsDialog").open) return;
+  if (screen !== "game" || $("shopDialog").open || $("roundCompleteDialog").open ||
+      $("bossIntroDialog").open || $("achievementsDialog").open ||
+      $("resultsDialog").open) return;
   if (pendingItem !== null) {
     if (event.key === "Escape") { event.preventDefault(); cancelConsumable(); }
     return;
