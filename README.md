@@ -72,6 +72,21 @@ a new one instead.
 
 **World visual Pass 4:** The four Roguelike stages now have original panoramic environments: **The Observatory**, **The Mist Gardens**, **The Fracture Forge**, and **The Eclipse Vault**. The current-stage strip and its restrained panel accents update from the existing round number, while the maths board and tile colours remain untouched; Classic mode keeps its original screen. The title now shows a Numberworld gateway and illustrated four-stage journey. Each of the five square hazards has a compact original emblem in the existing overlay, warning and optional help guide, **without concealing any additional tile information**: only Cloudy hides a tile. The achievement cabinet has a new collectible presentation and **16 original medals**, rendered only for unlocked awards; locked awards retain their blacked-out/question-mark presentation and visible progress. Browse the [world and awards art gallery](https://chriswalker-afk.github.io/Index-Shuffle/world-gallery.html) without affecting saved progress. All visual enhancements are local SVG/CSS and introduce no gameplay changes.
 
+**Round-complete intermission:** Clearing any Roguelike round from 1–11
+now opens a dedicated, accessible **Round complete** pop-in. It shows the
+correctly banked round score against the target, gold earned from banked
+powers and unused moves, total wallet, and a three-step tracker towards
+the next boss (rounds 3, 6, 9 and 12). Defeating a boss also displays
+the defeated portrait and starts the next progress segment. Players
+choose **Visit shop** to open the existing merchant, or **Skip shop ·
+Start next round** to keep their coins and inventory and immediately
+advance. Skipping generates no offers, spends nothing, awards no extra
+coins and cannot be undone for that round; it still triggers any upcoming
+boss intro. A secondary **Save and return to title** action preserves the
+round-clear decision, which reappears after Continue or a browser refresh.
+The final round 12 instead retains the full victory results screen.
+No changes were made to score targets, gold payouts, movement or boss rules.
+
 **Boss timer progression (October 2026):** Roguelike banking questions start at 60 seconds and lose 10 seconds of available answering time after each defeated boss. Rounds 4, 7 and 10 introduce 50-, 40- and 30-second limits respectively; the final boss ends the run. The current limit appears in the banking question and maths help, and defeating a boss announces the next stage's shorter timer. Timers still pause on hidden tabs, and Classic retains its original 60 seconds. Existing saved runs resume at their correct round-based limit without migrations.
 
 **Final quality Pass 5:** The mobile gameplay page is **board-first** below 650px, with a new compact strip showing moves left, next slide cost and round target (Classic uses two columns). All 16 squares are still native buttons, with explicit row/column labels, a keyboard Skip to board link and accurately worded blocker banking instructions. The 60-second banking question now uses a **native focus-trapping dialog** and genuine `<sup>` notation (with spoken exponent text); cancelled/answered questions return keyboard focus to a sensible place. Screen-reader names never reveal a Cloudy tile. All original art remains available, but nonessential loading is deferred; movement animations are disabled for reduced-motion settings, hidden tabs and data-saving connections. The automated CI checks now include contrast and SVG payload budgets plus a **real headless Chrome smoke test at 320, 390, 650, 768 and 1200 pixels**, with workflow concurrency to avoid duplicate checks. See [Pass 5 QA and review checklist](QA_PASS5.md). Engine rules, currencies, bosses, inventory, achievements and saved-run keys are unchanged.
