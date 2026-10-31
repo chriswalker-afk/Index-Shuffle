@@ -33,6 +33,7 @@ export function roundCompletionSummary(state) {
     unusedMoves: reward.unusedMoves,
     totalCoins: reward.totalCoins,
     defeatedBoss: defeatedBoss?.name || null,
+    defeatedBossId: defeatedBoss?.id || null,
     nextBossRound, steps, progress,
     roundsToBoss: nextBossRound - round,
     // Keep the opponent a surprise until the next encounter is imminent.
