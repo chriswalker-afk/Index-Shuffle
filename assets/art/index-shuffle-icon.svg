@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-labelledby="title desc">
+  <title id="title">Index Shuffle icon</title>
+  <desc id="desc">A teal square containing the mathematical symbol x to the power n, with a gold tile corner.</desc>
+  <defs>
+    <linearGradient id="tile" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#a1f8e0"/>
+      <stop offset="1" stop-color="#5ac7ce"/>
+    </linearGradient>
+  </defs>
+  <rect x="1" y="1" width="62" height="62" rx="16" fill="#102038" stroke="#6388a2" stroke-width="2"/>
+  <rect x="5" y="5" width="54" height="54" rx="13" fill="url(#tile)"/>
+  <path d="M48 5h-4l15 15v-8a7 7 0 0 0-7-7Z" fill="#f5c978"/>
+  <text x="16" y="44" fill="#143942" font-family="Arial,Helvetica,sans-serif" font-size="41" font-weight="900">x</text>
+  <text x="40" y="26" fill="#143942" font-family="Arial,Helvetica,sans-serif" font-size="20" font-weight="900">n</text>
+</svg>

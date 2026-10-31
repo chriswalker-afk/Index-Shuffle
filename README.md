@@ -44,6 +44,16 @@ score summary. These additions do not change gameplay rules or timers.
 The guide dismissal preference uses a separate local key, and older
 game saves have no migration burden. See [5B QA and release checklist](QA_RELEASE_5B.md).
 
+**Release launch checks Pass 5C:** The site now has an original
+`xⁿ` favicon, canonical/share metadata, mobile safe-area and high-contrast
+CSS, safer keyboard focus after boss introductions, and expanded browser
+tests for 300px phones, short landscape dialogs and reduced motion.
+`release-audit.tests.mjs` checks local resources, labels, baseline
+contrast and asset budgets. No gameplay balance changes are introduced.
+**Manual iPhone Safari, Android Chrome, VoiceOver/NVDA and representative
+full-run playtests are still required before tagging an official release.**
+See [Pass 5C acceptance and release checklist](QA_RELEASE_5C.md).
+
 
 **Game over:** The final-score screen offers **Play again** (restart the same
 mode) and **Return to title**. Once dismissed, the results can still be viewed

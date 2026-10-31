@@ -48,6 +48,10 @@
         const doc = frame.contentDocument;
         const win = frame.contentWindow;
         const $ = id => doc.getElementById(id);
+        if (new URLSearchParams(location.search).has("expect-reduced")) {
+          assert(win.matchMedia("(prefers-reduced-motion: reduce)").matches,
+            "Chrome is actually emulating reduced-motion OS settings");
+        }
         assert(Boolean($("titleScreen") && !$("titleScreen").hidden),
           "title screen is visible and app module has initialized");
         assert($("titleNew") && !($("titleNew").disabled),
@@ -56,9 +60,17 @@
           win.localStorage.getItem("index-shuffle-roguelite-v1") === null,
           "visiting the title alone does not create a phantom game save");
         assert($("saveWarning").hidden, "save warning is hidden when storage works");
+        assert(doc.querySelector('link[rel="icon"]')?.getAttribute("href") ===
+          "assets/art/index-shuffle-icon.svg", "original branded favicon is linked");
+        assert(doc.querySelector('link[rel="canonical"]')?.href ===
+          "https://chriswalker-afk.github.io/Index-Shuffle/",
+          "canonical public release URL is correct");
+        assert(doc.querySelector('meta[property="og:title"]')?.content.includes("Index Shuffle"),
+          "share metadata describes the real game");
         assert($("modal") instanceof win.HTMLDialogElement,
           "banking uses a native dialog element");
         assert(!$("modal").open, "banking dialog starts closed");
+        await width(300);
         await width(320);
         await width(390);
         $("titleNew").click();
@@ -127,7 +139,7 @@
         await tick();
         assert(win.getComputedStyle(skipLink).clipPath !== "none",
           "skip link hides again after leaving focus");
-        for (const size of [320, 390, 650, 768, 1200]) {
+        for (const size of [300, 320, 390, 650, 768, 1200]) {
           await width(size);
           const isMobile = size <= 650;
           const barDisplay = win.getComputedStyle($("mobileStatus")).display;
@@ -142,6 +154,22 @@
           }
         }
         await width(390);
+        const summary = $("runDetails").querySelector("summary");
+        summary.focus();
+        const beforeReading = $("movesLeft").textContent;
+        doc.dispatchEvent(new win.KeyboardEvent("keydown", {
+          key: "ArrowDown", bubbles: true, cancelable: true
+        }));
+        assert($("movesLeft").textContent === beforeReading,
+          "reading collapsible run details with arrow keys does not spend moves");
+        const helpTrigger = doc.querySelector('[data-help="how"]');
+        helpTrigger.click();
+        assert($("helpDialog").open && $("helpTitle").textContent === "How to play",
+          "help opens as a labelled native modal");
+        assert($("helpDialog").getBoundingClientRect().width <= frame.clientWidth,
+          "instructions modal fits the available phone width");
+        $("helpClose").click();
+        assert(!$("helpDialog").open, "help closes and restores the playable board");
         const dialog = $("modal");
         dialog.showModal();
         $("answer").focus();
@@ -152,6 +180,10 @@
         dialog.close();
         assert(!dialog.open && win.getComputedStyle(dialog).display === "none",
           "native banking modal closes cleanly");
+        if (win.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+          assert(win.getComputedStyle($("rewardToast")).animationName === "none",
+            "reduced-motion users receive feedback without entry animation");
+        }
         $("headerTitle").click();
         assert(!$("titleScreen").hidden, "returning to title works");
         $("titleNew").click();
@@ -164,9 +196,26 @@
           "quick budget matches full HUD");
         assert($("mobileRoundScore").textContent === $("rogueScore").textContent,
           "quick target matches full HUD");
+        await width(300);
+        assert($("board").getBoundingClientRect().top < $("movesCard").getBoundingClientRect().top,
+          "Roguelike board-first layout holds at 300px");
         await width(320);
         assert($("board").getBoundingClientRect().top < $("movesCard").getBoundingClientRect().top,
           "Roguelike board-first layout holds at 320px");
+        // A preview-only modal geometry check, not a fake shop purchase.
+        const shopDialog = $("shopDialog");
+        shopDialog.showModal();
+        await tick();
+        assert(shopDialog.getBoundingClientRect().width <= frame.clientWidth + 1,
+          "shop modal fits a 320px phone");
+        frame.style.height = "360px";
+        await tick();
+        assert(shopDialog.getBoundingClientRect().height <= frame.clientHeight + 2 &&
+          ["auto", "scroll"].includes(win.getComputedStyle(shopDialog).overflowY),
+          "shop remains scrollable in short landscape-like viewports");
+        shopDialog.close();
+        frame.style.height = "900px";
+        await tick();
         assert($("stageSceneImage").getAttribute("src")?.includes("stage-observatory.svg"),
           "current-stage art is loaded only for the actual stage");
 

@@ -1677,7 +1677,9 @@ function showBossIntro(boss) {
 }
 function dismissBossIntro() {
   if ($("bossIntroDialog").open) $("bossIntroDialog").close();
-  $("headerTitle").focus();
+  // Return keyboard players to the game they are about to control,
+  // not to the Return-to-title button.
+  if (screen === "game") $("board").focus({ preventScroll: true });
 }
 $("bossIntroSkip").addEventListener("click", dismissBossIntro);
 $("bossIntroStart").addEventListener("click", dismissBossIntro);
@@ -1733,8 +1735,14 @@ document.addEventListener("keydown", event => {
     if (event.key === "Escape") { event.preventDefault(); cancelConsumable(); }
     return;
   }
+  const focused = document.activeElement;
+  // Reading the collapsible rules/history uses native summary keys.
+  // Never interpret a key used inside a text, select or editable control
+  // as a paid game slide.
   if ($("helpDialog").open || pending !== null ||
-      ["INPUT", "TEXTAREA"].includes(document.activeElement.tagName)) return;
+      ["INPUT", "TEXTAREA", "SELECT", "SUMMARY"].includes(focused?.tagName) ||
+      focused?.isContentEditable ||
+      focused?.closest("[role='textbox'],[role='combobox']")) return;
   const direction = keys[event.key];
   if (direction) { event.preventDefault(); move(direction); }
 });

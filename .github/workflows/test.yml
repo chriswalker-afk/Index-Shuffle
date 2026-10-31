@@ -25,6 +25,7 @@ jobs:
           node rescue.tests.mjs
           node save-safety.tests.mjs
           node experience.tests.mjs
+          node release-audit.tests.mjs
           node shop.tests.mjs
           node effects.tests.mjs
           node bosses.tests.mjs
@@ -61,6 +62,7 @@ jobs:
           node --check save-validation.mjs
           node --check experience.mjs
           node --check experience.tests.mjs
+          node --check release-audit.tests.mjs
           node --check shop.mjs
           node --check shop-ui.mjs
           node --check shop.tests.mjs
@@ -112,6 +114,8 @@ jobs:
           test -f save-validation.mjs
           test -f experience.mjs
           test -f experience.tests.mjs
+          test -f release-audit.tests.mjs
+          test -f assets/art/index-shuffle-icon.svg
           test -f shop.mjs
           test -f shop-ui.mjs
           test -f effects.mjs
@@ -159,8 +163,9 @@ jobs:
           test -f quality-pass5.tests.mjs
           test -f qa/browser-smoke.html
           test -f QA_PASS5.md
-      - name: Validate item sprite XML
-        run: python3 -c "import xml.etree.ElementTree as ET; ET.parse('assets/art/item-sprites.svg')"
+      - name: Validate original favicon and item sprite XML
+        run: |
+          python3 -c "import xml.etree.ElementTree as ET; ET.parse('assets/art/index-shuffle-icon.svg'); ET.parse('assets/art/item-sprites.svg')"
       - name: Validate all boss portrait SVGs
         run: |
           python3 -c "import glob, xml.etree.ElementTree as ET; [ET.parse(path) for path in glob.glob('assets/art/boss-*.svg')]"
@@ -192,3 +197,29 @@ jobs:
             exit 1
           fi
           grep -o "PASS: [0-9]* interactive layout/semantics checks" /tmp/index-shuffle-browser.log | head -n 1
+      - name: Re-run mobile and modal smoke test with reduced motion
+        run: |
+          CHROME="$(command -v google-chrome || command -v chromium || command -v chromium-browser || true)"
+          if [ -z "$CHROME" ]; then
+            echo "Chrome / Chromium is unavailable on this runner"
+            exit 1
+          fi
+          python3 -m http.server 8766 --bind 127.0.0.1 > /tmp/index-shuffle-reduced-http.log 2>&1 &
+          SERVER_PID="$!"
+          trap 'kill "$SERVER_PID" || true' EXIT
+          for attempt in 1 2 3 4 5 6 7 8 9 10; do
+            if curl -fsS http://127.0.0.1:8766/ > /dev/null; then break; fi
+            sleep 0.2
+          done
+          "$CHROME" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage \
+            --no-first-run --hide-scrollbars --force-prefers-reduced-motion=reduce \
+            --virtual-time-budget=18000 --dump-dom \
+            http://127.0.0.1:8766/qa/browser-smoke.html?expect-reduced=1 \
+            > /tmp/index-shuffle-reduced-browser.log 2> /tmp/index-shuffle-reduced-chrome.log
+          if ! grep -q 'data-result="pass"' /tmp/index-shuffle-reduced-browser.log; then
+            echo "Reduced-motion browser smoke test failed:"
+            tail -n 110 /tmp/index-shuffle-reduced-browser.log
+            tail -n 30 /tmp/index-shuffle-reduced-chrome.log
+            exit 1
+          fi
+          grep -o "PASS: [0-9]* interactive layout/semantics checks" /tmp/index-shuffle-reduced-browser.log | head -n 1
