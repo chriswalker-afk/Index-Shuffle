@@ -107,6 +107,6 @@ export function formatShareSummary(mode, summary, ending) {
   rows.push("Correct banks: " + pretty(summary.banks),
     "Slides: " + pretty(summary.slides),
     "Best bank: +" + pretty(summary.bestSingleBank) + " points",
-    "Play: https://chriswalker-afk.github.io/Index-Shuffle/");
+    "Play: https://indices.mrwalkermaths.com/");
   return rows.join("\n");
 }
