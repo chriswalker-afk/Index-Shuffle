@@ -13,7 +13,7 @@ assert.match(html, /<html lang="en">/);
 assert.match(html, /<meta name="viewport" content="width=device-width, initial-scale=1">/);
 assert.match(html, /<meta name="description" content="[^"]{75,}">/);
 assert.match(html, /<meta name="color-scheme" content="dark">/);
-assert.match(html, /<link rel="canonical" href="https:\/\/chriswalker-afk\.github\.io\/Index-Shuffle\/">/);
+assert.match(html, /<link rel="canonical" href="https:\/\/indices\.mrwalkermaths\.com\/">/);
 for (const name of ["og:title","og:type","og:description","og:site_name",
   "og:url"]) {
   assert.match(html,new RegExp('property="' + name + '"'),

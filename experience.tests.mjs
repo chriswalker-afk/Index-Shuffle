@@ -61,7 +61,7 @@ assert.match(summary,/Rounds cleared: 6\/12/);
 assert.match(summary,/Bosses defeated: 2\/4/);
 assert.match(summary,/Gold earned: 17/);
 assert.match(summary,/Best bank: \+14 points/);
-assert.match(summary,/https:\/\/chriswalker-afk.github.io\/Index-Shuffle\//);
+assert.match(summary,/https:\/\/indices\.mrwalkermaths\.com\//);
 const classic=formatShareSummary("classic",{...rogue,score:70},trapped);
 assert.match(classic,/INDEX SHUFFLE · Classic/);
 assert.doesNotMatch(classic,/Bosses defeated/);
